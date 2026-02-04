@@ -541,6 +541,10 @@
 
     let currentSlide = 0;
     let slideInterval;
+    
+    const commonInputs = [
+  { id: "contact", label: "Kontak (WA/Telegram)", type: "text", placeholder: "Contoh: @username / 628xx" }
+];
 
     // ===== DATABASE: APP PREMIUM (HARGA DEFAULT 0) =====
     const database = {
@@ -548,9 +552,7 @@
         name: "Netflix",
         icon: "fas fa-film",
         keuntungan: "✨ <b>KEUNTUNGAN NETFLIX:</b><br><br>✅ Proses cepat<br>✅ Support 24/7<br>✅ Aman & trusted",
-        inputs: [
-          { id: "contact", label: "Kontak (WA/Telegram)", type: "text", placeholder: "Contoh: @username / 628xx" }
-        ],
+        inputs: commonInputs,
         packages: [
           { id: "nf-1u1d", name: "1u1d", price: 3.000, specs: [{ icon: "fa-clock", text: "Durasi: 1 hari" }, { icon: "fa-user", text: "Slot: 1 user" }] },
           { id: "nf-2u1d", name: "2u1d", price: 2.000, specs: [{ icon: "fa-clock", text: "Durasi: 1 hari" }, { icon: "fa-user-friends", text: "Slot: 2 user" }] },
@@ -561,56 +563,7 @@
           { id: "nf-semipriv", name: "Semipriv", price: 27.000, badge: "recommend", specs: [{ icon: "fa-calendar", text: "Durasi: 1 bulan" }, { icon: "fa-user-friends", text: "Slot: Private" }] },
         ]
       },
-
-      other: {
-        name: "Other Apps",
-        icon: "fas fa-layer-group",
-        keuntungan: "✨ <b>OTHER APPS:</b><br><br>✅ Banyak pilihan app<br>✅ Proses cepat<br>✅ Support 24/7",
-        inputs: [
-          { id: "contact", label: "Kontak (WA/Telegram)", type: "text", placeholder: "Contoh: @username / 628xx" }
-        ],
-        packages: [
-          { id: "ot-wink-7h", name: "Wink 7h", price: 0, specs: [{ icon: "fa-clock", text: "Durasi: 7 hari" }] },
-          { id: "ot-viu-1y", name: "VIU 1y", price: 0, specs: [{ icon: "fa-calendar", text: "Durasi: 1 tahun" }] },
-          { id: "ot-viu-life", name: "VIU Lifetime", price: 0, badge: "best", specs: [{ icon: "fa-infinity", text: "Durasi: Lifetime" }] },
-          { id: "ot-vidio-tv", name: "Vidio TV", price: 0, specs: [{ icon: "fa-tv", text: "Tipe: TV" }] },
-          { id: "ot-meitu", name: "Meitu", price: 0, specs: [{ icon: "fa-camera", text: "Edit" }] },
-          { id: "ot-zoom", name: "Zoom", price: 0, specs: [{ icon: "fa-video", text: "Meeting" }] },
-
-          { id: "ot-bstation-7h", name: "Bstation 7h", price: 0, specs: [{ icon: "fa-clock", text: "Durasi: 7 hari" }] },
-          { id: "ot-bstation-1b", name: "Bstation 1b", price: 0, specs: [{ icon: "fa-calendar", text: "Durasi: 1 bulan" }] },
-
-          { id: "ot-cc-7d", name: "CC 7d", price: 0, specs: [{ icon: "fa-credit-card", text: "Durasi: 7 hari" }] },
-          { id: "ot-cc-24d", name: "CC 24d", price: 0, specs: [{ icon: "fa-credit-card", text: "Durasi: 24 hari" }] },
-          { id: "ot-cc-35d", name: "CC 35d", price: 0, specs: [{ icon: "fa-credit-card", text: "Durasi: 35 hari" }] },
-
-          { id: "ot-yt-famp-1b", name: "YT FAMP 1b", price: 0, specs: [{ icon: "fa-youtube", text: "Durasi: 1 bulan" }] },
-          { id: "ot-yt-indp-1b", name: "YT INDP 1b", price: 0, specs: [{ icon: "fa-youtube", text: "Durasi: 1 bulan" }] },
-          { id: "ot-yt-famhead-1b", name: "YT FAMHEAD 1b", price: 0, badge: "popular", specs: [{ icon: "fa-youtube", text: "Durasi: 1 bulan" }] },
-
-          { id: "ot-prime-1b", name: "Prime Video 1b", price: 0, specs: [{ icon: "fa-play", text: "Durasi: 1 bulan" }] },
-
-          { id: "ot-picsart-7h", name: "Picsart 7h", price: 0, specs: [{ icon: "fa-clock", text: "Durasi: 7 hari" }] },
-          { id: "ot-picsart-1b", name: "Picsart 1b", price: 0, specs: [{ icon: "fa-calendar", text: "Durasi: 1 bulan" }] },
-
-          { id: "ot-meitu-7d", name: "Meitu 7d", price: 0, specs: [{ icon: "fa-clock", text: "Durasi: 7 hari" }] },
-          { id: "ot-youku-1b", name: "Youku 1b", price: 0, specs: [{ icon: "fa-calendar", text: "Durasi: 1 bulan" }] },
-          { id: "ot-wetv-1b", name: "WeTV 1b", price: 0, specs: [{ icon: "fa-calendar", text: "Durasi: 1 bulan" }] },
-
-          { id: "ot-canva-1b", name: "Canva 1b", price: 0, specs: [{ icon: "fa-calendar", text: "Durasi: 1 bulan" }] },
-          { id: "ot-canva-1y", name: "Canva 1y", price: 0, specs: [{ icon: "fa-calendar", text: "Durasi: 1 tahun" }] },
-          { id: "ot-canva-design-1b", name: "Canva Design 1b", price: 0, specs: [{ icon: "fa-pen-nib", text: "Tipe: Design" }, { icon: "fa-calendar", text: "Durasi: 1 bulan" }] },
-          { id: "ot-canva-life", name: "Canva Lifetime", price: 0, badge: "best", specs: [{ icon: "fa-infinity", text: "Durasi: Lifetime" }] },
-          { id: "ot-canva-adm-1b", name: "Canva Adm 1b", price: 0, specs: [{ icon: "fa-user-shield", text: "Tipe: Admin" }, { icon: "fa-calendar", text: "Durasi: 1 bulan" }] },
-          { id: "ot-canva-head-1b", name: "Canva Head 1b", price: 0, specs: [{ icon: "fa-crown", text: "Tipe: Head" }, { icon: "fa-calendar", text: "Durasi: 1 bulan" }] },
-
-          { id: "ot-iqiyi-std-1b", name: "iQIYI STD 1b", price: 0, specs: [{ icon: "fa-calendar", text: "Durasi: 1 bulan" }] },
-          { id: "ot-iqiyi-prem-1b", name: "iQIYI PREM 1b", price: 0, specs: [{ icon: "fa-gem", text: "Tipe: Premium" }, { icon: "fa-calendar", text: "Durasi: 1 bulan" }] },
-
-          { id: "ot-wibuku-1b", name: "Wibuku 1b", price: 0, specs: [{ icon: "fa-book", text: "Durasi: 1 bulan" }] }
-        ]
-      },
-
+      
       canva: {
         name: "Canva",
         icon: "fas fa-palette",
@@ -1206,13 +1159,6 @@
       renderCategories();
       pilihKategori('netflix'); // default ke Netflix
       updateCartCount();
-
-      // overlay tambahan (biar aman)
-      const overlay = document.createElement('div');
-      overlay.id = 'sidebar-overlay';
-      overlay.className = 'fixed inset-0 bg-black/50 backdrop-blur-sm z-40 hidden';
-      overlay.onclick = toggleMenu;
-      document.body.appendChild(overlay);
     };
   </script>
 </body>
