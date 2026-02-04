@@ -515,13 +515,13 @@
     </p>
 
     <div class="flex justify-center gap-4 mb-6">
-      <a href="https://wa.me/6281235980179" class="w-12 h-12 rounded-xl bg-gradient-to-r from-green-500 to-green-600 flex items-center justify-center text-white hover:shadow-lg hover:shadow-green-500/30 transition-all">
+      <a href="https://wa.me/62895326859614" class="w-12 h-12 rounded-xl bg-gradient-to-r from-green-500 to-green-600 flex items-center justify-center text-white hover:shadow-lg hover:shadow-green-500/30 transition-all">
         <i class="fab fa-whatsapp text-lg"></i>
       </a>
-      <a href="https://t.me/kynastore21" class="w-12 h-12 rounded-xl bg-gradient-to-r from-blue-500 to-blue-600 flex items-center justify-center text-white hover:shadow-lg hover:shadow-blue-500/30 transition-all">
+      <a href="https://t.me/TangsBoys" class="w-12 h-12 rounded-xl bg-gradient-to-r from-blue-500 to-blue-600 flex items-center justify-center text-white hover:shadow-lg hover:shadow-blue-500/30 transition-all">
         <i class="fab fa-telegram text-lg"></i>
       </a>
-      <a href="https://instagram.com/_autin.kynaa" class="w-12 h-12 rounded-xl bg-gradient-to-r from-utama to-utama/80 flex items-center justify-center text-white hover:shadow-lg hover:shadow-utama/30 transition-all">
+      <a href="https://instagram.com/Tangskyyy" class="w-12 h-12 rounded-xl bg-gradient-to-r from-utama to-utama/80 flex items-center justify-center text-white hover:shadow-lg hover:shadow-utama/30 transition-all">
         <i class="fab fa-instagram text-lg"></i>
       </a>
     </div>
@@ -536,8 +536,8 @@
   </footer>
 
   <script>
-    const WA_NUMBER = "6281235980179";
-    const TELEGRAM_USER = "kynastore21";
+    const WA_NUMBER = "62895326859614";
+    const TELEGRAM_USER = "TangsBoys";
 
     let currentSlide = 0;
     let slideInterval;
@@ -669,9 +669,148 @@
         name: "Zoom",
         icon: "fas fa-video",
         keuntungan: "✨ <b>ZOOM:</b><br><br>✅ Proses cepat<br>✅ Support 24/7<br>✅ Aman & trusted",
+ // ===== DATABASE: APP PREMIUM (HARGA DEFAULT 0) =====
+    const database = {
+      netflix: {
+        name: "Netflix",
+        icon: "fas fa-film",
+        keuntungan: "✨ <b>KEUNTUNGAN NETFLIX:</b><br><br>✅ Proses cepat<br>✅ Support 24/7<br>✅ Aman & trusted",
         inputs: commonInputs,
         packages: [
-          { id: "zoom", name: "Zoom", price: 0, specs: [{ icon: "fa-clock", text: "Durasi: - (isi nanti)" }] }
+          { id: "nf-1u1d", name: "1u1d", price: 3000, specs: [{ icon: "fa-clock", text: "Durasi: 1 hari" }, { icon: "fa-user", text: "Slot: 1 user" }] },
+          { id: "nf-2u1d", name: "2u1d", price: 2000, specs: [{ icon: "fa-clock", text: "Durasi: 1 hari" }, { icon: "fa-user-friends", text: "Slot: 2 user" }] },
+          { id: "nf-1u7d", name: "1u7d", price: 10000, specs: [{ icon: "fa-clock", text: "Durasi: 7 hari" }, { icon: "fa-user", text: "Slot: 1 user" }] },
+          { id: "nf-2u7d", name: "2u7d", price: 9000, specs: [{ icon: "fa-clock", text: "Durasi: 7 hari" }, { icon: "fa-user-friends", text: "Slot: 2 user" }] },
+          { id: "nf-1u1b", name: "1u1b", price: 23000, specs: [{ icon: "fa-calendar", text: "Durasi: 1 bulan" }, { icon: "fa-user", text: "Slot: 1 user" }] },
+          { id: "nf-2u1b", name: "2u1b", price: 15000, specs: [{ icon: "fa-calendar", text: "Durasi: 1 bulan" }, { icon: "fa-user-friends", text: "Slot: 2 user" }] },
+          { id: "nf-semipriv", name: "Semipriv", price: 27000, badge: "recommend", specs: [{ icon: "fa-calendar", text: "Durasi: 1 bulan" }, { icon: "fa-user-friends", text: "Slot: Private" }] },
+        ]
+      },
+      
+      canva: {
+        name: "Canva",
+        icon: "fas fa-palette",
+        keuntungan: "✨ <b>CANVA:</b><br><br>✅ Proses cepat<br>✅ Support 24/7<br>✅ Aman & trusted",
+        inputs: commonInputs,
+        packages: [
+          { id: "cv-1b", name: "Canva 1b", price: 4000, specs: [{ icon: "fa-calendar", text: "Durasi: 1 bulan" }] },
+          { id: "cv-1y", name: "Canva 1y", price: 5000, specs: [{ icon: "fa-calendar", text: "Durasi: 1 tahun" }] },
+          { id: "cv-design-1b", name: "Canva Design 1b", price: 6000, specs: [{ icon: "fa-calendar", text: "Durasi: 1 bulan" }] },
+          { id: "cv-life", name: "Canva Lifetime", price: 9000, badge: "best", specs: [{ icon: "fa-infinity", text: "Durasi: Lifetime" }] },
+          { id: "cv-adm-1b", name: "Canva Admin 1b", price: 7000, specs: [{ icon: "fa-calendar", text: "Durasi: 1 bulan" }] },
+          { id: "cv-adm-lifetime", name: "Canva Admin Lifetime", price: 12000, specs: [{ icon: "fa-calendar", text: "Durasi: 1 bulan" }] },
+          { id: "cv-head-1b", name: "Canva Head 1b", price: 10000, specs: [{ icon: "fa-calendar", text: "Durasi: 1 bulan" }] }
+        ]
+      },
+
+      youtube: {
+        name: "YouTube",
+        icon: "fab fa-youtube",
+        keuntungan: "✨ <b>YOUTUBE:</b><br><br>✅ Proses cepat<br>✅ Support 24/7<br>✅ Aman & trusted",
+        inputs: commonInputs,
+        packages: [
+          { id: "yt-famp-1b", name: "Youtube Familyplan 1b", price: 4000, specs: [{ icon: "fa-calendar", text: "Durasi: 1 bulan" }] },
+          { id: "yt-indp-1b", name: "YouTube Indeplan 1b", price: 5000, specs: [{ icon: "fa-calendar", text: "Durasi: 1 bulan" }] },
+          { id: "yt-famhead-1b", name: "YouTube Familiy Head 1b", price: 10000, badge: "popular", specs: [{ icon: "fa-calendar", text: "Durasi: 1 bulan" }] }
+        ]
+      },
+      
+      chatgpt: {
+        name: "ChatGPT",
+        icon: "fas fa-robot",
+        keuntungan: "✨ <b>NOTE CHATGPT:</b><br><br>✅ All fullgar<br>✅ Wajib SS login untuk klaim garansi<br>✅ Fast respon • Aman & trusted",
+        inputs: commonInputs,
+        packages: [
+          { id: "cg-1b-8u", name: "Chatgpt Sharing", price: 8000, specs: [{ icon: "fa-calendar", text: "Durasi: 1 bulan" }] },
+          { id: "cg-1b-gar-7h-inv", name: "Chatgpt Garansi 7h", price: 10000, specs: [{ icon: "fa-calendar", text: "Durasi: 1 bulan" }] },
+          { id: "cg-1b-inv-fullgar", name: "Chatgpt fullgar", price: 13000, specs: [{ icon: "fa-calendar", text: "Durasi: 1 bulan" }] },
+          { id: "cg-1y-plan-go", name: "ChatGpt plan go", price: 17000, specs: [{ icon: "fa-calendar", text: "Durasi: 1 tahun" }] },
+          { id: "cg-1b-head-inv-5email", name: "Chatgpt head inv 5 email", price: 18000, specs: [{ icon: "fa-calendar", text: "Durasi: 1 bulan" }] }
+        ]
+      },
+
+      iqiyi: {
+        name: "iQIYI",
+        icon: "fas fa-tv",
+        keuntungan: "✨ <b>IQIYI:</b><br><br>✅ Proses cepat<br>✅ Support 24/7<br>✅ Aman & trusted",
+        inputs: commonInputs,
+        packages: [
+          { id: "iq-std-1b", name: "iQIYI STD 1b", price: 8000, specs: [{ icon: "fa-calendar", text: "Durasi: 1 bulan" }] },
+          { id: "iq-prem-1b", name: "iQIYI PREM 1b", price: 10000, specs: [{ icon: "fa-calendar", text: "Durasi: 1 bulan" }] },
+          { id: "iq-prem-1y", name: "iQIYI PREM 1y", price: 15000, badge: "recommend", specs: [{ icon: "fa-calendar", text: "Durasi: 1 tahun" }] }
+        ]
+      },
+
+      viu: {
+        name: "VIU",
+        icon: "fas fa-play-circle",
+        keuntungan: "✨ <b>VIU:</b><br><br>✅ Proses cepat<br>✅ Support 24/7<br>✅ Aman & trusted",
+        inputs: commonInputs,
+        packages: [
+          { id: "viu-1y", name: "VIU 1y", price: 5000, specs: [{ icon: "fa-calendar", text: "Durasi: 1 tahun" }] },
+          { id: "viu-life", name: "VIU Lifetime", price: 8000, badge: "best", specs: [{ icon: "fa-infinity", text: "Durasi: Lifetime" }] }
+        ]
+      },
+
+      prime: {
+        name: "Prime Video",
+        icon: "fas fa-clapperboard",
+        keuntungan: "✨ <b>PRIME VIDEO:</b><br><br>✅ Proses cepat<br>✅ Support 24/7<br>✅ Aman & trusted",
+        inputs: commonInputs,
+        packages: [
+          { id: "prime-1b", name: "Prime Video 1b", price: 8000, specs: [{ icon: "fa-calendar", text: "Durasi: 1 bulan" }] }
+        ]
+      },
+
+      wetv: {
+        name: "WeTV",
+        icon: "fas fa-video",
+        keuntungan: "✨ <b>WETV:</b><br><br>✅ Proses cepat<br>✅ Support 24/7<br>✅ Aman & trusted",
+        inputs: commonInputs,
+        packages: [
+          { id: "wetv-1b", name: "WeTV 1b", price: 8000, specs: [{ icon: "fa-calendar", text: "Durasi: 1 bulan" }] }
+        ]
+      },
+
+      youku: {
+        name: "Youku",
+        icon: "fas fa-play",
+        keuntungan: "✨ <b>YOUKU:</b><br><br>✅ Proses cepat<br>✅ Support 24/7<br>✅ Aman & trusted",
+        inputs: commonInputs,
+        packages: [
+          { id: "youku-1b", name: "Youku 1b", price: 8000, specs: [{ icon: "fa-calendar", text: "Durasi: 1 bulan" }] }
+        ]
+      },
+
+      picsart: {
+        name: "Picsart",
+        icon: "fas fa-image",
+        keuntungan: "✨ <b>PICSART:</b><br><br>✅ Proses cepat<br>✅ Support 24/7<br>✅ Aman & trusted",
+        inputs: commonInputs,
+        packages: [
+          { id: "picsart-7h", name: "Picsart 7h", price: 4500, specs: [{ icon: "fa-clock", text: "Durasi: 7 hari" }] },
+          { id: "picsart-1b", name: "Picsart 1b", price: 7000, specs: [{ icon: "fa-calendar", text: "Durasi: 1 bulan" }] }
+        ]
+      },
+
+      meitu: {
+        name: "Meitu",
+        icon: "fas fa-camera-retro",
+        keuntungan: "✨ <b>MEITU:</b><br><br>✅ Proses cepat<br>✅ Support 24/7<br>✅ Aman & trusted",
+        inputs: commonInputs,
+        packages: [
+          { id: "meitu-7d", name: "Meitu 7d", price: 3000, specs: [{ icon: "fa-clock", text: "Durasi: 7 hari" }] },
+          { id: "meitu-other", name: "Meitu (Lainnya)", price: 0, specs: [{ icon: "fa-clock", text: "Durasi: - " }] }
+        ]
+      },
+
+      zoom: {
+        name: "Zoom",
+        icon: "fas fa-video",
+        keuntungan: "✨ <b>ZOOM:</b><br><br>✅ Proses cepat<br>✅ Support 24/7<br>✅ Aman & trusted",
+        inputs: commonInputs,
+        packages: [
+          { id: "zoom", name: "Zoom", price: 4000, specs: [{ icon: "fa-clock", text: "Durasi: 1 bulan " }] }
         ]
       },
 
@@ -681,7 +820,7 @@
         keuntungan: "✨ <b>VIDIO:</b><br><br>✅ Proses cepat<br>✅ Support 24/7<br>✅ Aman & trusted",
         inputs: commonInputs,
         packages: [
-          { id: "vidio-tv", name: "Vidio TV", price: 0, specs: [{ icon: "fa-clock", text: "Durasi: - (isi nanti)" }] }
+          { id: "vidio-tv", name: "Vidio only TV", price: 0, specs: [{ icon: "fa-clock", text: "Durasi: 1 tahun" }] }
         ]
       },
 
@@ -691,20 +830,20 @@
         keuntungan: "✨ <b>BSTATION:</b><br><br>✅ Proses cepat<br>✅ Support 24/7<br>✅ Aman & trusted",
         inputs: commonInputs,
         packages: [
-          { id: "bst-7h", name: "Bstation 7h", price: 0, specs: [{ icon: "fa-clock", text: "Durasi: 7 hari" }] },
-          { id: "bst-1b", name: "Bstation 1b", price: 0, specs: [{ icon: "fa-calendar", text: "Durasi: 1 bulan" }] }
+          { id: "bst-7h", name: "Bstation 7h", price: 3000, specs: [{ icon: "fa-clock", text: "Durasi: 7 hari" }] },
+          { id: "bst-1b", name: "Bstation 1b", price: 6000, specs: [{ icon: "fa-calendar", text: "Durasi: 1 bulan" }] }
         ]
       },
 
       cc: {
-        name: "CC",
+        name: "Capcut",
         icon: "fas fa-credit-card",
         keuntungan: "✨ <b>CC:</b><br><br>✅ Proses cepat<br>✅ Support 24/7<br>✅ Aman & trusted",
         inputs: commonInputs,
         packages: [
-          { id: "cc-7d", name: "CC 7d", price: 0, specs: [{ icon: "fa-clock", text: "Durasi: 7 hari" }] },
-          { id: "cc-24d", name: "CC 24d", price: 0, specs: [{ icon: "fa-clock", text: "Durasi: 24 hari" }] },
-          { id: "cc-35d", name: "CC 35d", price: 0, specs: [{ icon: "fa-clock", text: "Durasi: 35 hari" }] }
+          { id: "cc-7d", name: "Capcut 7d", price: 3000, specs: [{ icon: "fa-clock", text: "Durasi: 7 hari" }] },
+          { id: "cc-24d", name: "Capcut 24d", price: 5000, specs: [{ icon: "fa-clock", text: "Durasi: 24 hari" }] },
+          { id: "cc-35d", name: "Capcut 35d", price: 8000, specs: [{ icon: "fa-clock", text: "Durasi: 35 hari" }] }
         ]
       },
 
@@ -714,7 +853,7 @@
         keuntungan: "✨ <b>WINK:</b><br><br>✅ Proses cepat<br>✅ Support 24/7<br>✅ Aman & trusted",
         inputs: commonInputs,
         packages: [
-          { id: "wink-7h", name: "Wink 7h", price: 0, specs: [{ icon: "fa-clock", text: "Durasi: 7 hari" }] }
+          { id: "wink-7h", name: "Wink 7h", price: 3000, specs: [{ icon: "fa-clock", text: "Durasi: 7 hari" }] }
         ]
       },
 
@@ -724,7 +863,7 @@
         keuntungan: "✨ <b>WIBUKU:</b><br><br>✅ Proses cepat<br>✅ Support 24/7<br>✅ Aman & trusted",
         inputs: commonInputs,
         packages: [
-          { id: "wibuku-1b", name: "Wibuku 1b", price: 0, specs: [{ icon: "fa-calendar", text: "Durasi: 1 bulan" }] }
+          { id: "wibuku-1b", name: "Wibuku 1b", price: 6000, specs: [{ icon: "fa-calendar", text: "Durasi: 1 bulan" }] }
         ]
       }
     };
