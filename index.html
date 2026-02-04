@@ -552,13 +552,13 @@
           { id: "contact", label: "Kontak (WA/Telegram)", type: "text", placeholder: "Contoh: @username / 628xx" }
         ],
         packages: [
-          { id: "nf-1u1d", name: "1u1d", price: 0, specs: [{ icon: "fa-clock", text: "Durasi: 1 hari" }, { icon: "fa-user", text: "Slot: 1 user" }] },
-          { id: "nf-2u1d", name: "2u1d", price: 0, specs: [{ icon: "fa-clock", text: "Durasi: 1 hari" }, { icon: "fa-user-friends", text: "Slot: 2 user" }] },
-          { id: "nf-1u7d", name: "1u7d", price: 0, specs: [{ icon: "fa-clock", text: "Durasi: 7 hari" }, { icon: "fa-user", text: "Slot: 1 user" }] },
-          { id: "nf-2u7d", name: "2u7d", price: 0, specs: [{ icon: "fa-clock", text: "Durasi: 7 hari" }, { icon: "fa-user-friends", text: "Slot: 2 user" }] },
-          { id: "nf-1u1b", name: "1u1b", price: 0, specs: [{ icon: "fa-calendar", text: "Durasi: 1 bulan" }, { icon: "fa-user", text: "Slot: 1 user" }] },
-          { id: "nf-2u1b", name: "2u1b", price: 0, specs: [{ icon: "fa-calendar", text: "Durasi: 1 bulan" }, { icon: "fa-user-friends", text: "Slot: 2 user" }] },
-          { id: "nf-semipriv", name: "Semipriv", price: 0, badge: "recommend", specs: [{ icon: "fa-lock", text: "Tipe: Semi Private" }, { icon: "fa-shield-alt", text: "Support: Aktif" }] }
+          { id: "nf-1u1d", name: "1u1d", price: 3.000, specs: [{ icon: "fa-clock", text: "Durasi: 1 hari" }, { icon: "fa-user", text: "Slot: 1 user" }] },
+          { id: "nf-2u1d", name: "2u1d", price: 2.000, specs: [{ icon: "fa-clock", text: "Durasi: 1 hari" }, { icon: "fa-user-friends", text: "Slot: 2 user" }] },
+          { id: "nf-1u7d", name: "1u7d", price: 10.000, specs: [{ icon: "fa-clock", text: "Durasi: 7 hari" }, { icon: "fa-user", text: "Slot: 1 user" }] },
+          { id: "nf-2u7d", name: "2u7d", price: 9.000, specs: [{ icon: "fa-clock", text: "Durasi: 7 hari" }, { icon: "fa-user-friends", text: "Slot: 2 user" }] },
+          { id: "nf-1u1b", name: "1u1b", price: 23.000, specs: [{ icon: "fa-calendar", text: "Durasi: 1 bulan" }, { icon: "fa-user", text: "Slot: 1 user" }] },
+          { id: "nf-2u1b", name: "2u1b", price: 15.000, specs: [{ icon: "fa-calendar", text: "Durasi: 1 bulan" }, { icon: "fa-user-friends", text: "Slot: 2 user" }] },
+          { id: "nf-semipriv", name: "Semipriv", price: 27.000, badge: "recommend", specs: [{ icon: "fa-calendar", text: "Durasi: 1 bulan" }, { icon: "fa-user-friends", text: "Slot: Private" }] },
         ]
       },
 
@@ -611,23 +611,167 @@
         ]
       },
 
-      nokos: {
-        name: "Nokos",
-        icon: "fas fa-sim-card",
-        keuntungan: "✨ <b>NOKOS:</b><br><br>✅ Ready metode<br>✅ Proses cepat<br>✅ Support 24/7",
-        inputs: [
-          { id: "contact", label: "Kontak (WA/Telegram)", type: "text", placeholder: "Contoh: @username / 628xx" }
-        ],
+      canva: {
+        name: "Canva",
+        icon: "fas fa-palette",
+        keuntungan: "✨ <b>CANVA:</b><br><br>✅ Proses cepat<br>✅ Support 24/7<br>✅ Aman & trusted",
+        inputs: commonInputs,
         packages: [
-          { id: "nk-nogar", name: "Nogar", price: 0, badge: "popular", specs: [{ icon: "fa-sim-card", text: "Tipe: Nokos" }] },
-          { id: "nk-gopay", name: "Gopay", price: 0, specs: [{ icon: "fa-wallet", text: "Metode: E-Wallet" }] },
-          { id: "nk-dana", name: "Dana", price: 0, specs: [{ icon: "fa-wallet", text: "Metode: E-Wallet" }] },
-          { id: "nk-shopee", name: "Shopee", price: 0, specs: [{ icon: "fa-store", text: "Metode: Platform" }] },
-          { id: "nk-gojek", name: "Gojek", price: 0, specs: [{ icon: "fa-motorcycle", text: "Metode: Platform" }] },
-          { id: "nk-gar-1b", name: "Gar 1b", price: 0, specs: [{ icon: "fa-calendar", text: "Durasi: 1 bulan" }] },
-          { id: "nk-gar-3b", name: "Gar 3b", price: 0, specs: [{ icon: "fa-calendar", text: "Durasi: 3 bulan" }] },
-          { id: "nk-karmat", name: "Karmat", price: 0, badge: "recommend", specs: [{ icon: "fa-shield-alt", text: "Tipe: Special" }] },
-          { id: "nk-life", name: "Lifetime", price: 0, badge: "best", specs: [{ icon: "fa-infinity", text: "Durasi: Lifetime" }] }
+          { id: "cv-1b", name: "Canva 1b", price: 0, specs: [{ icon: "fa-calendar", text: "Durasi: 1 bulan" }] },
+          { id: "cv-1y", name: "Canva 1y", price: 0, specs: [{ icon: "fa-calendar", text: "Durasi: 1 tahun" }] },
+          { id: "cv-design-1b", name: "Canva Design 1b", price: 0, specs: [{ icon: "fa-calendar", text: "Durasi: 1 bulan" }] },
+          { id: "cv-life", name: "Canva Lifetime", price: 0, badge: "best", specs: [{ icon: "fa-infinity", text: "Durasi: Lifetime" }] },
+          { id: "cv-adm-1b", name: "Canva Admin 1b", price: 0, specs: [{ icon: "fa-calendar", text: "Durasi: 1 bulan" }] },
+          { id: "cv-head-1b", name: "Canva Head 1b", price: 0, specs: [{ icon: "fa-calendar", text: "Durasi: 1 bulan" }] }
+        ]
+      },
+
+      youtube: {
+        name: "YouTube",
+        icon: "fab fa-youtube",
+        keuntungan: "✨ <b>YOUTUBE:</b><br><br>✅ Proses cepat<br>✅ Support 24/7<br>✅ Aman & trusted",
+        inputs: commonInputs,
+        packages: [
+          { id: "yt-famp-1b", name: "YT FAMP 1b", price: 0, specs: [{ icon: "fa-calendar", text: "Durasi: 1 bulan" }] },
+          { id: "yt-indp-1b", name: "YT INDP 1b", price: 0, specs: [{ icon: "fa-calendar", text: "Durasi: 1 bulan" }] },
+          { id: "yt-famhead-1b", name: "YT FAMHEAD 1b", price: 0, badge: "popular", specs: [{ icon: "fa-calendar", text: "Durasi: 1 bulan" }] }
+        ]
+      },
+
+      iqiyi: {
+        name: "iQIYI",
+        icon: "fas fa-tv",
+        keuntungan: "✨ <b>IQIYI:</b><br><br>✅ Proses cepat<br>✅ Support 24/7<br>✅ Aman & trusted",
+        inputs: commonInputs,
+        packages: [
+          { id: "iq-std-1b", name: "iQIYI STD 1b", price: 0, specs: [{ icon: "fa-calendar", text: "Durasi: 1 bulan" }] },
+          { id: "iq-prem-1b", name: "iQIYI PREM 1b", price: 0, badge: "recommend", specs: [{ icon: "fa-calendar", text: "Durasi: 1 bulan" }] }
+        ]
+      },
+
+      viu: {
+        name: "VIU",
+        icon: "fas fa-play-circle",
+        keuntungan: "✨ <b>VIU:</b><br><br>✅ Proses cepat<br>✅ Support 24/7<br>✅ Aman & trusted",
+        inputs: commonInputs,
+        packages: [
+          { id: "viu-1y", name: "VIU 1y", price: 0, specs: [{ icon: "fa-calendar", text: "Durasi: 1 tahun" }] },
+          { id: "viu-life", name: "VIU Lifetime", price: 0, badge: "best", specs: [{ icon: "fa-infinity", text: "Durasi: Lifetime" }] }
+        ]
+      },
+
+      prime: {
+        name: "Prime Video",
+        icon: "fas fa-clapperboard",
+        keuntungan: "✨ <b>PRIME VIDEO:</b><br><br>✅ Proses cepat<br>✅ Support 24/7<br>✅ Aman & trusted",
+        inputs: commonInputs,
+        packages: [
+          { id: "prime-1b", name: "Prime Video 1b", price: 0, specs: [{ icon: "fa-calendar", text: "Durasi: 1 bulan" }] }
+        ]
+      },
+
+      wetv: {
+        name: "WeTV",
+        icon: "fas fa-video",
+        keuntungan: "✨ <b>WETV:</b><br><br>✅ Proses cepat<br>✅ Support 24/7<br>✅ Aman & trusted",
+        inputs: commonInputs,
+        packages: [
+          { id: "wetv-1b", name: "WeTV 1b", price: 0, specs: [{ icon: "fa-calendar", text: "Durasi: 1 bulan" }] }
+        ]
+      },
+
+      youku: {
+        name: "Youku",
+        icon: "fas fa-play",
+        keuntungan: "✨ <b>YOUKU:</b><br><br>✅ Proses cepat<br>✅ Support 24/7<br>✅ Aman & trusted",
+        inputs: commonInputs,
+        packages: [
+          { id: "youku-1b", name: "Youku 1b", price: 0, specs: [{ icon: "fa-calendar", text: "Durasi: 1 bulan" }] }
+        ]
+      },
+
+      picsart: {
+        name: "Picsart",
+        icon: "fas fa-image",
+        keuntungan: "✨ <b>PICSART:</b><br><br>✅ Proses cepat<br>✅ Support 24/7<br>✅ Aman & trusted",
+        inputs: commonInputs,
+        packages: [
+          { id: "picsart-7h", name: "Picsart 7h", price: 0, specs: [{ icon: "fa-clock", text: "Durasi: 7 hari" }] },
+          { id: "picsart-1b", name: "Picsart 1b", price: 0, specs: [{ icon: "fa-calendar", text: "Durasi: 1 bulan" }] }
+        ]
+      },
+
+      meitu: {
+        name: "Meitu",
+        icon: "fas fa-camera-retro",
+        keuntungan: "✨ <b>MEITU:</b><br><br>✅ Proses cepat<br>✅ Support 24/7<br>✅ Aman & trusted",
+        inputs: commonInputs,
+        packages: [
+          { id: "meitu-7d", name: "Meitu 7d", price: 0, specs: [{ icon: "fa-clock", text: "Durasi: 7 hari" }] },
+          { id: "meitu-other", name: "Meitu (Lainnya)", price: 0, specs: [{ icon: "fa-clock", text: "Durasi: - (isi nanti)" }] }
+        ]
+      },
+
+      zoom: {
+        name: "Zoom",
+        icon: "fas fa-video",
+        keuntungan: "✨ <b>ZOOM:</b><br><br>✅ Proses cepat<br>✅ Support 24/7<br>✅ Aman & trusted",
+        inputs: commonInputs,
+        packages: [
+          { id: "zoom", name: "Zoom", price: 0, specs: [{ icon: "fa-clock", text: "Durasi: - (isi nanti)" }] }
+        ]
+      },
+
+      vidio: {
+        name: "Vidio",
+        icon: "fas fa-tv",
+        keuntungan: "✨ <b>VIDIO:</b><br><br>✅ Proses cepat<br>✅ Support 24/7<br>✅ Aman & trusted",
+        inputs: commonInputs,
+        packages: [
+          { id: "vidio-tv", name: "Vidio TV", price: 0, specs: [{ icon: "fa-clock", text: "Durasi: - (isi nanti)" }] }
+        ]
+      },
+
+      bstation: {
+        name: "Bstation",
+        icon: "fas fa-compact-disc",
+        keuntungan: "✨ <b>BSTATION:</b><br><br>✅ Proses cepat<br>✅ Support 24/7<br>✅ Aman & trusted",
+        inputs: commonInputs,
+        packages: [
+          { id: "bst-7h", name: "Bstation 7h", price: 0, specs: [{ icon: "fa-clock", text: "Durasi: 7 hari" }] },
+          { id: "bst-1b", name: "Bstation 1b", price: 0, specs: [{ icon: "fa-calendar", text: "Durasi: 1 bulan" }] }
+        ]
+      },
+
+      cc: {
+        name: "CC",
+        icon: "fas fa-credit-card",
+        keuntungan: "✨ <b>CC:</b><br><br>✅ Proses cepat<br>✅ Support 24/7<br>✅ Aman & trusted",
+        inputs: commonInputs,
+        packages: [
+          { id: "cc-7d", name: "CC 7d", price: 0, specs: [{ icon: "fa-clock", text: "Durasi: 7 hari" }] },
+          { id: "cc-24d", name: "CC 24d", price: 0, specs: [{ icon: "fa-clock", text: "Durasi: 24 hari" }] },
+          { id: "cc-35d", name: "CC 35d", price: 0, specs: [{ icon: "fa-clock", text: "Durasi: 35 hari" }] }
+        ]
+      },
+
+      wink: {
+        name: "Wink",
+        icon: "fas fa-wand-magic-sparkles",
+        keuntungan: "✨ <b>WINK:</b><br><br>✅ Proses cepat<br>✅ Support 24/7<br>✅ Aman & trusted",
+        inputs: commonInputs,
+        packages: [
+          { id: "wink-7h", name: "Wink 7h", price: 0, specs: [{ icon: "fa-clock", text: "Durasi: 7 hari" }] }
+        ]
+      },
+
+      wibuku: {
+        name: "Wibuku",
+        icon: "fas fa-book",
+        keuntungan: "✨ <b>WIBUKU:</b><br><br>✅ Proses cepat<br>✅ Support 24/7<br>✅ Aman & trusted",
+        inputs: commonInputs,
+        packages: [
+          { id: "wibuku-1b", name: "Wibuku 1b", price: 0, specs: [{ icon: "fa-calendar", text: "Durasi: 1 bulan" }] }
         ]
       }
     };
@@ -783,7 +927,9 @@
       `).join('');
 
       const grid = document.getElementById('grid-produk');
-      grid.innerHTML = database[key].packages.map(item => {
+      const sortedPackages = [...database[key].packages].sort((a, b) => (a.price || 0) - (b.price || 0));
+
+        grid.innerHTML = sortedPackages.map(item => {
         const isSelected = selectedProducts.includes(item.id);
         const badge = item.badge ?
           `<span class="${item.badge === 'popular' ? 'popular-badge' : item.badge === 'recommend' ? 'recommend-badge' : 'best-badge'} text-[9px] text-white px-3 py-1.5 rounded-full font-black absolute -top-2 -right-2 z-10 shadow-lg">
