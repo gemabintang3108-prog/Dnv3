@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Sistem Absensi Dzuhur Pro</title>
+    <title>Sistem Absensi Dzuhur Sma 12</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/html5-qrcode"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
@@ -24,7 +24,7 @@
             DZUHUR CHECK-IN
         </h1>
         <div class="mt-4 flex flex-col items-center">
-            <p class="text-[10px] text-gray-500 mb-2 uppercase italic font-bold tracking-widest">Pilih Kelas Aktif (Khusus Guru):</p>
+            <p class="text-[10px] text-gray-500 mb-2 uppercase italic font-bold tracking-widest">Pilih Kelas Kamu:</p>
             <select id="active-class-selector" onchange="changeActiveClass()" class="bg-gray-800 border-2 border-cyan-500 p-2 rounded-xl text-cyan-400 font-bold outline-none">
                 </select>
         </div>
@@ -33,13 +33,13 @@
     <div class="flex justify-center mb-6 px-4">
         <div class="glass p-1.5 rounded-2xl flex gap-2">
             <button onclick="switchTab('admin')" id="btn-admin" class="py-3 px-6 rounded-xl font-bold active-tab text-sm">🎫 BUAT KARTU</button>
-            <button onclick="switchTab('scan')" id="btn-scan" class="py-3 px-6 rounded-xl font-bold text-gray-400 text-sm">📷 SCAN GURU</button>
+            <button onclick="switchTab('scan')" id="btn-scan" class="py-3 px-6 rounded-xl font-bold text-gray-400 text-sm">📷 SCAN KARTU</button>
         </div>
     </div>
 
     <div id="modal-login" class="fixed inset-0 bg-black/95 backdrop-blur-md z-[60] flex items-center justify-center hidden p-4">
         <div class="glass w-full max-w-sm p-8 rounded-[3rem] border border-cyan-500/30 text-center">
-            <h2 class="text-2xl font-bold text-white mb-2">🔒 Area Guru</h2>
+            <h2 class="text-2xl font-bold text-white mb-2">🔒 Area Penanggung Jawab</h2>
             <p class="text-xs text-gray-400 mb-6 font-bold uppercase tracking-widest">Gunakan Password untuk Akses Scanner</p>
             <div class="space-y-4">
                 <input type="password" id="login-pass" placeholder="Password Guru" class="w-full bg-gray-900 border border-gray-700 p-4 rounded-2xl outline-none text-white focus:border-cyan-500 text-center text-lg tracking-widest">
@@ -67,23 +67,40 @@
         </section>
 
         <section id="tab-scan" class="hidden space-y-4">
-            <div class="glass p-4 rounded-[2rem] border-2 border-cyan-500/20 relative">
-                <div id="reader" class="w-full mx-auto overflow-hidden rounded-2xl"></div>
-                <div id="scan-feedback" class="absolute inset-0 flex items-center justify-center rounded-[2rem] hidden z-10 transition-all">
-                    <div id="feedback-content" class="text-center text-white p-6 rounded-2xl shadow-2xl">
-                        <div id="check-icons" class="text-5xl mb-2 tracking-widest"></div>
-                        <p id="scanned-name" class="text-2xl font-black uppercase"></p>
-                        <p id="scanned-info" class="text-sm opacity-80 font-bold"></p>
-                    </div>
-                </div>
+    <div class="flex gap-2">
+        <button id="btn-start-cam" onclick="startScanner()" class="flex-1 py-4 bg-cyan-600 text-white font-bold rounded-2xl shadow-lg flex items-center justify-center gap-2">
+            📷 NYALAKAN KAMERA
+        </button>
+        <button id="btn-stop-cam" onclick="stopScanner()" class="hidden flex-1 py-4 bg-red-600 text-white font-bold rounded-2xl shadow-lg flex items-center justify-center gap-2">
+            🛑 MATIKAN KAMERA
+        </button>
+    </div>
+
+    <div class="glass p-4 rounded-[2rem] border-2 border-cyan-500/20 relative min-h-[200px] flex items-center justify-center">
+        <div id="reader" class="w-full mx-auto overflow-hidden rounded-2xl"></div>
+        
+        <div id="cam-placeholder" class="text-gray-600 text-center space-y-2">
+            <div class="text-4xl">📷</div>
+            <p class="text-[10px] font-bold uppercase tracking-widest">Kamera Non-Aktif</p>
+        </div>
+
+        <div id="scan-feedback" class="absolute inset-0 flex items-center justify-center rounded-[2rem] hidden z-10 transition-all">
+            <div id="feedback-content" class="text-center text-white p-6 rounded-2xl shadow-2xl">
+                <div id="check-icons" class="text-5xl mb-2 tracking-widest"></div>
+                <p id="scanned-name" class="text-2xl font-black uppercase"></p>
+                <p id="scanned-info" class="text-sm opacity-80 font-bold"></p>
             </div>
-            <button onclick="document.getElementById('modal-manual').classList.remove('hidden')" class="w-full py-3 glass rounded-xl text-xs font-bold text-cyan-400">⌨️ INPUT MANUAL (TANPA QR)</button>
-            
-            <div class="glass p-5 rounded-[2rem]">
-                <h3 id="log-title" class="font-bold text-gray-400 text-[10px] uppercase tracking-[0.2em] mb-4">Log Kehadiran Hari Ini</h3>
-                <div id="log-list" class="space-y-3 max-h-80 overflow-y-auto pr-2"></div>
-            </div>
-        </section>
+        </div>
+    </div>
+    
+    <button onclick="document.getElementById('modal-manual').classList.remove('hidden')" class="w-full py-3 glass rounded-xl text-xs font-bold text-cyan-400">⌨️ INPUT MANUAL (GURU)</button>
+    
+    <div class="glass p-5 rounded-[2rem]">
+        <h3 id="log-title" class="font-bold text-gray-400 text-[10px] uppercase tracking-[0.2em] mb-4">Log Kehadiran Hari Ini</h3>
+        <div id="log-list" class="space-y-3 max-h-80 overflow-y-auto pr-2"></div>
+    </div>
+</section>
+
 
     </main>
 
@@ -164,28 +181,88 @@
             switchTab('admin');
         }
 
-        function startScanner() {
-            if(html5QrScanner) html5QrScanner.stop();
-            html5QrScanner = new Html5Qrcode("reader");
-            html5QrScanner.start({ facingMode: "environment" }, { fps: 20, qrbox: 250 }, async (text) => {
-                const [nama, kelas, absen] = text.split('|');
-                if(kelas !== currentClass) return alert(`Ini anak ${kelas}, bapak/ibu sedang buka absen ${currentClass}!`);
-                prosesAbsen(nama, kelas, absen);
-            });
-        }
+        // Fungsi menyalakan kamera
+function startScanner() {
+    // Sembunyikan placeholder & tombol mulai
+    document.getElementById('cam-placeholder').classList.add('hidden');
+    document.getElementById('btn-start-cam').classList.add('hidden');
+    document.getElementById('btn-stop-cam').classList.remove('hidden');
+
+    if (html5QrScanner) {
+        html5QrScanner.start({ facingMode: "environment" }, { fps: 20, qrbox: 250 }, async (text) => {
+            const [nama, kelas, absen] = text.split('|');
+            if(kelas !== currentClass) return alert(`Ini anak ${kelas}, bapak/ibu sedang buka absen ${currentClass}!`);
+            prosesAbsen(nama, kelas, absen);
+        });
+    } else {
+        html5QrScanner = new Html5Qrcode("reader");
+        startScanner(); // Ulangi sekali lagi setelah init
+    }
+}
+
+// Fungsi mematikan kamera
+async function stopScanner() {
+    if (html5QrScanner && html5QrScanner.isScanning) {
+        await html5QrScanner.stop();
+    }
+    // Munculkan kembali placeholder & tombol mulai
+    document.getElementById('cam-placeholder').classList.remove('hidden');
+    document.getElementById('btn-start-cam').classList.remove('hidden');
+    document.getElementById('btn-stop-cam').classList.add('hidden');
+}
+
+// Modifikasi switchTab agar tidak otomatis nyalain kamera
+function switchTab(tab) {
+    if (tab === 'scan' && !isGuruLoggedIn) {
+        document.getElementById('modal-login').classList.remove('hidden');
+        return;
+    }
+    
+    // Matikan kamera kalau pindah tab
+    if (tab !== 'scan') stopScanner();
+
+    document.getElementById('tab-admin').classList.toggle('hidden', tab !== 'admin');
+    document.getElementById('tab-scan').classList.toggle('hidden', tab !== 'scan');
+    document.getElementById('btn-admin').classList.toggle('active-tab', tab === 'admin');
+    document.getElementById('btn-admin').classList.toggle('text-gray-400', tab !== 'admin');
+    document.getElementById('btn-scan').classList.toggle('active-tab', tab === 'scan');
+    document.getElementById('btn-scan').classList.toggle('text-gray-400', tab !== 'scan');
+}
+
 
         async function prosesAbsen(nama, kelas, absen) {
-            const today = new Date().toLocaleDateString('id-ID');
-            if (localDB.find(d => d.Nama === nama && d.Tanggal === today)) return alert("Anak ini sudah absen hari ini!");
+    const now = new Date();
+    const today = now.toLocaleDateString('id-ID');
+    
+    // LOGIKA SESI: Jika sebelum jam 12, masuk sesi A. Jika sesudah jam 12, masuk sesi B.
+    const sesiSekarang = now.getHours() < 12 ? "PAGI" : "SIANG";
 
-            const count = localDB.filter(d => d.Nama === nama).length + 1;
-            const payload = { Nama: nama, Kelas: kelas, Absen: absen, Jam: new Date().toLocaleTimeString('id-ID'), Tanggal: today, KehadiranKe: count };
-            
-            showFeedback("BERHASIL", nama, `Hadir ke-${count} (Kelas ${kelas})`, "bg-green-600");
-            localDB.push(payload);
-            renderLog();
-            syncToGithub();
-        }
+    // Cek apakah sudah absen di sesi yang sama hari ini
+    const sudahAbsenSesiIni = localDB.find(d => {
+        const jamData = parseInt(d.Jam.split(':')[0]);
+        const sesiData = jamData < 12 ? "PAGI" : "SIANG";
+        return d.Nama === nama && d.Tanggal === today && sesiData === sesiSekarang;
+    });
+
+    if (sudahAbsenSesiIni) {
+        return alert("Kamu sudah absen untuk sesi Dzuhur ini! Coba lagi nanti setelah jam 12 siang.");
+    }
+
+    const count = localDB.filter(d => d.Nama === nama).length + 1;
+    const payload = { 
+        Nama: nama, 
+        Kelas: kelas, 
+        Absen: absen, 
+        Jam: now.toLocaleTimeString('id-ID'), 
+        Tanggal: today, 
+        KehadiranKe: count 
+    };
+    
+    showFeedback("BERHASIL", nama, `Sesi Baru | Hadir ke-${count}`, "bg-green-600");
+    localDB.push(payload);
+    renderLog();
+    syncToGithub();
+}
 
         async function syncToGithub() {
             const gid = GIST_MAP[currentClass];
