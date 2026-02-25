@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>QR-Absensi Pro - GitHub Cloud</title>
+    <title>Absensi Dzuhur Digital</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/html5-qrcode"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
@@ -12,34 +12,37 @@
     <style>
         body { font-family: 'Plus Jakarta Sans', sans-serif; background-color: #0d1117; color: #c9d1d9; }
         .glass { background: rgba(22, 27, 34, 0.8); backdrop-filter: blur(10px); border: 1px solid #30363d; }
-        .active-tab { background: #238636; color: white; box-shadow: 0 0 15px rgba(35, 134, 54, 0.4); }
+        .active-tab { background: #0891b2; color: white; box-shadow: 0 0 15px rgba(8, 145, 178, 0.4); }
         #reader { border: none !important; border-radius: 1.5rem; overflow: hidden; }
-        .neon-text { color: #58a6ff; text-shadow: 0 0 8px rgba(88, 166, 255, 0.3); }
     </style>
 </head>
 <body class="pb-10">
 
     <header class="py-6 text-center">
-        <h1 class="text-3xl font-extrabold bg-gradient-to-r from-green-400 to-blue-500 bg-clip-text text-transparent italic">
-            QR-ABSENSI CLOUD
+        <h1 class="text-3xl font-extrabold bg-gradient-to-r from-cyan-400 to-blue-500 bg-clip-text text-transparent italic">
+            DZUHUR CHECK-IN
         </h1>
-        <p class="text-[10px] tracking-[0.2em] text-gray-500 mt-1 uppercase">Status: <span id="db-status" class="text-yellow-500">Connecting...</span></p>
+        <p class="text-[10px] tracking-[0.2em] text-gray-500 mt-1 uppercase">Sistem Absensi Sholat Berjamaah</p>
     </header>
 
     <div class="flex justify-center mb-6 px-4">
         <div class="glass p-1.5 rounded-2xl flex gap-2">
             <button onclick="switchTab('scan')" id="btn-scan" class="py-3 px-6 rounded-xl font-bold transition-all active-tab text-sm">📷 SCAN</button>
-            <button onclick="switchTab('admin')" id="btn-admin" class="py-3 px-6 rounded-xl font-bold transition-all text-gray-500 text-sm">⚙️ DATABASE</button>
+            <button onclick="switchTab('admin')" id="btn-admin" class="py-3 px-6 rounded-xl font-bold transition-all text-gray-400 text-sm">⚙️ DATABASE</button>
         </div>
     </div>
 
     <main class="max-w-2xl mx-auto px-4">
         
         <section id="tab-scan" class="space-y-4">
-            <div class="glass p-4 rounded-[2rem] border-2 border-green-500/20 relative">
+            <div id="time-warning" class="hidden p-3 bg-red-900/30 border border-red-500 text-red-400 text-xs text-center rounded-xl font-bold">
+                ⚠️ SCAN DITUTUP. HANYA TERSEDIA JAM 12:00 - 13:00 WIB
+            </div>
+
+            <div class="glass p-4 rounded-[2rem] border-2 border-cyan-500/20 relative">
                 <div id="reader" class="w-full mx-auto"></div>
-                <div id="scan-feedback" class="absolute inset-0 flex items-center justify-center bg-green-600/90 rounded-[2rem] hidden z-10">
-                    <div class="text-center text-white p-6">
+                <div id="scan-feedback" class="absolute inset-0 flex items-center justify-center rounded-[2rem] hidden z-10 transition-all">
+                    <div id="feedback-content" class="text-center text-white p-6 rounded-2xl shadow-2xl">
                         <div id="check-icons" class="text-5xl mb-2 italic tracking-widest"></div>
                         <p id="scanned-name" class="text-2xl font-black uppercase"></p>
                         <p id="scanned-info" class="text-sm opacity-80"></p>
@@ -49,11 +52,9 @@
             
             <div class="glass p-5 rounded-[2rem]">
                 <h3 class="font-bold text-gray-400 text-xs mb-4 uppercase tracking-widest flex items-center gap-2">
-                    <span class="w-2 h-2 bg-green-500 rounded-full animate-pulse"></span> Riwayat Kehadiran
+                    <span class="w-2 h-2 bg-cyan-500 rounded-full animate-pulse"></span> Log Kehadiran Hari Ini
                 </h3>
-                <div id="log-list" class="space-y-3 max-h-80 overflow-y-auto pr-2">
-                    <p class="text-center text-gray-600 text-sm py-4">Belum ada data masuk...</p>
-                </div>
+                <div id="log-list" class="space-y-3 max-h-80 overflow-y-auto pr-2"></div>
             </div>
         </section>
 
@@ -61,75 +62,88 @@
             <div class="glass p-6 rounded-[2rem]">
                 <h2 class="text-lg font-bold mb-4 text-white">Input Murid Baru</h2>
                 <div class="grid gap-3">
-                    <input type="text" id="input-nama" placeholder="Nama Lengkap" class="bg-gray-900 border border-gray-700 p-4 rounded-xl outline-none focus:border-green-500 transition">
+                    <input type="text" id="input-nama" placeholder="Nama Lengkap" class="bg-gray-900 border border-gray-700 p-4 rounded-xl outline-none focus:border-cyan-500 transition">
                     <div class="flex gap-3">
-                        <input type="text" id="input-kelas" placeholder="Kelas" class="w-1/2 bg-gray-900 border border-gray-700 p-4 rounded-xl outline-none focus:border-green-500">
-                        <input type="text" id="input-nis" placeholder="No. Absen" class="w-1/2 bg-gray-900 border border-gray-700 p-4 rounded-xl outline-none focus:border-green-500">
+                        <input type="text" id="input-kelas" placeholder="Kelas" class="w-1/2 bg-gray-900 border border-gray-700 p-4 rounded-xl outline-none">
+                        <input type="text" id="input-nis" placeholder="No. Absen" class="w-1/2 bg-gray-900 border border-gray-700 p-4 rounded-xl outline-none">
                     </div>
-                    <button onclick="buatQR()" class="bg-green-600 hover:bg-green-500 text-white font-bold py-4 rounded-xl mt-2 transition shadow-lg">BUAT BARCODE</button>
+                    <button onclick="buatQR()" class="bg-cyan-600 hover:bg-cyan-500 text-white font-bold py-4 rounded-xl mt-2 transition shadow-lg">BUAT BARCODE</button>
                 </div>
             </div>
-
             <div id="qr-result-area" class="flex flex-col items-center"></div>
         </section>
     </main>
 
     <script>
         // ======= PENTING: ISI DISINI CUY =======
-        const GITHUB_TOKEN = "GANTI_DENGAN_TOKEN_LU"; 
-        const GIST_ID = "GANTI_DENGAN_GIST_ID_LU"; 
+        const GITHUB_TOKEN = "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"; 
+        const GIST_ID = "https://gist.github.com/gemabintang3108-prog/8f37fc18c4fb9bd3593486f97919ca9f#file-absen-json"; 
         // =======================================
 
         let html5QrScanner;
         let localDB = [];
 
-        // --- 1. AMBIL DATA DARI CLOUD ---
         async function loadCloudData() {
             try {
                 const res = await fetch(`https://api.github.com/gists/${GIST_ID}`);
                 const data = await res.json();
                 localDB = JSON.parse(data.files["absen.json"].content);
                 renderLog();
-                document.getElementById('db-status').innerText = "ONLINE";
-                document.getElementById('db-status').className = "text-green-500";
-            } catch (e) {
-                document.getElementById('db-status').innerText = "OFFLINE/TOKEN SALAH";
-            }
+            } catch (e) { console.error("Gagal load database cloud"); }
         }
 
-        // --- 2. LOGIKA SCAN (AUTO-COUNT & CENTANG) ---
         function startScanner() {
             html5QrScanner = new Html5Qrcode("reader");
             html5QrScanner.start({ facingMode: "environment" }, { fps: 20, qrbox: 250 }, async (text) => {
+                const now = new Date();
+                const currentHour = now.getHours();
+                const todayStr = now.toLocaleDateString('id-ID');
+
+                // 1. CEK BATAS JAM (12:00 - 13:00)
+                if (currentHour < 12 || currentHour >= 13) {
+                    showFeedback("🔴", "JAM SHOLAT BELUM/SUDAH LEWAT", "Absen hanya jam 12-1 siang", "bg-red-600");
+                    return;
+                }
+
                 const [nama, kelas, absen] = text.split('|');
                 if(!nama) return;
 
-                // Hitung Kehadiran
-                const count = localDB.filter(d => d.Nama === nama && d.Kelas === kelas).length + 1;
-                let centangs = "✅".repeat(count);
+                // 2. CEK APAKAH SUDAH ABSEN HARI INI
+                const isAlreadyPresent = localDB.find(d => d.Nama === nama && d.Kelas === kelas && d.Tanggal === todayStr);
+                
+                if (isAlreadyPresent) {
+                    showFeedback("⚠️", nama, "Kamu sudah absen hari ini!", "bg-yellow-600");
+                    return;
+                }
 
-                // UI Feedback
-                document.getElementById('check-icons').innerText = centangs;
-                document.getElementById('scanned-name').innerText = nama;
-                document.getElementById('scanned-info').innerText = `${kelas} | Hadir ke-${count}`;
-                document.getElementById('scan-feedback').classList.remove('hidden');
+                // 3. PROSES ABSEN SUKSES
+                const count = localDB.filter(d => d.Nama === nama && d.Kelas === kelas).length + 1;
+                showFeedback("✅".repeat(count), nama, `Dzuhur Berjamaah ke-${count}`, "bg-green-600");
 
                 const payload = {
                     Nama: nama, Kelas: kelas, Absen: absen,
-                    Jam: new Date().toLocaleTimeString('id-ID'),
-                    Tanggal: new Date().toLocaleDateString('id-ID', { weekday: 'long', day: 'numeric', month: 'short' }),
+                    Jam: now.toLocaleTimeString('id-ID'),
+                    Tanggal: todayStr,
                     KehadiranKe: count
                 };
 
                 await saveToCloud(payload);
-                
-                setTimeout(() => {
-                    document.getElementById('scan-feedback').classList.add('hidden');
-                }, 2000);
             });
         }
 
-        // --- 3. SIMPAN KE GITHUB ---
+        function showFeedback(icons, name, info, bgColor) {
+            const fb = document.getElementById('scan-feedback');
+            const content = document.getElementById('feedback-content');
+            document.getElementById('check-icons').innerText = icons;
+            document.getElementById('scanned-name').innerText = name;
+            document.getElementById('scanned-info').innerText = info;
+            
+            fb.classList.remove('hidden');
+            content.className = `text-center text-white p-6 rounded-2xl shadow-2xl ${bgColor}`;
+
+            setTimeout(() => fb.classList.add('hidden'), 3000);
+        }
+
         async function saveToCloud(newItem) {
             localDB.push(newItem);
             renderLog();
@@ -141,25 +155,43 @@
                         files: { "absen.json": { content: JSON.stringify(localDB, null, 2) } }
                     })
                 });
-            } catch (err) { console.error("Gagal Upload:", err); }
+            } catch (err) { console.error("Cloud Error"); }
         }
 
-        // --- 4. GENERATE & DOWNLOAD QR ---
+        function renderLog() {
+            const list = document.getElementById('log-list');
+            const today = new Date().toLocaleDateString('id-ID');
+            const dataHariIni = localDB.filter(d => d.Tanggal === today);
+            
+            if(dataHariIni.length === 0) {
+                list.innerHTML = `<p class="text-center text-gray-600 text-sm py-4 italic">Belum ada yang sholat dzuhur hari ini...</p>`;
+                return;
+            }
+
+            list.innerHTML = dataHariIni.slice().reverse().map(d => `
+                <div class="glass p-4 rounded-2xl flex justify-between items-center border-l-4 border-cyan-500">
+                    <div>
+                        <p class="font-bold text-sm text-white">${d.Nama} <span class="text-gray-500 font-normal">[${d.Kelas}]</span></p>
+                        <p class="text-[10px] text-gray-500">${d.Jam}</p>
+                    </div>
+                    <div class="text-[10px] tracking-tighter">${"✅".repeat(d.KehadiranKe)}</div>
+                </div>
+            `).join('');
+        }
+
         function buatQR() {
             const n = document.getElementById('input-nama').value;
             const k = document.getElementById('input-kelas').value;
             const a = document.getElementById('input-nis').value;
-            if(!n || !k || !a) return alert("Isi semua data!");
-
+            if(!n || !k || !a) return alert("Isi data!");
             const area = document.getElementById('qr-result-area');
-            const cardId = `card-download`;
             area.innerHTML = `
-                <div id="${cardId}" class="p-6 bg-white rounded-3xl text-center flex flex-col items-center">
-                    <div id="qr-img" class="mb-4"></div>
+                <div id="card-download" class="p-6 bg-white rounded-3xl text-center flex flex-col items-center">
+                    <div id="qr-img" class="mb-4 border-4 border-slate-100 p-2"></div>
                     <h2 class="text-gray-900 font-black uppercase text-xl">${n}</h2>
                     <p class="text-gray-400 font-bold tracking-widest">${k} - No.${a}</p>
                 </div>
-                <button onclick="downloadQR('${n}')" class="mt-4 bg-blue-600 text-white px-8 py-3 rounded-xl font-bold">💾 UNDUH KARTU</button>
+                <button onclick="downloadQR('${n}')" class="mt-4 bg-blue-600 text-white px-8 py-3 rounded-xl font-bold italic">💾 DOWNLOAD KARTU</button>
             `;
             new QRCode(document.getElementById("qr-img"), { text: `${n}|${k}|${a}`, width: 180, height: 180 });
         }
@@ -168,35 +200,33 @@
             html2canvas(document.getElementById('card-download')).then(canvas => {
                 const a = document.createElement('a');
                 a.href = canvas.toDataURL();
-                a.download = `QR_${nama}.png`;
+                a.download = `Dzuhur_${nama}.png`;
                 a.click();
             });
         }
 
-        // --- 5. UI UTILITY ---
         function switchTab(tab) {
             document.getElementById('tab-scan').classList.toggle('hidden', tab !== 'scan');
             document.getElementById('tab-admin').classList.toggle('hidden', tab !== 'admin');
             document.getElementById('btn-scan').classList.toggle('active-tab', tab === 'scan');
             document.getElementById('btn-admin').classList.toggle('active-tab', tab === 'admin');
-            if(tab === 'scan') startScanner(); else html5QrScanner.stop();
+            if(tab === 'scan') {
+                startScanner();
+                checkTime();
+            } else if(html5QrScanner) {
+                html5QrScanner.stop();
+            }
         }
 
-        function renderLog() {
-            const list = document.getElementById('log-list');
-            if(localDB.length === 0) return;
-            list.innerHTML = localDB.slice().reverse().map(d => `
-                <div class="glass p-4 rounded-2xl flex justify-between items-center border-l-4 border-green-500">
-                    <div>
-                        <p class="font-bold text-sm text-white">${d.Nama} <span class="text-gray-500 font-normal">[${d.Kelas}]</span></p>
-                        <p class="text-[10px] text-gray-500">${d.Tanggal} | ${d.Jam}</p>
-                    </div>
-                    <div class="text-[10px] tracking-tighter">${"✅".repeat(d.KehadiranKe)}</div>
-                </div>
-            `).join('');
+        function checkTime() {
+            const hour = new Date().getHours();
+            const warning = document.getElementById('time-warning');
+            if (hour < 12 || hour >= 13) warning.classList.remove('hidden');
+            else warning.classList.add('hidden');
         }
 
-        window.onload = () => { loadCloudData(); startScanner(); };
+        window.onload = () => { loadCloudData(); startScanner(); checkTime(); };
     </script>
 </body>
-</html>
+                </html>
+    
