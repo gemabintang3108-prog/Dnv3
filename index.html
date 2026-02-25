@@ -123,12 +123,15 @@
         // ======= KONFIGURASI =======
         const GURU_PASS = "bintang31"; 
         const GITHUB_TOKEN = "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"; 
-        const GIST_MAP = {
-            "XI-6": "8f37fc18c4fb9bd3593486f97919ca9f",
-            "X-1": "ID_GIST_X1_LU",
-            "X-2": "ID_GIST_X2_LU",
-            "XI-1": "ID_GIST_XI1_LU",
-        };
+        // Cukup simpan satu ID, tapi nampung semua kelas
+const GIST_ID_UTAMA = "8f37fc18c4fb9bd3593486f97919ca9f"; 
+const DAFTAR_KELAS = [
+    "X-1", "X-2", "X-3", "X-4", "X-5", "X-6",
+    "XI-1", "XI-2", "XI-3", "XI-4", "XI-5", "XI-6",
+    "XII-1", "XII-2", "XII-3", "XII-4", "XII-5", "XII-6"
+];
+
+
 
         let isGuruLoggedIn = false;
         let currentClass = "XI-6";
@@ -136,32 +139,49 @@
         let html5QrScanner;
 
         function init() {
-            const selector = document.getElementById('active-class-selector');
-            const adminSelect = document.getElementById('select-kelas-admin');
-            Object.keys(GIST_MAP).forEach(cls => {
-                selector.innerHTML += `<option value="${cls}">${cls}</option>`;
-                adminSelect.innerHTML += `<option value="${cls}">${cls}</option>`;
-            });
-            loadData();
-            
-            // Update Label Kelas di Tombol Bulk
-            setInterval(() => {
-                const k = document.getElementById('select-kelas-admin').value;
-                if(document.getElementById('label-bulk-kelas')) 
-                    document.getElementById('label-bulk-kelas').innerText = `[${k}]`;
-            }, 1000);
-        }
+    const selector = document.getElementById('active-class-selector');
+    const adminSelect = document.getElementById('select-kelas-admin');
+    
+    DAFTAR_KELAS.forEach(cls => {
+        selector.innerHTML += `<option value="${cls}">${cls}</option>`;
+        adminSelect.innerHTML += `<option value="${cls}">${cls}</option>`;
+    });
+    loadData();
+}
+
 
         async function loadData() {
-            const gid = GIST_MAP[currentClass];
-            if(!gid || gid.includes("_LU")) return;
-            try {
-                const res = await fetch(`https://api.github.com/gists/${gid}`);
-                const data = await res.json();
-                localDB = JSON.parse(data.files["absen.json"].content);
-                renderLog();
-            } catch (e) { console.error("Database Gagal Load"); }
+    try {
+        const res = await fetch(`https://api.github.com/gists/${GIST_ID_UTAMA}`);
+        const data = await res.json();
+        const fileName = `${currentClass}.json`; // Dia bakal cari file X-1.json, XI-6.json, dst
+        
+        if (data.files[fileName]) {
+            localDB = JSON.parse(data.files[fileName].content);
+        } else {
+            localDB = []; // Kalau file kelasnya belum ada, anggap masih kosong
         }
+        renderLog();
+    } catch (e) { 
+        console.error("Gagal load database kelas " + currentClass);
+        localDB = [];
+        renderLog();
+    }
+}
+
+async function syncToGithub() {
+    const fileName = `${currentClass}.json`;
+    await fetch(`https://api.github.com/gists/${GIST_ID_UTAMA}`, {
+        method: "PATCH",
+        headers: { "Authorization": `token ${GITHUB_TOKEN}`, "Content-Type": "application/json" },
+        body: JSON.stringify({ 
+            files: { 
+                [fileName]: { content: JSON.stringify(localDB, null, 2) } 
+            } 
+        })
+    });
+}
+
 
         function switchTab(tab) {
             if (tab === 'scan' && !isGuruLoggedIn) {
