@@ -35,9 +35,7 @@
     <main class="max-w-2xl mx-auto px-4">
         
         <section id="tab-scan" class="space-y-4">
-            <div id="time-warning" class="hidden p-3 bg-red-900/30 border border-red-500 text-red-400 text-xs text-center rounded-xl font-bold">
-                ⚠️ SCAN DITUTUP. HANYA TERSEDIA JAM 12:00 - 13:00 WIB
-            </div>
+            
 
             <div class="glass p-4 rounded-[2rem] border-2 border-cyan-500/20 relative">
                 <div id="reader" class="w-full mx-auto"></div>
@@ -95,15 +93,10 @@
         function startScanner() {
             html5QrScanner = new Html5Qrcode("reader");
             html5QrScanner.start({ facingMode: "environment" }, { fps: 20, qrbox: 250 }, async (text) => {
-                const now = new Date();
-                const currentHour = now.getHours();
+                
                 const todayStr = now.toLocaleDateString('id-ID');
 
-                // 1. CEK BATAS JAM (12:00 - 13:00)
-                if (currentHour < 12 || currentHour >= 13) {
-                    showFeedback("🔴", "JAM SHOLAT BELUM/SUDAH LEWAT", "Absen hanya jam 12-1 siang", "bg-red-600");
-                    return;
-                }
+                
 
                 const [nama, kelas, absen] = text.split('|');
                 if(!nama) return;
