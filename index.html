@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Absensi Dzuhur - Guru Only Scan</title>
+    <title>Sistem Absensi Dzuhur Pro</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/html5-qrcode"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
@@ -13,6 +13,8 @@
         body { font-family: 'Plus Jakarta Sans', sans-serif; background-color: #0d1117; color: #c9d1d9; }
         .glass { background: rgba(22, 27, 34, 0.8); backdrop-filter: blur(10px); border: 1px solid #30363d; }
         .active-tab { background: #0891b2; color: white; box-shadow: 0 0 15px rgba(8, 145, 178, 0.4); }
+        #reader { border: none !important; border-radius: 1.5rem; overflow: hidden; }
+        select { background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%239ca3af' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3e%3c/svg%3e"); background-position: right 0.5rem center; background-repeat: no-repeat; background-size: 1.5em 1.5em; padding-right: 2.5rem; appearance: none; }
     </style>
 </head>
 <body class="pb-10">
@@ -22,7 +24,7 @@
             DZUHUR CHECK-IN
         </h1>
         <div class="mt-4 flex flex-col items-center">
-            <p class="text-[10px] text-gray-500 mb-2 uppercase italic font-bold">Pilih Kelas yang Sedang Diabsen (Khusus Guru):</p>
+            <p class="text-[10px] text-gray-500 mb-2 uppercase italic font-bold tracking-widest">Pilih Kelas Aktif (Khusus Guru):</p>
             <select id="active-class-selector" onchange="changeActiveClass()" class="bg-gray-800 border-2 border-cyan-500 p-2 rounded-xl text-cyan-400 font-bold outline-none">
                 </select>
         </div>
@@ -38,27 +40,27 @@
     <div id="modal-login" class="fixed inset-0 bg-black/95 backdrop-blur-md z-[60] flex items-center justify-center hidden p-4">
         <div class="glass w-full max-w-sm p-8 rounded-[3rem] border border-cyan-500/30 text-center">
             <h2 class="text-2xl font-bold text-white mb-2">🔒 Area Guru</h2>
-            <p class="text-xs text-gray-400 mb-6 font-bold">Login untuk mulai men-scan murid</p>
+            <p class="text-xs text-gray-400 mb-6 font-bold uppercase tracking-widest">Gunakan Password untuk Akses Scanner</p>
             <div class="space-y-4">
                 <input type="password" id="login-pass" placeholder="Password Guru" class="w-full bg-gray-900 border border-gray-700 p-4 rounded-2xl outline-none text-white focus:border-cyan-500 text-center text-lg tracking-widest">
-                <button onclick="prosesLogin()" class="w-full py-4 bg-cyan-600 hover:bg-cyan-500 text-white font-bold rounded-2xl transition shadow-lg">AKTIFKAN KAMERA</button>
-                <button onclick="closeLogin()" class="text-gray-500 text-sm hover:underline">Batal / Kembali</button>
+                <button onclick="prosesLogin()" class="w-full py-4 bg-cyan-600 hover:bg-cyan-500 text-white font-bold rounded-2xl transition shadow-lg">AKTIFKAN SCANNER</button>
+                <button onclick="closeLogin()" class="text-gray-500 text-sm hover:underline">Kembali ke Buat Kartu</button>
             </div>
         </div>
     </div>
 
     <main class="max-w-2xl mx-auto px-4">
         
-        <section id="tab-admin" class="space-y-6 animate-fade-in">
+        <section id="tab-admin" class="space-y-6">
             <div class="glass p-6 rounded-[2rem]">
-                <h2 class="text-lg font-bold mb-4 text-white">Bikin Kartu Absenmu</h2>
+                <h2 class="text-lg font-bold mb-4 text-white">Daftar & Buat Kartu Absen</h2>
                 <div class="grid gap-3">
-                    <input type="text" id="input-nama" placeholder="Nama Lengkap Kamu" class="bg-gray-900 border border-gray-700 p-4 rounded-xl outline-none focus:border-cyan-500">
+                    <input type="text" id="input-nama" placeholder="Nama Lengkap" class="bg-gray-900 border border-gray-700 p-4 rounded-xl outline-none focus:border-cyan-500 text-white">
                     <div class="flex gap-3 text-gray-400 font-bold">
                         <select id="select-kelas-admin" class="w-1/2 bg-gray-900 border border-gray-700 p-4 rounded-xl outline-none"></select>
                         <input type="text" id="input-nis" placeholder="No. Absen" class="w-1/2 bg-gray-900 border border-gray-700 p-4 rounded-xl outline-none">
                     </div>
-                    <button onclick="buatQR()" class="bg-blue-600 hover:bg-blue-500 text-white font-bold py-4 rounded-xl mt-2 transition">GENERASI QR CODE</button>
+                    <button onclick="buatQR()" class="bg-blue-600 hover:bg-blue-500 text-white font-bold py-4 rounded-xl mt-2 transition">GENERASI KARTU QR</button>
                 </div>
             </div>
             <div id="qr-result-area" class="flex flex-col items-center"></div>
@@ -71,14 +73,15 @@
                     <div id="feedback-content" class="text-center text-white p-6 rounded-2xl shadow-2xl">
                         <div id="check-icons" class="text-5xl mb-2 tracking-widest"></div>
                         <p id="scanned-name" class="text-2xl font-black uppercase"></p>
-                        <p id="scanned-info" class="text-sm opacity-80"></p>
+                        <p id="scanned-info" class="text-sm opacity-80 font-bold"></p>
                     </div>
                 </div>
             </div>
-            <button onclick="document.getElementById('modal-manual').classList.remove('hidden')" class="w-full py-3 glass rounded-xl text-xs font-bold text-cyan-400">⌨️ INPUT MANUAL (GURU)</button>
+            <button onclick="document.getElementById('modal-manual').classList.remove('hidden')" class="w-full py-3 glass rounded-xl text-xs font-bold text-cyan-400">⌨️ INPUT MANUAL (TANPA QR)</button>
+            
             <div class="glass p-5 rounded-[2rem]">
-                <h3 id="log-title" class="font-bold text-gray-400 text-xs uppercase tracking-widest mb-4">Log Hari Ini</h3>
-                <div id="log-list" class="space-y-3 max-h-80 overflow-y-auto"></div>
+                <h3 id="log-title" class="font-bold text-gray-400 text-[10px] uppercase tracking-[0.2em] mb-4">Log Kehadiran Hari Ini</h3>
+                <div id="log-list" class="space-y-3 max-h-80 overflow-y-auto pr-2"></div>
             </div>
         </section>
 
@@ -86,8 +89,9 @@
 
     <div id="modal-manual" class="fixed inset-0 bg-black/90 z-50 flex items-center justify-center hidden p-4">
         <div class="glass w-full max-w-sm p-6 rounded-[2rem]">
-            <h2 class="text-xl font-bold mb-4">Input Manual</h2>
-            <input type="text" id="manual-nama" placeholder="Nama Murid" class="w-full bg-gray-900 p-4 rounded-xl mb-3 outline-none text-white">
+            <h2 class="text-xl font-bold mb-4">Input Absen Manual</h2>
+            <input type="text" id="manual-nama" placeholder="Nama Lengkap Murid" class="w-full bg-gray-900 p-4 rounded-xl mb-1 outline-none text-white border border-gray-700">
+            <p class="text-[9px] text-gray-500 mb-4">*Data akan disimpan ke Kelas Aktif pilihan Guru.</p>
             <div class="flex gap-2">
                 <button onclick="document.getElementById('modal-manual').classList.add('hidden')" class="flex-1 py-3 bg-gray-700 rounded-xl">BATAL</button>
                 <button onclick="prosesManual()" class="flex-1 py-3 bg-cyan-600 rounded-xl text-white font-bold">SIMPAN</button>
@@ -96,12 +100,15 @@
     </div>
 
     <script>
-        // ======= KONFIGURASI =======
-        const GURU_PASS = "rohis12"; // Ganti password guru di sini
+        // ======= KONFIGURASI UTAMA =======
+        const GURU_PASS = "bintang31"; // Ganti password guru di sini
         const GITHUB_TOKEN = "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"; 
         const GIST_MAP = {
             "XI-6": "8f37fc18c4fb9bd3593486f97919ca9f",
-            // Tambah ID Gist per kelas di sini
+            "X-1": "ID_GIST_X1_LU",
+            "X-2": "ID_GIST_X2_LU",
+            "XI-1": "ID_GIST_XI1_LU",
+            // Tambahkan ID Gist kelas lainnya di sini
         };
 
         let isGuruLoggedIn = false;
@@ -119,6 +126,17 @@
             loadData();
         }
 
+        async function loadData() {
+            const gid = GIST_MAP[currentClass];
+            if(!gid || gid.includes("ID_GIST")) return;
+            try {
+                const res = await fetch(`https://api.github.com/gists/${gid}`);
+                const data = await res.json();
+                localDB = JSON.parse(data.files["absen.json"].content);
+                renderLog();
+            } catch (e) { console.error("Database Gagal Load"); }
+        }
+
         function switchTab(tab) {
             if (tab === 'scan' && !isGuruLoggedIn) {
                 document.getElementById('modal-login').classList.remove('hidden');
@@ -134,8 +152,7 @@
         }
 
         function prosesLogin() {
-            const p = document.getElementById('login-pass').value;
-            if (p === GURU_PASS) {
+            if (document.getElementById('login-pass').value === GURU_PASS) {
                 isGuruLoggedIn = true;
                 document.getElementById('modal-login').classList.add('hidden');
                 switchTab('scan');
@@ -147,55 +164,52 @@
             switchTab('admin');
         }
 
-        async function loadData() {
-            const gid = GIST_MAP[currentClass];
-            if(!gid || gid.includes("ID_GIST")) return;
-            try {
-                const res = await fetch(`https://api.github.com/gists/${gid}`);
-                const data = await res.json();
-                localDB = JSON.parse(data.files["absen.json"].content);
-                renderLog();
-            } catch (e) { console.error("Koneksi Error"); }
-        }
-
         function startScanner() {
             if(html5QrScanner) html5QrScanner.stop();
             html5QrScanner = new Html5Qrcode("reader");
             html5QrScanner.start({ facingMode: "environment" }, { fps: 20, qrbox: 250 }, async (text) => {
                 const [nama, kelas, absen] = text.split('|');
                 if(kelas !== currentClass) return alert(`Ini anak ${kelas}, bapak/ibu sedang buka absen ${currentClass}!`);
-                
-                const today = new Date().toLocaleDateString('id-ID');
-                if (localDB.find(d => d.Nama === nama && d.Tanggal === today)) return alert("Anak ini sudah absen!");
-
-                const count = localDB.filter(d => d.Nama === nama).length + 1;
-                const payload = { Nama: nama, Kelas: kelas, Absen: absen, Jam: new Date().toLocaleTimeString('id-ID'), Tanggal: today, KehadiranKe: count };
-                
-                showFeedback("✅".repeat(count), nama, `Hadir ke-${count}`, "bg-green-600");
-                localDB.push(payload);
-                renderLog();
-                syncToGithub();
+                prosesAbsen(nama, kelas, absen);
             });
+        }
+
+        async function prosesAbsen(nama, kelas, absen) {
+            const today = new Date().toLocaleDateString('id-ID');
+            if (localDB.find(d => d.Nama === nama && d.Tanggal === today)) return alert("Anak ini sudah absen hari ini!");
+
+            const count = localDB.filter(d => d.Nama === nama).length + 1;
+            const payload = { Nama: nama, Kelas: kelas, Absen: absen, Jam: new Date().toLocaleTimeString('id-ID'), Tanggal: today, KehadiranKe: count };
+            
+            showFeedback("BERHASIL", nama, `Hadir ke-${count} (Kelas ${kelas})`, "bg-green-600");
+            localDB.push(payload);
+            renderLog();
+            syncToGithub();
         }
 
         async function syncToGithub() {
             const gid = GIST_MAP[currentClass];
             await fetch(`https://api.github.com/gists/${gid}`, {
                 method: "PATCH",
-                headers: { "Authorization": `token ${GITHUB_TOKEN}` },
+                headers: { "Authorization": `token ${GITHUB_TOKEN}`, "Content-Type": "application/json" },
                 body: JSON.stringify({ files: { "absen.json": { content: JSON.stringify(localDB, null, 2) } } })
             });
         }
 
-        function buatQR() {
-            const n = document.getElementById('input-nama').value;
+        async function buatQR() {
+            const n = document.getElementById('input-nama').value.trim();
             const k = document.getElementById('select-kelas-admin').value;
-            const a = document.getElementById('input-nis').value;
-            if(!n || !a) return alert("Isi datamu dulu!");
+            const a = document.getElementById('input-nis').value.trim();
+            if(!n || !a) return alert("Isi data lengkap!");
+
+            // Cek Anti-Duplikat No Absen di Gist Kelas Tersebut
+            if (currentClass !== k) { currentClass = k; await loadData(); }
+            if (localDB.some(d => d.Absen === a && d.Kelas === k)) return alert(`No Absen ${a} sudah terdaftar di kelas ${k}!`);
+
             const area = document.getElementById('qr-result-area');
             area.innerHTML = `<div id="qrd" class="p-6 bg-white rounded-2xl flex flex-col items-center">
                 <div id="qri" class="mb-2"></div><b class="text-black uppercase text-xl">${n}</b><p class="text-gray-400 font-bold">${k} - No.${a}</p>
-            </div><button onclick="downloadQR('${n}')" class="mt-4 bg-cyan-600 p-4 w-full rounded-xl font-bold italic shadow-lg">💾 SIMPAN KARTU QR</button>`;
+            </div><button onclick="downloadQR('${n}')" class="mt-4 bg-cyan-600 p-4 w-full rounded-xl font-bold shadow-lg">💾 SIMPAN KARTU QR</button>`;
             new QRCode(document.getElementById("qri"), { text: `${n}|${k}|${a}`, width: 180, height: 180 });
         }
 
@@ -203,6 +217,43 @@
             html2canvas(document.getElementById('qrd')).then(c => {
                 let l=document.createElement('a'); l.href=c.toDataURL(); l.download=`QR_${n}.png`; l.click();
             });
+        }
+
+        function renderLog() {
+            const list = document.getElementById('log-list');
+            const today = new Date().toLocaleDateString('id-ID');
+            const hariIni = localDB.filter(d => d.Tanggal === today);
+            
+            list.innerHTML = hariIni.length === 0 ? `<p class="text-center text-gray-600 py-6 italic text-xs">Belum ada absen masuk...</p>` :
+                hariIni.slice().reverse().map(d => `
+                <div class="glass p-4 rounded-2xl flex justify-between items-center border-l-4 border-cyan-500 mb-3">
+                    <div class="flex flex-col gap-1">
+                        <div class="flex items-center gap-2">
+                            <b class="text-white text-sm uppercase">${d.Nama}</b>
+                            <span class="bg-cyan-900/50 text-cyan-400 text-[8px] px-2 py-0.5 rounded-full border border-cyan-500/30 font-bold">${d.Kelas}</span>
+                        </div>
+                        <div class="text-[9px] text-gray-500 font-medium">No. ${d.Absen} | ⏰ ${d.Jam}</div>
+                    </div>
+                    <div class="text-right bg-gray-800 px-3 py-1 rounded-lg border border-gray-700">
+                        <p class="text-[8px] text-gray-500 font-bold uppercase tracking-tighter">Hadir</p>
+                        <span class="text-cyan-400 font-black text-sm">${d.KehadiranKe}</span>
+                    </div>
+                </div>`).join('');
+        }
+
+        async function changeActiveClass() {
+            currentClass = document.getElementById('active-class-selector').value;
+            document.getElementById('log-title').innerText = `Log Kehadiran Hari Ini (${currentClass})`;
+            await loadData();
+            if(isGuruLoggedIn) startScanner();
+        }
+
+        function prosesManual() {
+            const n = document.getElementById('manual-nama').value;
+            if(n) {
+                prosesAbsen(n, currentClass, "MANUAL");
+                document.getElementById('modal-manual').classList.add('hidden');
+            }
         }
 
         function showFeedback(i, n, f, b) {
@@ -215,39 +266,7 @@
             setTimeout(() => fb.classList.add('hidden'), 2500);
         }
 
-        async function changeActiveClass() {
-            currentClass = document.getElementById('active-class-selector').value;
-            document.getElementById('log-title').innerText = `Log Hari Ini (${currentClass})`;
-            await loadData();
-            if(isGuruLoggedIn) startScanner();
-        }
-
-        function renderLog() {
-            const list = document.getElementById('log-list');
-            const today = new Date().toLocaleDateString('id-ID');
-            const hariIni = localDB.filter(d => d.Tanggal === today);
-            list.innerHTML = hariIni.length === 0 ? `<p class="text-center text-gray-600 py-4 italic text-xs">Belum ada absen masuk...</p>` :
-                hariIni.reverse().map(d => `<div class="glass p-4 rounded-xl border-l-4 border-cyan-500 mb-2 flex justify-between">
-                    <div><b class="text-white text-sm">${d.Nama}</b><br><small class="text-gray-500">${d.Jam}</small></div>
-                    <div class="text-[10px] tracking-tighter">${"✅".repeat(d.KehadiranKe)}</div>
-                </div>`).join('');
-        }
-
-        function prosesManual() {
-            const n = document.getElementById('manual-nama').value;
-            if(n) {
-                const today = new Date().toLocaleDateString('id-ID');
-                const count = localDB.filter(d => d.Nama === n).length + 1;
-                const payload = { Nama: n, Kelas: currentClass, Absen: "MANUAL", Jam: new Date().toLocaleTimeString('id-ID'), Tanggal: today, KehadiranKe: count };
-                localDB.push(payload);
-                renderLog();
-                syncToGithub();
-                document.getElementById('modal-manual').classList.add('hidden');
-            }
-        }
-
         window.onload = init;
     </script>
 </body>
-            </html>
-                    
+</html>
