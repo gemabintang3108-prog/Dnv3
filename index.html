@@ -73,153 +73,147 @@
     </main>
 
     <script>
-        // ======= PENTING: ISI DISINI CUY =======
-        const GITHUB_TOKEN = "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"; 
-        const GIST_ID = "https://gist.github.com/gemabintang3108-prog/8f37fc18c4fb9bd3593486f97919ca9f#file-absen-json"; 
-        // =======================================
+    // ======= KONFIGURASI SUDAH DIPERBAIKI =======
+    const GITHUB_TOKEN = "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"; 
+    const GIST_ID = "8f37fc18c4fb9bd3593486f97919ca9f"; // Cukup ID-nya saja cuy
+    // ===========================================
 
-        let html5QrScanner;
-        let localDB = [];
+    let html5QrScanner;
+    let localDB = [];
 
-        async function loadCloudData() {
-            try {
-                const res = await fetch(`https://api.github.com/gists/${GIST_ID}`);
-                const data = await res.json();
-                localDB = JSON.parse(data.files["absen.json"].content);
-                renderLog();
-            } catch (e) { console.error("Gagal load database cloud"); }
-        }
-
-        function startScanner() {
-            html5QrScanner = new Html5Qrcode("reader");
-            html5QrScanner.start({ facingMode: "environment" }, { fps: 20, qrbox: 250 }, async (text) => {
-                
-                const todayStr = now.toLocaleDateString('id-ID');
-
-                
-
-                const [nama, kelas, absen] = text.split('|');
-                if(!nama) return;
-
-                // 2. CEK APAKAH SUDAH ABSEN HARI INI
-                const isAlreadyPresent = localDB.find(d => d.Nama === nama && d.Kelas === kelas && d.Tanggal === todayStr);
-                
-                if (isAlreadyPresent) {
-                    showFeedback("⚠️", nama, "Kamu sudah absen hari ini!", "bg-yellow-600");
-                    return;
-                }
-
-                // 3. PROSES ABSEN SUKSES
-                const count = localDB.filter(d => d.Nama === nama && d.Kelas === kelas).length + 1;
-                showFeedback("✅".repeat(count), nama, `Dzuhur Berjamaah ke-${count}`, "bg-green-600");
-
-                const payload = {
-                    Nama: nama, Kelas: kelas, Absen: absen,
-                    Jam: now.toLocaleTimeString('id-ID'),
-                    Tanggal: todayStr,
-                    KehadiranKe: count
-                };
-
-                await saveToCloud(payload);
-            });
-        }
-
-        function showFeedback(icons, name, info, bgColor) {
-            const fb = document.getElementById('scan-feedback');
-            const content = document.getElementById('feedback-content');
-            document.getElementById('check-icons').innerText = icons;
-            document.getElementById('scanned-name').innerText = name;
-            document.getElementById('scanned-info').innerText = info;
-            
-            fb.classList.remove('hidden');
-            content.className = `text-center text-white p-6 rounded-2xl shadow-2xl ${bgColor}`;
-
-            setTimeout(() => fb.classList.add('hidden'), 3000);
-        }
-
-        async function saveToCloud(newItem) {
-            localDB.push(newItem);
+    async function loadCloudData() {
+        try {
+            const res = await fetch(`https://api.github.com/gists/${GIST_ID}`);
+            const data = await res.json();
+            localDB = JSON.parse(data.files["absen.json"].content);
             renderLog();
-            try {
-                await fetch(`https://api.github.com/gists/${GIST_ID}`, {
-                    method: "PATCH",
-                    headers: { "Authorization": `token ${GITHUB_TOKEN}` },
-                    body: JSON.stringify({
-                        files: { "absen.json": { content: JSON.stringify(localDB, null, 2) } }
-                    })
-                });
-            } catch (err) { console.error("Cloud Error"); }
-        }
+        } catch (e) { console.error("Gagal load database cloud"); }
+    }
 
-        function renderLog() {
-            const list = document.getElementById('log-list');
-            const today = new Date().toLocaleDateString('id-ID');
-            const dataHariIni = localDB.filter(d => d.Tanggal === today);
+    function startScanner() {
+        html5QrScanner = new Html5Qrcode("reader");
+        html5QrScanner.start({ facingMode: "environment" }, { fps: 20, qrbox: 250 }, async (text) => {
+            // VARIABEL SEKARANG DITAMBAHKAN LAGI BIAR GAK ERROR
+            const now = new Date();
+            const todayStr = now.toLocaleDateString('id-ID');
+
+            const [nama, kelas, absen] = text.split('|');
+            if(!nama) return;
+
+            // CEK APAKAH SUDAH ABSEN HARI INI
+            const isAlreadyPresent = localDB.find(d => d.Nama === nama && d.Kelas === kelas && d.Tanggal === todayStr);
             
-            if(dataHariIni.length === 0) {
-                list.innerHTML = `<p class="text-center text-gray-600 text-sm py-4 italic">Belum ada yang sholat dzuhur hari ini...</p>`;
+            if (isAlreadyPresent) {
+                showFeedback("⚠️", nama, "Kamu sudah absen hari ini!", "bg-yellow-600");
                 return;
             }
 
-            list.innerHTML = dataHariIni.slice().reverse().map(d => `
-                <div class="glass p-4 rounded-2xl flex justify-between items-center border-l-4 border-cyan-500">
-                    <div>
-                        <p class="font-bold text-sm text-white">${d.Nama} <span class="text-gray-500 font-normal">[${d.Kelas}]</span></p>
-                        <p class="text-[10px] text-gray-500">${d.Jam}</p>
-                    </div>
-                    <div class="text-[10px] tracking-tighter">${"✅".repeat(d.KehadiranKe)}</div>
-                </div>
-            `).join('');
-        }
+            // PROSES ABSEN SUKSES
+            const count = localDB.filter(d => d.Nama === nama && d.Kelas === kelas).length + 1;
+            showFeedback("✅".repeat(count), nama, `Dzuhur Berjamaah ke-${count}`, "bg-green-600");
 
-        function buatQR() {
-            const n = document.getElementById('input-nama').value;
-            const k = document.getElementById('input-kelas').value;
-            const a = document.getElementById('input-nis').value;
-            if(!n || !k || !a) return alert("Isi data!");
-            const area = document.getElementById('qr-result-area');
-            area.innerHTML = `
-                <div id="card-download" class="p-6 bg-white rounded-3xl text-center flex flex-col items-center">
-                    <div id="qr-img" class="mb-4 border-4 border-slate-100 p-2"></div>
-                    <h2 class="text-gray-900 font-black uppercase text-xl">${n}</h2>
-                    <p class="text-gray-400 font-bold tracking-widest">${k} - No.${a}</p>
-                </div>
-                <button onclick="downloadQR('${n}')" class="mt-4 bg-blue-600 text-white px-8 py-3 rounded-xl font-bold italic">💾 DOWNLOAD KARTU</button>
-            `;
-            new QRCode(document.getElementById("qr-img"), { text: `${n}|${k}|${a}`, width: 180, height: 180 });
-        }
+            const payload = {
+                Nama: nama, Kelas: kelas, Absen: absen,
+                Jam: now.toLocaleTimeString('id-ID'),
+                Tanggal: todayStr,
+                KehadiranKe: count
+            };
 
-        function downloadQR(nama) {
-            html2canvas(document.getElementById('card-download')).then(canvas => {
-                const a = document.createElement('a');
-                a.href = canvas.toDataURL();
-                a.download = `Dzuhur_${nama}.png`;
-                a.click();
+            await saveToCloud(payload);
+        });
+    }
+
+    async function saveToCloud(newItem) {
+        localDB.push(newItem);
+        renderLog();
+        try {
+            const response = await fetch(`https://api.github.com/gists/${GIST_ID}`, {
+                method: "PATCH",
+                headers: { 
+                    "Authorization": `token ${GITHUB_TOKEN}`,
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify({
+                    files: { "absen.json": { content: JSON.stringify(localDB, null, 2) } }
+                })
             });
-        }
-
-        function switchTab(tab) {
-            document.getElementById('tab-scan').classList.toggle('hidden', tab !== 'scan');
-            document.getElementById('tab-admin').classList.toggle('hidden', tab !== 'admin');
-            document.getElementById('btn-scan').classList.toggle('active-tab', tab === 'scan');
-            document.getElementById('btn-admin').classList.toggle('active-tab', tab === 'admin');
-            if(tab === 'scan') {
-                startScanner();
-                checkTime();
-            } else if(html5QrScanner) {
-                html5QrScanner.stop();
+            if(response.ok) {
+                console.log("Berhasil simpan ke GitHub!");
             }
+        } catch (err) { console.error("Gagal simpan ke cloud:", err); }
+    }
+
+    function showFeedback(icons, name, info, bgColor) {
+        const fb = document.getElementById('scan-feedback');
+        const content = document.getElementById('feedback-content');
+        document.getElementById('check-icons').innerText = icons;
+        document.getElementById('scanned-name').innerText = name;
+        document.getElementById('scanned-info').innerText = info;
+        
+        fb.classList.remove('hidden');
+        content.className = `text-center text-white p-6 rounded-2xl shadow-2xl ${bgColor}`;
+        setTimeout(() => fb.classList.add('hidden'), 3000);
+    }
+
+    function renderLog() {
+        const list = document.getElementById('log-list');
+        const today = new Date().toLocaleDateString('id-ID');
+        const dataHariIni = localDB.filter(d => d.Tanggal === today);
+        
+        if(dataHariIni.length === 0) {
+            list.innerHTML = `<p class="text-center text-gray-600 text-sm py-4 italic">Belum ada yang sholat dzuhur hari ini...</p>`;
+            return;
         }
 
-        function checkTime() {
-            const hour = new Date().getHours();
-            const warning = document.getElementById('time-warning');
-            if (hour < 12 || hour >= 13) warning.classList.remove('hidden');
-            else warning.classList.add('hidden');
-        }
+        list.innerHTML = dataHariIni.slice().reverse().map(d => `
+            <div class="glass p-4 rounded-2xl flex justify-between items-center border-l-4 border-cyan-500 mb-2">
+                <div>
+                    <p class="font-bold text-sm text-white">${d.Nama} <span class="text-gray-500 font-normal">[${d.Kelas}]</span></p>
+                    <p class="text-[10px] text-gray-500">${d.Jam}</p>
+                </div>
+                <div class="text-[10px] tracking-tighter">${"✅".repeat(d.KehadiranKe)}</div>
+            </div>
+        `).join('');
+    }
 
-        window.onload = () => { loadCloudData(); startScanner(); checkTime(); };
-    </script>
+    // Fungsi lainnya tetep sama...
+    function buatQR() {
+        const n = document.getElementById('input-nama').value;
+        const k = document.getElementById('input-kelas').value;
+        const a = document.getElementById('input-nis').value;
+        if(!n || !k || !a) return alert("Isi data!");
+        const area = document.getElementById('qr-result-area');
+        area.innerHTML = `
+            <div id="card-download" class="p-6 bg-white rounded-3xl text-center flex flex-col items-center">
+                <div id="qr-img" class="mb-4 border-4 border-slate-100 p-2"></div>
+                <h2 class="text-gray-900 font-black uppercase text-xl">${n}</h2>
+                <p class="text-gray-400 font-bold tracking-widest">${k} - No.${a}</p>
+            </div>
+            <button onclick="downloadQR('${n}')" class="mt-4 bg-blue-600 text-white px-8 py-3 rounded-xl font-bold italic">💾 DOWNLOAD KARTU</button>
+        `;
+        new QRCode(document.getElementById("qr-img"), { text: `${n}|${k}|${a}`, width: 180, height: 180 });
+    }
+
+    function downloadQR(nama) {
+        html2canvas(document.getElementById('card-download')).then(canvas => {
+            const a = document.createElement('a');
+            a.href = canvas.toDataURL();
+            a.download = `Dzuhur_${nama}.png`;
+            a.click();
+        });
+    }
+
+    function switchTab(tab) {
+        document.getElementById('tab-scan').classList.toggle('hidden', tab !== 'scan');
+        document.getElementById('tab-admin').classList.toggle('hidden', tab !== 'admin');
+        document.getElementById('btn-scan').classList.toggle('active-tab', tab === 'scan');
+        document.getElementById('btn-admin').classList.toggle('active-tab', tab === 'admin');
+        if(tab === 'scan') startScanner(); else if(html5QrScanner) html5QrScanner.stop();
+    }
+
+    window.onload = () => { loadCloudData(); startScanner(); };
+</script>
+
 </body>
                 </html>
     
