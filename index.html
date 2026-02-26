@@ -32,9 +32,11 @@
         <p class="text-cyan-400 font-bold text-[10px] tracking-[0.3em] animate-pulse uppercase">SINKRONISASI DATABASE...</p>
     </div>
 
-    <header class="py-8 text-center">
+    <header class="py-8 text-center relative">
         <h1 class="text-4xl font-extrabold bg-gradient-to-b from-white to-gray-500 bg-clip-text text-transparent italic uppercase tracking-tighter">Dzuhur 12</h1>
         <p class="text-[9px] text-cyan-500 mt-2 uppercase tracking-[0.3em] font-black italic">Rohis Sma 12 Jakarta</p>
+        
+        <button id="btn-logout" onclick="prosesLogout()" class="hidden absolute top-4 right-4 bg-red-900/30 text-red-500 border border-red-500/30 px-3 py-1.5 rounded-xl text-[8px] font-black uppercase tracking-widest">Logout</button>
     </header>
 
     <div class="flex justify-center mb-8 px-4 relative z-[50]">
@@ -123,6 +125,12 @@
         let html5QrScanner;
 
         async function init() {
+            // Cek status login di localStorage
+            if(localStorage.getItem('guruLogin') === 'true') {
+                isGuruLoggedIn = true;
+                updateUIAfterLogin();
+            }
+
             const adminSelect = document.getElementById('select-kelas-admin');
             DAFTAR_KELAS.forEach(cls => { adminSelect.innerHTML += `<option value="${cls}">${cls}</option>`; });
             await loadAllData();
@@ -155,12 +163,9 @@
             const k = document.getElementById('select-kelas-admin').value;
             const a = document.getElementById('input-nis').value.trim();
             if(!n || !a) return alert("Isi data!");
-
             if (localDB[k].some(d => d.Absen === a)) return alert("Siswa ini sudah kedaftar!");
-
             localDB[k].push({ Nama: n, Kelas: k, Absen: a, Jam: "-", Tanggal: "-", KehadiranKe: 0, IsRegistered: true });
             await syncToGithub(k);
-
             const area = document.getElementById('qr-result-area');
             area.innerHTML = `<div id="qrd" class="p-8 bg-white rounded-[2.5rem] flex flex-col items-center mt-6">
                 <div id="qri" class="mb-4"></div><b class="text-black uppercase text-xl">${n}</b><p class="text-gray-500 font-black text-[10px] tracking-[0.2em] uppercase">${k} • ABSEN ${a}</p>
@@ -178,39 +183,24 @@
             if(!localDB[kelas]) return;
             const now = new Date();
             const today = now.toLocaleDateString('id-ID');
-            
-            // 1. Tarik data terbaru biar sinkron
             await loadAllData(); 
-
-            // 2. Cari baris si murid
             let idx = localDB[kelas].findIndex(d => d.Absen === absen);
-
             if (idx !== -1) {
-                // Cek duplikat scan hari ini
-                if (localDB[kelas][idx].Tanggal === today) {
-                    return showFeedback("⚠️", nama, "Sabar Cok, Udah Absen!", "bg-yellow-600");
-                }
-
-                // 3. UPDATE DATA (Lifetime Counter)
+                if (localDB[kelas][idx].Tanggal === today) return showFeedback("⚠️", nama, "Sabar Cok, Udah Absen!", "bg-yellow-600");
                 localDB[kelas][idx].Jam = now.toLocaleTimeString('id-ID');
                 localDB[kelas][idx].Tanggal = today;
                 localDB[kelas][idx].KehadiranKe = (parseInt(localDB[kelas][idx].KehadiranKe) || 0) + 1;
-                
                 showFeedback("✅", nama, `${kelas} • HADIR KE-${localDB[kelas][idx].KehadiranKe}`, "bg-green-600");
                 renderLog();
                 await syncToGithub(kelas);
-            } else {
-                alert("Murid tidak terdaftar di database kelas!");
-            }
+            } else { alert("Murid tidak terdaftar!"); }
         }
 
         async function downloadZipLaporan() {
             const btn = document.getElementById('btn-zip-laporan');
             btn.innerText = "⏳ GENERATING REKAP..."; btn.disabled = true;
-
             const zip = new JSZip();
             const today = new Date().toLocaleDateString('id-ID');
-
             for (const cls of DAFTAR_KELAS) {
                 let daftarSiswa = [...localDB[cls]];
                 if (daftarSiswa.length > 0) {
@@ -218,14 +208,12 @@
                     const dataExcel = daftarSiswa.map(s => {
                         const isHadirToday = s.Tanggal === today;
                         return {
-                            "NO": s.Absen,
-                            "NAMA MURID": s.Nama.toUpperCase(),
+                            "NO": s.Absen, "NAMA MURID": s.Nama.toUpperCase(),
                             "STATUS": isHadirToday ? "✓ HADIR" : "X ALFA",
                             "JAM SCAN": isHadirToday ? s.Jam : "-",
                             "TOTAL KEHADIRAN (LIFETIME)": s.KehadiranKe || 0
                         };
                     });
-
                     const ws = XLSX.utils.json_to_sheet(dataExcel);
                     const wb = XLSX.utils.book_new();
                     XLSX.utils.book_append_sheet(wb, ws, "REKAP");
@@ -233,7 +221,6 @@
                     zip.file(`REKAP_${cls}_${today.replace(/\//g, '-')}.xlsx`, excelBuffer);
                 }
             }
-
             const content = await zip.generateAsync({type:"blob"});
             const l = document.createElement('a'); l.href = URL.createObjectURL(content);
             l.download = `ABSEN_SMA12_${today.replace(/\//g, '-')}.zip`; l.click();
@@ -263,19 +250,14 @@
             const engine = document.getElementById('hidden-qr-engine');
             const prog = document.getElementById('bulk-progress');
             const btn = document.getElementById('btn-bulk');
-
-            btn.disabled = true;
-            prog.classList.remove('hidden');
-
+            btn.disabled = true; prog.classList.remove('hidden');
             for (let i = 0; i < lines.length; i++) {
                 const parts = lines[i].trim().split(' ');
                 const abs = parts.pop(); const nam = parts.join(' ');
                 if(!nam || isNaN(abs)) continue;
-
                 if (!localDB[k].some(d => d.Absen === abs)) {
                     localDB[k].push({ Nama: nam, Kelas: k, Absen: abs, Jam: "-", Tanggal: "-", KehadiranKe: 0, IsRegistered: true });
                 }
-
                 engine.innerHTML = `<div id="tmp-card" style="padding:40px; background:white; width:350px; text-align:center;"><div id="tmp-img" style="display:flex; justify-content:center;"></div><div style="margin-top:20px;"><b style="color:black; font-size:24px; text-transform:uppercase;">${nam}</b><p style="color:#666; font-weight:bold; font-size:14px;">${k} - ${abs}</p></div></div>`;
                 new QRCode(document.getElementById("tmp-img"), { text: `${nam}|${k}|${abs}`, width: 250, height: 250, correctLevel: QRCode.CorrectLevel.H });
                 await new Promise(r => setTimeout(r, 150));
@@ -303,10 +285,25 @@
         function prosesLogin() {
             if (document.getElementById('login-pass').value === GURU_PASS) {
                 isGuruLoggedIn = true;
+                localStorage.setItem('guruLogin', 'true');
                 tutupLogin();
-                document.getElementById('bulk-area-guru').classList.remove('hidden');
+                updateUIAfterLogin();
                 switchTab('scan');
             } else alert("Salah Cok!");
+        }
+
+        function updateUIAfterLogin() {
+            document.getElementById('bulk-area-guru').classList.remove('hidden');
+            document.getElementById('btn-logout').classList.remove('hidden');
+        }
+
+        function prosesLogout() {
+            isGuruLoggedIn = false;
+            localStorage.removeItem('guruLogin');
+            document.getElementById('bulk-area-guru').classList.add('hidden');
+            document.getElementById('btn-logout').classList.add('hidden');
+            switchTab('admin');
+            alert("Berhasil Logout!");
         }
 
         function tutupLogin() { document.getElementById('modal-login').style.display = 'none'; }
