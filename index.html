@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Dzuhur 12 - Versi Final Lengkap</title>
+    <title>Dzuhur 12 - Smart Absen PRO</title>
     <meta name="mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="theme-color" content="#0d1117">
@@ -103,10 +103,6 @@
                 <button onclick="downloadZipLaporan()" id="btn-zip-laporan" class="w-full py-5 bg-green-700 text-white font-black rounded-2xl text-[10px] uppercase tracking-widest shadow-xl active:scale-95 transition-all">📦 Download Rekap Harian (ZIP)</button>
                 <div class="mt-8 flex items-center justify-between">
                     <h3 class="font-black text-gray-400 text-[10px] uppercase tracking-[0.2em]">Log Hari Ini</h3>
-                    <div class="flex items-center gap-1">
-                        <span class="w-1.5 h-1.5 bg-green-500 rounded-full animate-pulse"></span>
-                        <span class="text-[8px] text-green-500 font-bold uppercase italic">Live Sync</span>
-                    </div>
                 </div>
                 <hr class="border-gray-800 my-4">
                 <div id="log-list" class="space-y-3 max-h-[400px] overflow-y-auto pr-2"></div>
@@ -160,9 +156,7 @@
             const a = document.getElementById('input-nis').value.trim();
             if(!n || !a) return alert("Isi data!");
 
-            if (localDB[k].some(d => d.Absen === a)) {
-                return alert("Siswa ini sudah kedaftar Cok!");
-            }
+            if (localDB[k].some(d => d.Absen === a)) return alert("Siswa ini sudah kedaftar!");
 
             localDB[k].push({ Nama: n, Kelas: k, Absen: a, Jam: "-", Tanggal: "-", KehadiranKe: 0, IsRegistered: true });
             await syncToGithub(k);
@@ -180,96 +174,70 @@
             });
         }
 
-        async function downloadZipLaporan() {
-    const btn = document.getElementById('btn-zip-laporan');
-    btn.innerText = "⏳ SEDANG REKAP..."; btn.disabled = true;
-
-    const zip = new JSZip();
-    const today = new Date().toLocaleDateString('id-ID');
-    let adaFile = false;
-
-    for (const cls of DAFTAR_KELAS) {
-        // --- LOGIKA SAKTI DIMULAI DISINI ---
-        // 1. Ambil semua data di kelas ini, lalu kita bikin daftar MURID UNIK
-        const mapSiswa = new Map();
-        
-        localDB[cls].forEach(item => {
-            // Kita simpan Nama & Absen ke Map (otomatis nindih kalau double, jadi gak duplikat)
-            // Ini mastiin siapa pun yang terdaftar (MASTER) atau pernah scan (SCAN) masuk list
-            if (item.Nama && item.Absen) {
-                mapSiswa.set(item.Absen, item.Nama.toUpperCase());
-            }
-        });
-
-        if (mapSiswa.size > 0) {
-            adaFile = true;
-            // 2. Ubah Map jadi Array biar bisa diurutin no absennya
-            let daftarSemuaMurid = [];
-            mapSiswa.forEach((nama, absen) => {
-                daftarSemuaMurid.push({ nama, absen });
-            });
-
-            // 3. Urutkan berdasarkan nomor absen
-            daftarSemuaMurid.sort((a, b) => parseInt(a.absen) - parseInt(b.absen));
-
-            // 4. Cek Status satu-satu buat Excel
-            const dataExcel = daftarSemuaMurid.map(m => {
-                // Cari apakah ada data scan dengan absen ini di TANGGAL HARI INI
-                const scanHariIni = localDB[cls].find(d => 
-                    d.Absen === m.absen && 
-                    d.Tanggal === today
-                );
-
-                // Hitung total kehadiran asli (berapa kali dia masuk di database)
-                // Kita hitung data yang ada Tanggal-nya (bukan data master kosong)
-                const totalHadir = localDB[cls].filter(d => d.Absen === m.absen && d.Tanggal !== "-").length;
-
-                return {
-                    "NO ABSEN": m.absen,
-                    "NAMA MURID": m.nama,
-                    "STATUS": scanHariIni ? "✓ HADIR" : "X ALFA",
-                    "JAM SCAN": scanHariIni ? scanHariIni.Jam : "-",
-                    "TOTAL HADIR": totalHadir
-                };
-            });
-
-            const ws = XLSX.utils.json_to_sheet(dataExcel);
-            const wb = XLSX.utils.book_new();
-            XLSX.utils.book_append_sheet(wb, ws, "REKAP");
-            const excelBuffer = XLSX.write(wb, { bookType: 'xlsx', type: 'array' });
-            zip.file(`REKAP_${cls}_${today.replace(/\//g, '-')}.xlsx`, excelBuffer);
-        }
-    }
-
-    if (!adaFile) {
-        alert("Gak ada data sama sekali di Gist, Cok!");
-    } else {
-        const content = await zip.generateAsync({type:"blob"});
-        const l = document.createElement('a');
-        l.href = URL.createObjectURL(content);
-        l.download = `REKAP_DZUHUR_12_${today.replace(/\//g, '-')}.zip`;
-        l.click();
-    }
-    btn.innerText = "📦 Download Rekap Harian (ZIP)"; btn.disabled = false;
-}
-
-
         async function prosesAbsen(nama, kelas, absen) {
             if(!localDB[kelas]) return;
             const now = new Date();
             const today = now.toLocaleDateString('id-ID');
             
-            if (localDB[kelas].some(d => d.Absen === absen && d.Tanggal === today)) {
-                return showFeedback("⚠️", nama, "Sabar Cok, Udah Absen!", "bg-yellow-600");
+            // 1. Tarik data terbaru biar sinkron
+            await loadAllData(); 
+
+            // 2. Cari baris si murid
+            let idx = localDB[kelas].findIndex(d => d.Absen === absen);
+
+            if (idx !== -1) {
+                // Cek duplikat scan hari ini
+                if (localDB[kelas][idx].Tanggal === today) {
+                    return showFeedback("⚠️", nama, "Sabar Cok, Udah Absen!", "bg-yellow-600");
+                }
+
+                // 3. UPDATE DATA (Lifetime Counter)
+                localDB[kelas][idx].Jam = now.toLocaleTimeString('id-ID');
+                localDB[kelas][idx].Tanggal = today;
+                localDB[kelas][idx].KehadiranKe = (parseInt(localDB[kelas][idx].KehadiranKe) || 0) + 1;
+                
+                showFeedback("✅", nama, `${kelas} • HADIR KE-${localDB[kelas][idx].KehadiranKe}`, "bg-green-600");
+                renderLog();
+                await syncToGithub(kelas);
+            } else {
+                alert("Murid tidak terdaftar di database kelas!");
+            }
+        }
+
+        async function downloadZipLaporan() {
+            const btn = document.getElementById('btn-zip-laporan');
+            btn.innerText = "⏳ GENERATING REKAP..."; btn.disabled = true;
+
+            const zip = new JSZip();
+            const today = new Date().toLocaleDateString('id-ID');
+
+            for (const cls of DAFTAR_KELAS) {
+                let daftarSiswa = [...localDB[cls]];
+                if (daftarSiswa.length > 0) {
+                    daftarSiswa.sort((a, b) => parseInt(a.Absen) - parseInt(b.Absen));
+                    const dataExcel = daftarSiswa.map(s => {
+                        const isHadirToday = s.Tanggal === today;
+                        return {
+                            "NO": s.Absen,
+                            "NAMA MURID": s.Nama.toUpperCase(),
+                            "STATUS": isHadirToday ? "✓ HADIR" : "X ALFA",
+                            "JAM SCAN": isHadirToday ? s.Jam : "-",
+                            "TOTAL KEHADIRAN (LIFETIME)": s.KehadiranKe || 0
+                        };
+                    });
+
+                    const ws = XLSX.utils.json_to_sheet(dataExcel);
+                    const wb = XLSX.utils.book_new();
+                    XLSX.utils.book_append_sheet(wb, ws, "REKAP");
+                    const excelBuffer = XLSX.write(wb, { bookType: 'xlsx', type: 'array' });
+                    zip.file(`REKAP_${cls}_${today.replace(/\//g, '-')}.xlsx`, excelBuffer);
+                }
             }
 
-            const count = localDB[kelas].filter(d => d.Absen === absen && d.Tanggal !== "-").length + 1;
-            const payload = { Nama: nama, Kelas: kelas, Absen: absen, Jam: now.toLocaleTimeString('id-ID'), Tanggal: today, KehadiranKe: count };
-            
-            showFeedback("✅", nama, `${kelas} • HADIR KE-${count}`, "bg-green-600");
-            localDB[kelas].push(payload);
-            renderLog();
-            await syncToGithub(kelas);
+            const content = await zip.generateAsync({type:"blob"});
+            const l = document.createElement('a'); l.href = URL.createObjectURL(content);
+            l.download = `ABSEN_SMA12_${today.replace(/\//g, '-')}.zip`; l.click();
+            btn.innerText = "📦 Download Rekap Harian (ZIP)"; btn.disabled = false;
         }
 
         function renderLog() {
@@ -277,21 +245,19 @@
             const today = new Date().toLocaleDateString('id-ID');
             let allLogs = [];
             DAFTAR_KELAS.forEach(cls => {
-                if(localDB[cls]) {
-                    localDB[cls].filter(d => d.Tanggal === today).forEach(d => allLogs.push(d));
-                }
+                localDB[cls].filter(d => d.Tanggal === today).forEach(d => allLogs.push(d));
             });
             allLogs.sort((a,b) => b.Jam.localeCompare(a.Jam));
-            list.innerHTML = allLogs.length === 0 ? `<p class="text-center text-gray-600 py-10 italic text-xs uppercase tracking-widest uppercase">Belum ada scan hari ini...</p>` :
+            list.innerHTML = allLogs.length === 0 ? `<p class="text-center text-gray-600 py-10 italic text-[10px] uppercase">Belum ada scan masuk...</p>` :
                 allLogs.slice(0, 30).map(d => `<div class="log-item glass p-4 rounded-2xl flex justify-between items-center border-l-4 border-cyan-500 mb-2">
-                    <div><b class="text-white text-xs uppercase italic">${d.Nama}</b><div class="text-[9px] text-gray-500 font-bold">Absen ${d.Absen} • ${d.Jam}</div></div>
+                    <div><b class="text-white text-xs uppercase">${d.Nama}</b><div class="text-[9px] text-gray-500">Absen ${d.Absen} • ${d.Jam}</div></div>
                     <div class="bg-gray-900 px-3 py-1 rounded-lg text-cyan-400 font-black text-xs">#${d.KehadiranKe}</div></div>`).join('');
         }
 
         async function prosesBulkQR() {
             const input = document.getElementById('bulk-input').value.trim();
             const k = document.getElementById('select-kelas-admin').value;
-            if(!input) return alert("Paste daftar namanya Cok!");
+            if(!input) return;
             const zip = new JSZip();
             const lines = input.split('\n');
             const engine = document.getElementById('hidden-qr-engine');
@@ -324,10 +290,7 @@
         }
 
         function switchTab(tab) {
-            if (tab === 'scan' && !isGuruLoggedIn) {
-                document.getElementById('modal-login').style.display = 'flex';
-                return;
-            }
+            if (tab === 'scan' && !isGuruLoggedIn) { document.getElementById('modal-login').style.display = 'flex'; return; }
             document.getElementById('tab-admin').classList.toggle('hidden', tab !== 'admin');
             document.getElementById('tab-scan').classList.toggle('hidden', tab !== 'scan');
             document.getElementById('btn-admin').classList.toggle('active-tab', tab === 'admin');
@@ -356,7 +319,7 @@
                 html5QrScanner.start({ facingMode: "environment" }, { fps: 20, qrbox: 250 }, (text) => {
                     const [n, k, a] = text.split('|');
                     prosesAbsen(n, k, a);
-                }).catch(err => alert("Kamera Error Cok!"));
+                });
             } else { html5QrScanner = new Html5Qrcode("reader"); startScanner(); }
         }
 
