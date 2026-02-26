@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Dzuhur 12 - Smart Gate System</title>
+    <title>Dzuhur 12 - Smart Gate V4</title>
     <meta name="mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="theme-color" content="#0d1117">
@@ -24,7 +24,6 @@
         #reader { border: none !important; border-radius: 1.5rem; overflow: hidden; background: #000; }
         .log-item { animation: slideIn 0.3s ease-out forwards; }
         @keyframes slideIn { from { transform: translateY(10px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
-        #modal-login { display: none; }
     </style>
 </head>
 <body class="pb-10">
@@ -47,7 +46,7 @@
         </div>
     </div>
 
-    <div id="modal-login" class="fixed inset-0 bg-black/95 backdrop-blur-xl z-[999] items-center justify-center p-4">
+    <div id="modal-login" class="fixed inset-0 bg-black/95 backdrop-blur-xl z-[999] hidden items-center justify-center p-4">
         <div class="glass w-full max-w-sm p-10 rounded-[3rem] border border-cyan-500/30 text-center">
             <h2 class="text-2xl font-bold text-white mb-2 italic uppercase">GURU LOGIN</h2>
             <input type="password" id="login-pass" placeholder="Password Guru" class="w-full bg-gray-900 border border-gray-700 p-4 rounded-2xl outline-none text-white focus:border-cyan-500 text-center text-lg mb-4">
@@ -66,10 +65,16 @@
                         <select id="select-kelas-admin" class="w-1/2 bg-gray-900 border border-gray-800 p-4 rounded-2xl outline-none text-white text-sm"></select>
                         <input type="number" id="input-nis" placeholder="No. Absen" class="w-1/2 bg-gray-900 border border-gray-800 p-4 rounded-2xl outline-none text-white">
                     </div>
-                    <select id="select-agama" class="w-full bg-gray-900 border border-gray-800 p-4 rounded-2xl outline-none text-white text-sm">
-                        <option value="Islam">ISLAM</option>
-                        <option value="Kristen">KRISTEN</option>
-                    </select>
+                    <div class="flex gap-4">
+                        <select id="select-jk" class="w-1/2 bg-gray-900 border border-gray-800 p-4 rounded-2xl outline-none text-white text-sm">
+                            <option value="L">LAKI-LAKI</option>
+                            <option value="P">PEREMPUAN</option>
+                        </select>
+                        <select id="select-agama" class="w-1/2 bg-gray-900 border border-gray-800 p-4 rounded-2xl outline-none text-white text-sm">
+                            <option value="Islam">ISLAM</option>
+                            <option value="Kristen">KRISTEN</option>
+                        </select>
+                    </div>
                     <button onclick="buatQR()" class="bg-blue-600 py-4 rounded-2xl font-black text-xs uppercase tracking-widest mt-2 active:scale-95 transition-all">Generate & Simpan</button>
                 </div>
             </div>
@@ -77,7 +82,8 @@
 
             <div id="bulk-area-guru" class="hidden glass p-8 rounded-[2.5rem] border border-yellow-500/20">
                 <h2 class="text-sm font-black mb-2 text-yellow-500 uppercase italic">Bulk Daftar Murid</h2>
-                <textarea id="bulk-input" rows="4" placeholder="ASEP SURASEP 1 Islam&#10;YOHANES 2 Kristen" class="w-full bg-black/40 border border-gray-800 p-5 rounded-2xl text-xs text-white mb-4 outline-none"></textarea>
+                <p class="text-[8px] text-gray-500 mb-4 uppercase font-bold tracking-widest italic">Format: Nama [Spasi] Absen [Spasi] JK (L/P) [Spasi] Agama</p>
+                <textarea id="bulk-input" rows="4" placeholder="ASEP 1 L Islam&#10;SITI 2 P Islam" class="w-full bg-black/40 border border-gray-800 p-5 rounded-2xl text-xs text-white mb-4 outline-none"></textarea>
                 <button onclick="prosesBulkQR()" id="btn-bulk" class="w-full py-4 bg-yellow-600 text-white font-bold rounded-2xl text-[10px] uppercase tracking-widest">🚀 Download ZIP & Simpan</button>
             </div>
         </section>
@@ -89,13 +95,12 @@
             </div>
 
             <div class="flex gap-3">
-                <button id="btn-start-cam" onclick="startScanner()" class="flex-1 py-5 bg-cyan-600 text-white font-black rounded-[2rem] text-[10px] uppercase tracking-widest">📷 Nyalakan Kamera</button>
+                <button id="btn-start-cam" onclick="startScanner()" class="flex-1 py-5 bg-cyan-600 text-white font-black rounded-[2rem] text-[10px] uppercase tracking-widest">📷 Aktifkan Kamera</button>
                 <button id="btn-stop-cam" onclick="stopScanner()" class="hidden flex-1 py-5 bg-red-600 text-white font-black rounded-[2rem] text-[10px] uppercase tracking-widest">🛑 Matikan</button>
             </div>
 
             <div class="glass p-5 rounded-[3rem] border-2 border-cyan-500/10 relative min-h-[300px] flex items-center justify-center overflow-hidden">
                 <div id="reader" class="w-full rounded-[2rem]"></div>
-                
                 <div id="scan-feedback" class="absolute inset-0 flex items-center justify-center rounded-[3rem] hidden z-10">
                     <div id="feedback-content" class="text-center text-white p-10 rounded-[3rem] shadow-2xl">
                         <div id="check-icons" class="text-6xl mb-3"></div>
@@ -122,7 +127,7 @@
 
         let isGuruLoggedIn = false;
         let localDB = {}; 
-        let currentMode = 'Islam'; // Default mode pintu masuk
+        let currentMode = 'Islam';
         let html5QrScanner;
 
         async function init() {
@@ -165,30 +170,27 @@
             const k = document.getElementById('select-kelas-admin').value;
             const a = document.getElementById('input-nis').value.trim();
             const ag = document.getElementById('select-agama').value;
+            const jk = document.getElementById('select-jk').value;
             if(!n || !a) return alert("Isi data!");
             if (localDB[k].some(d => d.Absen === a)) return alert("Absen kedaftar!");
-            localDB[k].push({ Nama: n, Kelas: k, Absen: a, Agama: ag, Jam: "-", Tanggal: "-", Status: "-", KehadiranKe: 0 });
+            
+            localDB[k].push({ Nama: n, Kelas: k, Absen: a, JK: jk, Agama: ag, Jam: "-", Tanggal: "-", Status: "-", KehadiranKe: 0 });
             await syncToGithub(k);
+            
             const area = document.getElementById('qr-result-area');
             area.innerHTML = `<div id="qrd" class="p-8 bg-white rounded-[2.5rem] flex flex-col items-center mt-6">
-                <div id="qri" class="mb-4"></div><b class="text-black uppercase text-xl">${n}</b><p class="text-gray-500 font-bold uppercase text-[9px]">${k} • ${ag} • ABSEN ${a}</p>
-            </div><button onclick="downloadQR('${n}')" class="mt-4 bg-cyan-600 p-4 w-full max-w-[280px] rounded-2xl font-black italic text-white text-xs uppercase">💾 Simpan</button>`;
-            new QRCode(document.getElementById("qri"), { text: `${n}|${k}|${a}|${ag}`, width: 200, height: 200, correctLevel : QRCode.CorrectLevel.H });
+                <div id="qri" class="mb-4"></div><b class="text-black uppercase text-xl">${n}</b><p class="text-gray-500 font-bold uppercase text-[9px]">${k} • ${jk} • ${ag} • ABSEN ${a}</p>
+            </div><button onclick="downloadQR('${n}')" class="mt-4 bg-cyan-600 p-4 w-full max-w-[280px] rounded-2xl font-black italic text-white text-xs uppercase">💾 Simpan Kartu</button>`;
+            new QRCode(document.getElementById("qri"), { text: `${n}|${k}|${a}|${jk}|${ag}`, width: 200, height: 200, correctLevel : QRCode.CorrectLevel.H });
         }
 
         async function prosesAbsen(text) {
-            const [nama, kelas, absen, agama] = text.split('|');
+            const [nama, kelas, absen, jk, agama] = text.split('|');
             const now = new Date();
             const today = now.toLocaleDateString('id-ID');
             
-            // VALIDASI AGAMA SESUAI MODE PINTU
-            if (agama !== currentMode) {
-                return showFeedback("❌", nama, `SALAH PINTU! INI MODE ${currentMode.toUpperCase()}`, "bg-red-700");
-            }
-
-            if (localDB[kelas].some(d => d.Absen === absen && d.Tanggal === today)) {
-                return showFeedback("⚠️", nama, "SUDAH ABSEN HARI INI!", "bg-yellow-600");
-            }
+            if (agama !== currentMode) return showFeedback("❌", nama, `SALAH PINTU! KHUSUS ${currentMode.toUpperCase()}`, "bg-red-700");
+            if (localDB[kelas].some(d => d.Absen === absen && d.Tanggal === today)) return showFeedback("⚠️", nama, "SUDAH SCAN HARI INI!", "bg-yellow-600");
 
             let idx = localDB[kelas].findIndex(d => d.Absen === absen);
             if (idx !== -1) {
@@ -215,7 +217,7 @@
                     const dataExcel = sorted.map(s => {
                         const isHadir = s.Tanggal === today;
                         return {
-                            "NO": s.Absen, "NAMA": s.Nama.toUpperCase(), "AGAMA": s.Agama || "Islam",
+                            "ABSEN": s.Absen, "NAMA": s.Nama.toUpperCase(), "JK": s.JK || "-", "AGAMA": s.Agama || "Islam",
                             "STATUS": isHadir ? `✓ ${s.Status}` : "X ALFA",
                             "JAM": isHadir ? s.Jam : "-", "TOTAL": s.KehadiranKe || 0
                         };
@@ -236,13 +238,11 @@
             const list = document.getElementById('log-list');
             const today = new Date().toLocaleDateString('id-ID');
             let allLogs = [];
-            DAFTAR_KELAS.forEach(cls => {
-                localDB[cls].filter(d => d.Tanggal === today).forEach(d => allLogs.push(d));
-            });
+            DAFTAR_KELAS.forEach(cls => { localDB[cls].filter(d => d.Tanggal === today).forEach(d => allLogs.push(d)); });
             allLogs.sort((a,b) => b.Jam.localeCompare(a.Jam));
             list.innerHTML = allLogs.length === 0 ? `<p class="text-center text-gray-600 py-10 italic text-[10px] uppercase">Belum ada scan masuk...</p>` :
                 allLogs.slice(0, 30).map(d => `<div class="log-item glass p-4 rounded-2xl flex justify-between items-center border-l-4 border-cyan-500 mb-2">
-                    <div><b class="text-white text-xs uppercase">${d.Nama}</b><div class="text-[8px] text-gray-500">${d.Agama} • ${d.Status} • ${d.Jam}</div></div>
+                    <div><b class="text-white text-xs uppercase">${d.Nama}</b><div class="text-[8px] text-gray-500">${d.JK} • ${d.Agama} • ${d.Status} • ${d.Jam}</div></div>
                     <div class="bg-gray-900 px-3 py-1 rounded-lg text-cyan-400 font-black text-[10px]">#${d.KehadiranKe}</div></div>`).join('');
         }
 
@@ -251,19 +251,18 @@
             const k = document.getElementById('select-kelas-admin').value;
             if(!input) return;
             const zip = new JSZip();
-            const prog = document.getElementById('loading-overlay');
-            prog.classList.remove('hidden');
+            document.getElementById('loading-overlay').classList.remove('hidden');
             const lines = input.split('\n');
             for (let i = 0; i < lines.length; i++) {
-                const parts = lines[i].trim().split(' ');
-                const agama = parts.pop(); const absen = parts.pop(); const nama = parts.join(' ');
+                const p = lines[i].trim().split(' ');
+                const agama = p.pop(); const jk = p.pop(); const absen = p.pop(); const nama = p.join(' ');
                 if(!nama || isNaN(absen)) continue;
                 if (!localDB[k].some(d => d.Absen === absen)) {
-                    localDB[k].push({ Nama: nama, Kelas: k, Absen: absen, Agama: agama, Jam: "-", Tanggal: "-", Status: "-", KehadiranKe: 0 });
+                    localDB[k].push({ Nama: nama, Kelas: k, Absen: absen, JK: jk, Agama: agama, Jam: "-", Tanggal: "-", Status: "-", KehadiranKe: 0 });
                 }
                 const engine = document.getElementById('hidden-qr-engine');
-                engine.innerHTML = `<div id="tmp-card" style="padding:40px; background:white; width:350px; text-align:center;"><div id="tmp-img" style="display:flex; justify-content:center;"></div><div style="margin-top:20px;"><b style="color:black; font-size:24px; text-transform:uppercase;">${nama}</b><p style="color:#666; font-weight:bold; font-size:12px;">${k} - ${agama} - ABSEN ${absen}</p></div></div>`;
-                new QRCode(document.getElementById("tmp-img"), { text: `${nama}|${k}|${absen}|${agama}`, width: 250, height: 250 });
+                engine.innerHTML = `<div id="tmp-card" style="padding:40px; background:white; width:350px; text-align:center;"><div id="tmp-img" style="display:flex; justify-content:center;"></div><div style="margin-top:20px;"><b style="color:black; font-size:24px; text-transform:uppercase;">${nama}</b><p style="color:#666; font-weight:bold; font-size:12px;">${k} - ${jk} - ${agama} - ABSEN ${absen}</p></div></div>`;
+                new QRCode(document.getElementById("tmp-img"), { text: `${nama}|${k}|${absen}|${jk}|${agama}`, width: 250, height: 250 });
                 await new Promise(r => setTimeout(r, 200));
                 const canvas = await html2canvas(document.getElementById('tmp-card'), {scale: 2});
                 zip.file(`${k}/QR_${absen}_${nama}.png`, canvas.toDataURL("image/png").split(',')[1], {base64: true});
@@ -271,31 +270,24 @@
             await syncToGithub(k);
             const content = await zip.generateAsync({type:"blob"});
             const l = document.createElement('a'); l.href = URL.createObjectURL(content); l.download = `QR_BULK_${k}.zip`; l.click();
-            prog.classList.add('hidden');
+            document.getElementById('loading-overlay').classList.add('hidden');
         }
 
-        function switchTab(tab) {
-            if (tab === 'scan' && !isGuruLoggedIn) { document.getElementById('modal-login').style.display = 'flex'; return; }
-            document.getElementById('tab-admin').classList.toggle('hidden', tab !== 'admin');
-            document.getElementById('tab-scan').classList.toggle('hidden', tab !== 'scan');
-            document.getElementById('btn-admin').classList.toggle('active-tab', tab === 'admin');
-            document.getElementById('btn-scan').classList.toggle('active-tab', tab === 'scan');
-            if(tab !== 'scan') stopScanner();
-        }
+        // UI HELPERS
+        function switchTab(t) { if (t === 'scan' && !isGuruLoggedIn) { document.getElementById('modal-login').classList.remove('hidden'); document.getElementById('modal-login').classList.add('flex'); return; } document.getElementById('tab-admin').classList.toggle('hidden', t !== 'admin'); document.getElementById('tab-scan').classList.toggle('hidden', t !== 'scan'); document.getElementById('btn-admin').classList.toggle('active-tab', t === 'admin'); document.getElementById('btn-scan').classList.toggle('active-tab', t === 'scan'); if(t !== 'scan') stopScanner(); }
         function prosesLogin() { if (document.getElementById('login-pass').value === GURU_PASS) { isGuruLoggedIn = true; localStorage.setItem('guruLogin', 'true'); tutupLogin(); updateUIAfterLogin(); switchTab('scan'); } else alert("Salah!"); }
-        function tutupLogin() { document.getElementById('modal-login').style.display = 'none'; }
+        function tutupLogin() { document.getElementById('modal-login').classList.add('hidden'); document.getElementById('modal-login').classList.remove('flex'); }
         function updateUIAfterLogin() { document.getElementById('bulk-area-guru').classList.remove('hidden'); document.getElementById('btn-logout').classList.remove('hidden'); }
         function prosesLogout() { isGuruLoggedIn = false; localStorage.removeItem('guruLogin'); window.location.reload(); }
         function downloadQR(n) { html2canvas(document.getElementById('qrd'), {scale: 3}).then(c => { let l=document.createElement('a'); l.href=c.toDataURL(); l.download=`QR_${n}.png`; l.click(); }); }
         
         function startScanner() {
-            document.getElementById('cam-placeholder').classList.add('hidden');
             document.getElementById('btn-start-cam').classList.add('hidden');
             document.getElementById('btn-stop-cam').classList.remove('hidden');
             if (html5QrScanner) { html5QrScanner.start({ facingMode: "environment" }, { fps: 20, qrbox: 250 }, (text) => prosesAbsen(text));
             } else { html5QrScanner = new Html5Qrcode("reader"); startScanner(); }
         }
-        async function stopScanner() { if (html5QrScanner && html5QrScanner.isScanning) await html5QrScanner.stop(); document.getElementById('cam-placeholder').classList.remove('hidden'); document.getElementById('btn-start-cam').classList.remove('hidden'); document.getElementById('btn-stop-cam').classList.add('hidden'); }
+        async function stopScanner() { if (html5QrScanner && html5QrScanner.isScanning) await html5QrScanner.stop(); document.getElementById('btn-start-cam').classList.remove('hidden'); document.getElementById('btn-stop-cam').classList.add('hidden'); }
 
         function showFeedback(i, n, f, b) {
             const fb = document.getElementById('scan-feedback');
