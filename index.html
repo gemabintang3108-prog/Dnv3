@@ -45,7 +45,7 @@
 
     <div id="modal-login" class="fixed inset-0 bg-black/95 backdrop-blur-xl z-[60] flex items-center justify-center hidden p-4">
         <div class="glass w-full max-w-sm p-10 rounded-[3rem] border border-cyan-500/30 text-center">
-            <h2 class="text-2xl font-bold text-white mb-2 italic">GURU LOGIN</h2>
+            <h2 class="text-2xl font-bold text-white mb-2 italic text-center">GURU LOGIN</h2>
             <input type="password" id="login-pass" placeholder="Password Guru" class="w-full bg-gray-900 border border-gray-700 p-4 rounded-2xl outline-none text-white focus:border-cyan-500 text-center text-lg mb-4">
             <button onclick="prosesLogin()" class="w-full py-4 bg-cyan-600 text-white font-bold rounded-2xl shadow-lg uppercase text-xs">Masuk</button>
             <button onclick="document.getElementById('modal-login').classList.add('hidden')" class="mt-4 text-gray-500 text-[10px] uppercase font-bold tracking-widest">Batal</button>
@@ -55,14 +55,14 @@
     <main class="max-w-2xl mx-auto px-4">
         <section id="tab-admin" class="space-y-6">
             <div class="glass p-8 rounded-[2.5rem]">
-                <h2 class="text-sm font-black mb-6 text-white uppercase tracking-widest">Buat Kartu Murid</h2>
+                <h2 class="text-sm font-black mb-6 text-white uppercase tracking-widest italic">Buat Kartu Murid</h2>
                 <div class="grid gap-4">
                     <input type="text" id="input-nama" placeholder="Nama Lengkap" class="w-full bg-gray-900 border border-gray-800 p-4 rounded-2xl outline-none text-white focus:border-cyan-500">
                     <div class="flex gap-4">
                         <select id="select-kelas-admin" class="w-1/2 bg-gray-900 border border-gray-800 p-4 rounded-2xl outline-none text-white text-sm"></select>
                         <input type="number" id="input-nis" placeholder="No. Absen" class="w-1/2 bg-gray-900 border border-gray-800 p-4 rounded-2xl outline-none text-white">
                     </div>
-                    <button onclick="buatQR()" class="bg-blue-600 py-4 rounded-2xl font-black text-xs uppercase tracking-widest mt-2">Generate & Simpan</button>
+                    <button onclick="buatQR()" class="bg-blue-600 py-4 rounded-2xl font-black text-xs uppercase tracking-widest mt-2">Generate & Daftarkan</button>
                 </div>
             </div>
             <div id="qr-result-area" class="flex flex-col items-center"></div>
@@ -70,7 +70,7 @@
             <div id="bulk-area-guru" class="hidden glass p-8 rounded-[2.5rem] border border-yellow-500/20">
                 <h2 class="text-sm font-black mb-2 text-yellow-500 uppercase italic">Bulk Daftar Murid</h2>
                 <textarea id="bulk-input" rows="4" placeholder="NamaMurid [Spasi] NoAbsen" class="w-full bg-black/40 border border-gray-800 p-5 rounded-2xl text-xs text-white mb-4 outline-none"></textarea>
-                <button onclick="prosesBulkQR()" id="btn-bulk" class="w-full py-4 bg-yellow-600 text-white font-bold rounded-2xl text-[10px] uppercase tracking-widest">🚀 Download ZIP & Daftarkan</button>
+                <button onclick="prosesBulkQR()" id="btn-bulk" class="w-full py-4 bg-yellow-600 text-white font-bold rounded-2xl text-[10px] uppercase tracking-widest">🚀 Download ZIP & Simpan</button>
             </div>
         </section>
 
@@ -97,9 +97,9 @@
             </div>
 
             <div class="glass p-6 rounded-[2.5rem]">
-                <button onclick="downloadZipLaporan()" id="btn-zip-laporan" class="w-full py-5 bg-green-700 text-white font-black rounded-2xl text-[10px] uppercase tracking-widest">📦 Download Rekap ✓/X (ZIP)</button>
+                <button onclick="downloadZipLaporan()" id="btn-zip-laporan" class="w-full py-5 bg-green-700 text-white font-black rounded-2xl text-[10px] uppercase tracking-widest">📦 Download Rekap Harian (ZIP)</button>
                 <div class="mt-8 flex items-center justify-between">
-                    <h3 class="font-black text-gray-500 text-[10px] uppercase tracking-[0.2em]">Log Hari Ini</h3>
+                    <h3 class="font-black text-gray-400 text-[10px] uppercase tracking-[0.2em]">Log Hari Ini</h3>
                 </div>
                 <hr class="border-gray-800 my-4">
                 <div id="log-list" class="space-y-3 max-h-[400px] overflow-y-auto"></div>
@@ -135,7 +135,7 @@
                     localDB[cls] = data.files[fileName] ? JSON.parse(data.files[fileName].content) : [];
                 });
                 renderLog();
-            } catch (e) { console.error("Database Down!"); }
+            } catch (e) { console.error("Database Gagal Load!"); }
         }
 
         async function syncToGithub(kelas) {
@@ -153,21 +153,16 @@
             const a = document.getElementById('input-nis').value.trim();
             if(!n || !a) return alert("Isi data!");
 
-            // AUTO DATABASE: Daftarkan sebagai murid tetap (IsRegistered: true)
-            if (!localDB[k].some(d => d.Absen === a && d.IsRegistered)) {
+            // Masuk ke Database sebagai Data Murid
+            if (!localDB[k].some(d => d.Absen === a)) {
                 localDB[k].push({ Nama: n, Kelas: k, Absen: a, Jam: "-", Tanggal: "-", KehadiranKe: 0, IsRegistered: true });
                 await syncToGithub(k);
             }
 
             const area = document.getElementById('qr-result-area');
-            area.innerHTML = `
-            <div id="qrd" class="p-8 bg-white rounded-[2.5rem] flex flex-col items-center mt-6">
-                <div id="qri" class="mb-4"></div>
-                <b class="text-black uppercase text-xl">${n}</b>
-                <p class="text-gray-500 font-black text-[10px] tracking-[0.2em] uppercase">${k} • ABSEN ${a}</p>
-            </div>
-            <button onclick="downloadQR('${n}')" class="mt-4 bg-cyan-600 p-4 w-full max-w-[280px] rounded-2xl font-black italic text-white text-xs uppercase">💾 Simpan Kartu</button>`;
-            
+            area.innerHTML = `<div id="qrd" class="p-8 bg-white rounded-[2.5rem] flex flex-col items-center mt-6">
+                <div id="qri" class="mb-4"></div><b class="text-black uppercase text-xl">${n}</b><p class="text-gray-500 font-black text-[10px] tracking-[0.2em] uppercase">${k} • ABSEN ${a}</p>
+            </div><button onclick="downloadQR('${n}')" class="mt-4 bg-cyan-600 p-4 w-full max-w-[280px] rounded-2xl font-black italic text-white text-xs uppercase">💾 Simpan Kartu</button>`;
             new QRCode(document.getElementById("qri"), { text: `${n}|${k}|${a}`, width: 200, height: 200, correctLevel : QRCode.CorrectLevel.H });
         }
 
@@ -179,26 +174,34 @@
 
         async function downloadZipLaporan() {
             const btn = document.getElementById('btn-zip-laporan');
-            btn.innerText = "⏳ GENERATING REKAP...";
-            btn.disabled = true;
+            btn.innerText = "⏳ GENERATING REKAP..."; btn.disabled = true;
 
             const zip = new JSZip();
             const today = new Date().toLocaleDateString('id-ID');
 
             DAFTAR_KELAS.forEach(cls => {
-                let semuaMurid = localDB[cls].filter(d => d.IsRegistered);
-                if (semuaMurid.length > 0) {
-                    // URUT BERDASARKAN NO ABSEN
-                    semuaMurid.sort((a, b) => parseInt(a.Absen) - parseInt(b.Absen));
+                // Ambil daftar murid unik (yang pernah daftar)
+                let daftarSiswa = [];
+                const map = new Map();
+                localDB[cls].forEach(item => {
+                    if (!map.has(item.Absen)) {
+                        map.set(item.Absen, true);
+                        daftarSiswa.push({ Nama: item.Nama, Absen: item.Absen });
+                    }
+                });
 
-                    const dataExcel = semuaMurid.map(m => {
-                        const scanHariIni = localDB[cls].find(d => d.Absen === m.Absen && d.Tanggal === today && !d.IsRegistered);
+                if (daftarSiswa.length > 0) {
+                    // Urutkan No Absen
+                    daftarSiswa.sort((a, b) => parseInt(a.Absen) - parseInt(b.Absen));
+
+                    const dataExcel = daftarSiswa.map(s => {
+                        const scanHariIni = localDB[cls].find(d => d.Absen === s.Absen && d.Tanggal === today);
                         return {
-                            "NO": m.Absen,
-                            "NAMA MURID": m.Nama.toUpperCase(),
+                            "NO": s.Absen,
+                            "NAMA MURID": s.Nama.toUpperCase(),
                             "STATUS": scanHariIni ? "✓ HADIR" : "X ALFA",
                             "JAM SCAN": scanHariIni ? scanHariIni.Jam : "-",
-                            "KEHADIRAN KE-": scanHariIni ? scanHariIni.KehadiranKe : m.KehadiranKe
+                            "KEHADIRAN KE-": scanHariIni ? scanHariIni.KehadiranKe : (localDB[cls].filter(d => d.Absen === s.Absen && d.Tanggal !== "-").length)
                         };
                     });
 
@@ -213,11 +216,9 @@
             const content = await zip.generateAsync({type:"blob"});
             const l = document.createElement('a');
             l.href = URL.createObjectURL(content);
-            l.download = `REKAP_DZUHUR_12_${today.replace(/\//g, '-')}.zip`;
+            l.download = `ABSEN_DZUHUR_12_${today.replace(/\//g, '-')}.zip`;
             l.click();
-
-            btn.innerText = "📦 Download Rekap ✓/X (ZIP)";
-            btn.disabled = false;
+            btn.innerText = "📦 Download Rekap Harian (ZIP)"; btn.disabled = false;
         }
 
         async function prosesAbsen(nama, kelas, absen) {
@@ -225,11 +226,10 @@
             const now = new Date();
             const today = now.toLocaleDateString('id-ID');
             
-            // Cek duplikat scan hari ini
-            if (localDB[kelas].some(d => d.Absen === absen && d.Tanggal === today && !d.IsRegistered)) return;
+            if (localDB[kelas].some(d => d.Absen === absen && d.Tanggal === today)) return;
 
-            const count = localDB[kelas].filter(d => d.Absen === absen && !d.IsRegistered).length + 1;
-            const payload = { Nama: nama, Kelas: kelas, Absen: absen, Jam: now.toLocaleTimeString('id-ID'), Tanggal: today, KehadiranKe: count, IsRegistered: false };
+            const count = localDB[kelas].filter(d => d.Absen === absen && d.Tanggal !== "-").length + 1;
+            const payload = { Nama: nama, Kelas: kelas, Absen: absen, Jam: now.toLocaleTimeString('id-ID'), Tanggal: today, KehadiranKe: count };
             
             showFeedback("✅", nama, `${kelas} • HADIR`, "bg-green-600");
             localDB[kelas].push(payload);
@@ -242,7 +242,7 @@
             const today = new Date().toLocaleDateString('id-ID');
             let allLogs = [];
             DAFTAR_KELAS.forEach(cls => {
-                localDB[cls].filter(d => d.Tanggal === today && !d.IsRegistered).forEach(d => allLogs.push(d));
+                localDB[cls].filter(d => d.Tanggal === today).forEach(d => allLogs.push(d));
             });
             allLogs.sort((a,b) => b.Jam.localeCompare(a.Jam));
             list.innerHTML = allLogs.slice(0, 20).map(d => `<div class="log-item glass p-4 rounded-2xl flex justify-between items-center border-l-4 border-cyan-500 mb-2">
@@ -263,8 +263,7 @@
                 const abs = parts.pop(); const nam = parts.join(' ');
                 if(!nam || isNaN(abs)) continue;
 
-                // DAFTARKAN KE DATABASE MASING-MASING
-                if (!localDB[k].some(d => d.Absen === abs && d.IsRegistered)) {
+                if (!localDB[k].some(d => d.Absen === abs)) {
                     localDB[k].push({ Nama: nam, Kelas: k, Absen: abs, Jam: "-", Tanggal: "-", KehadiranKe: 0, IsRegistered: true });
                 }
 
