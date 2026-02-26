@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Dzuhur 12 - Smart Absen</title>
+    <title>Dzuhur 12 - Anti Ilang</title>
     <meta name="mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="theme-color" content="#0d1117">
@@ -22,13 +22,14 @@
         #reader { border: none !important; border-radius: 1.5rem; overflow: hidden; }
         .log-item { animation: slideIn 0.3s ease-out forwards; }
         @keyframes slideIn { from { transform: translateY(10px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+        #modal-login { display: none; } /* Default sembunyi pakai CSS biar gak kedip */
     </style>
 </head>
 <body class="pb-10">
 
     <div id="loading-overlay" class="fixed inset-0 bg-black/80 z-[100] flex flex-col items-center justify-center gap-4 transition-opacity duration-500">
         <div class="w-12 h-12 border-4 border-cyan-500 border-t-transparent rounded-full animate-spin"></div>
-        <p class="text-cyan-400 font-bold text-[10px] tracking-[0.3em] animate-pulse uppercase">Sinkronisasi Database...</p>
+        <p class="text-cyan-400 font-bold text-[10px] tracking-[0.3em] animate-pulse uppercase">SINKRONISASI DATABASE...</p>
     </div>
 
     <header class="py-8 text-center">
@@ -36,19 +37,19 @@
         <p class="text-[9px] text-cyan-500 mt-2 uppercase tracking-[0.3em] font-black italic">Rohis Sma 12 Jakarta</p>
     </header>
 
-    <div class="flex justify-center mb-8 px-4">
+    <div class="flex justify-center mb-8 px-4 relative z-[50]">
         <div class="glass p-1.5 rounded-2xl flex gap-2 w-full max-w-[320px]">
             <button onclick="switchTab('admin')" id="btn-admin" class="flex-1 py-3.5 rounded-xl font-bold active-tab text-xs transition-all duration-300">🎫 KARTU</button>
-            <button onclick="switchTab('scan')" id="btn-scan" class="flex-1 py-3.5 rounded-xl font-bold text-gray-500 text-xs transition-all duration-300">📷 SCANNER</button>
+            <button onclick="switchTab('scan')" id="btn-scan" class="flex-1 py-3.5 rounded-xl font-bold text-gray-400 text-xs transition-all duration-300">📷 SCANNER</button>
         </div>
     </div>
 
-    <div id="modal-login" class="fixed inset-0 bg-black/95 backdrop-blur-xl z-[60] flex items-center justify-center hidden p-4">
+    <div id="modal-login" class="fixed inset-0 bg-black/95 backdrop-blur-xl z-[999] items-center justify-center p-4">
         <div class="glass w-full max-w-sm p-10 rounded-[3rem] border border-cyan-500/30 text-center">
-            <h2 class="text-2xl font-bold text-white mb-2 italic text-center">GURU LOGIN</h2>
+            <h2 class="text-2xl font-bold text-white mb-2 italic">GURU LOGIN</h2>
             <input type="password" id="login-pass" placeholder="Password Guru" class="w-full bg-gray-900 border border-gray-700 p-4 rounded-2xl outline-none text-white focus:border-cyan-500 text-center text-lg mb-4">
             <button onclick="prosesLogin()" class="w-full py-4 bg-cyan-600 text-white font-bold rounded-2xl shadow-lg uppercase text-xs">Masuk</button>
-            <button onclick="document.getElementById('modal-login').classList.add('hidden')" class="mt-4 text-gray-500 text-[10px] uppercase font-bold tracking-widest">Batal</button>
+            <button onclick="tutupLogin()" class="mt-4 text-gray-500 text-[10px] uppercase font-bold tracking-widest">Batal</button>
         </div>
     </div>
 
@@ -62,16 +63,10 @@
                         <select id="select-kelas-admin" class="w-1/2 bg-gray-900 border border-gray-800 p-4 rounded-2xl outline-none text-white text-sm"></select>
                         <input type="number" id="input-nis" placeholder="No. Absen" class="w-1/2 bg-gray-900 border border-gray-800 p-4 rounded-2xl outline-none text-white">
                     </div>
-                    <button onclick="buatQR()" class="bg-blue-600 py-4 rounded-2xl font-black text-xs uppercase tracking-widest mt-2">Generate & Daftarkan</button>
+                    <button onclick="buatQR()" class="bg-blue-600 py-4 rounded-2xl font-black text-xs uppercase tracking-widest mt-2">Generate & Simpan</button>
                 </div>
             </div>
             <div id="qr-result-area" class="flex flex-col items-center"></div>
-
-            <div id="bulk-area-guru" class="hidden glass p-8 rounded-[2.5rem] border border-yellow-500/20">
-                <h2 class="text-sm font-black mb-2 text-yellow-500 uppercase italic">Bulk Daftar Murid</h2>
-                <textarea id="bulk-input" rows="4" placeholder="NamaMurid [Spasi] NoAbsen" class="w-full bg-black/40 border border-gray-800 p-5 rounded-2xl text-xs text-white mb-4 outline-none"></textarea>
-                <button onclick="prosesBulkQR()" id="btn-bulk" class="w-full py-4 bg-yellow-600 text-white font-bold rounded-2xl text-[10px] uppercase tracking-widest">🚀 Download ZIP & Simpan</button>
-            </div>
         </section>
 
         <section id="tab-scan" class="hidden space-y-6">
@@ -122,20 +117,26 @@
         async function init() {
             const adminSelect = document.getElementById('select-kelas-admin');
             DAFTAR_KELAS.forEach(cls => { adminSelect.innerHTML += `<option value="${cls}">${cls}</option>`; });
+            
+            // Tunggu data beres ditarik baru render log
             await loadAllData();
             document.getElementById('loading-overlay').classList.add('hidden');
         }
 
         async function loadAllData() {
             try {
+                // Tambah timestamp biar gak kena cache browser
                 const res = await fetch(`https://api.github.com/gists/${GIST_ID_UTAMA}?t=${new Date().getTime()}`);
                 const data = await res.json();
                 DAFTAR_KELAS.forEach(cls => {
                     const fileName = `${cls}.json`;
                     localDB[cls] = data.files[fileName] ? JSON.parse(data.files[fileName].content) : [];
                 });
-                renderLog();
-            } catch (e) { console.error("Database Gagal Load!"); }
+                renderLog(); // Pastiin dipanggil setelah data ditarik
+            } catch (e) { 
+                console.error("Database Gagal Load!"); 
+                alert("Gagal konek ke database, periksa token atau sinyal!");
+            }
         }
 
         async function syncToGithub(kelas) {
@@ -153,11 +154,12 @@
             const a = document.getElementById('input-nis').value.trim();
             if(!n || !a) return alert("Isi data!");
 
-            // Masuk ke Database sebagai Data Murid
-            if (!localDB[k].some(d => d.Absen === a)) {
-                localDB[k].push({ Nama: n, Kelas: k, Absen: a, Jam: "-", Tanggal: "-", KehadiranKe: 0, IsRegistered: true });
-                await syncToGithub(k);
+            if (localDB[k].some(d => d.Absen === a)) {
+                return alert("Siswa dengan No. Absen ini sudah terdaftar!");
             }
+
+            localDB[k].push({ Nama: n, Kelas: k, Absen: a, Jam: "-", Tanggal: "-", KehadiranKe: 0, IsRegistered: true });
+            await syncToGithub(k);
 
             const area = document.getElementById('qr-result-area');
             area.innerHTML = `<div id="qrd" class="p-8 bg-white rounded-[2.5rem] flex flex-col items-center mt-6">
@@ -180,7 +182,6 @@
             const today = new Date().toLocaleDateString('id-ID');
 
             DAFTAR_KELAS.forEach(cls => {
-                // Ambil daftar murid unik (yang pernah daftar)
                 let daftarSiswa = [];
                 const map = new Map();
                 localDB[cls].forEach(item => {
@@ -191,9 +192,7 @@
                 });
 
                 if (daftarSiswa.length > 0) {
-                    // Urutkan No Absen
                     daftarSiswa.sort((a, b) => parseInt(a.Absen) - parseInt(b.Absen));
-
                     const dataExcel = daftarSiswa.map(s => {
                         const scanHariIni = localDB[cls].find(d => d.Absen === s.Absen && d.Tanggal === today);
                         return {
@@ -226,6 +225,7 @@
             const now = new Date();
             const today = now.toLocaleDateString('id-ID');
             
+            // Cek duplikat di localDB hari ini
             if (localDB[kelas].some(d => d.Absen === absen && d.Tanggal === today)) return;
 
             const count = localDB[kelas].filter(d => d.Absen === absen && d.Tanggal !== "-").length + 1;
@@ -234,65 +234,54 @@
             showFeedback("✅", nama, `${kelas} • HADIR`, "bg-green-600");
             localDB[kelas].push(payload);
             renderLog();
-            syncToGithub(kelas);
+            await syncToGithub(kelas);
         }
 
         function renderLog() {
             const list = document.getElementById('log-list');
             const today = new Date().toLocaleDateString('id-ID');
             let allLogs = [];
+            
+            // Tarik semua data yang tanggalnya hari ini dari semua kelas
             DAFTAR_KELAS.forEach(cls => {
-                localDB[cls].filter(d => d.Tanggal === today).forEach(d => allLogs.push(d));
-            });
-            allLogs.sort((a,b) => b.Jam.localeCompare(a.Jam));
-            list.innerHTML = allLogs.slice(0, 20).map(d => `<div class="log-item glass p-4 rounded-2xl flex justify-between items-center border-l-4 border-cyan-500 mb-2">
-                <div><b class="text-white text-xs uppercase">${d.Nama}</b><div class="text-[9px] text-gray-500">Absen ${d.Absen} • ${d.Jam}</div></div>
-                <div class="bg-gray-900 px-3 py-1 rounded-lg text-cyan-400 font-black text-xs">#${d.KehadiranKe}</div></div>`).join('');
-        }
-
-        async function prosesBulkQR() {
-            const input = document.getElementById('bulk-input').value.trim();
-            const k = document.getElementById('select-kelas-admin').value;
-            if(!input) return;
-            const zip = new JSZip();
-            const lines = input.split('\n');
-            const engine = document.getElementById('hidden-qr-engine');
-
-            for (let i = 0; i < lines.length; i++) {
-                const parts = lines[i].trim().split(' ');
-                const abs = parts.pop(); const nam = parts.join(' ');
-                if(!nam || isNaN(abs)) continue;
-
-                if (!localDB[k].some(d => d.Absen === abs)) {
-                    localDB[k].push({ Nama: nam, Kelas: k, Absen: abs, Jam: "-", Tanggal: "-", KehadiranKe: 0, IsRegistered: true });
+                if(localDB[cls]) {
+                    localDB[cls].filter(d => d.Tanggal === today).forEach(d => allLogs.push(d));
                 }
-
-                engine.innerHTML = `<div id="tmp-card" style="padding:40px; background:white; width:350px; text-align:center;"><div id="tmp-img" style="display:flex; justify-content:center;"></div><div style="margin-top:20px;"><b style="color:black; font-size:24px; text-transform:uppercase;">${nam}</b><p style="color:#666; font-weight:bold; font-size:14px;">${k} - ${abs}</p></div></div>`;
-                new QRCode(document.getElementById("tmp-img"), { text: `${nam}|${k}|${abs}`, width: 250, height: 250 });
-                await new Promise(r => setTimeout(r, 150));
-                const canvas = await html2canvas(document.getElementById('tmp-card'), {scale: 2});
-                zip.file(`${k}/QR_${abs}_${nam}.png`, canvas.toDataURL("image/png").split(',')[1], {base64: true});
-            }
-            await syncToGithub(k);
-            const content = await zip.generateAsync({type:"blob"});
-            const l = document.createElement('a'); l.href = URL.createObjectURL(content); l.download = `QR_MASAL_${k}.zip`; l.click();
+            });
+            
+            // Urutkan jam terbaru di atas
+            allLogs.sort((a,b) => b.Jam.localeCompare(a.Jam));
+            
+            list.innerHTML = allLogs.length === 0 ? `<p class="text-center text-gray-600 py-10 italic text-xs uppercase tracking-widest">Belum ada scan masuk...</p>` :
+                allLogs.slice(0, 20).map(d => `<div class="log-item glass p-4 rounded-2xl flex justify-between items-center border-l-4 border-cyan-500 mb-2">
+                    <div><b class="text-white text-xs uppercase">${d.Nama}</b><div class="text-[9px] text-gray-500">Absen ${d.Absen} • ${d.Jam}</div></div>
+                    <div class="bg-gray-900 px-3 py-1 rounded-lg text-cyan-400 font-black text-xs">#${d.KehadiranKe}</div></div>`).join('');
         }
 
         function switchTab(tab) {
-            if (tab === 'scan' && !isGuruLoggedIn) { document.getElementById('modal-login').classList.remove('hidden'); return; }
+            if (tab === 'scan' && !isGuruLoggedIn) {
+                const modal = document.getElementById('modal-login');
+                modal.style.display = 'flex';
+                return;
+            }
             document.getElementById('tab-admin').classList.toggle('hidden', tab !== 'admin');
             document.getElementById('tab-scan').classList.toggle('hidden', tab !== 'scan');
             document.getElementById('btn-admin').classList.toggle('active-tab', tab === 'admin');
+            document.getElementById('btn-admin').classList.toggle('text-gray-400', tab !== 'admin');
             document.getElementById('btn-scan').classList.toggle('active-tab', tab === 'scan');
+            document.getElementById('btn-scan').classList.toggle('text-gray-400', tab !== 'scan');
         }
 
         function prosesLogin() {
             if (document.getElementById('login-pass').value === GURU_PASS) {
                 isGuruLoggedIn = true;
-                document.getElementById('modal-login').classList.add('hidden');
-                document.getElementById('bulk-area-guru').classList.remove('hidden');
+                tutupLogin();
                 switchTab('scan');
             } else alert("Salah!");
+        }
+
+        function tutupLogin() {
+            document.getElementById('modal-login').style.display = 'none';
         }
 
         function startScanner() {
