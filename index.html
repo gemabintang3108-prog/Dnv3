@@ -181,51 +181,78 @@
         }
 
         async function downloadZipLaporan() {
-            const btn = document.getElementById('btn-zip-laporan');
-            btn.innerText = "⏳ GENERATING REKAP..."; btn.disabled = true;
+    const btn = document.getElementById('btn-zip-laporan');
+    btn.innerText = "⏳ SEDANG REKAP..."; btn.disabled = true;
 
-            const zip = new JSZip();
-            const today = new Date().toLocaleDateString('id-ID');
+    const zip = new JSZip();
+    const today = new Date().toLocaleDateString('id-ID');
+    let adaFile = false;
 
-            for (const cls of DAFTAR_KELAS) {
-                let daftarSiswa = [];
-                const map = new Map();
-                localDB[cls].forEach(item => {
-                    if (!map.has(item.Absen)) {
-                        map.set(item.Absen, true);
-                        daftarSiswa.push({ Nama: item.Nama, Absen: item.Absen });
-                    }
-                });
-
-                if (daftarSiswa.length > 0) {
-                    daftarSiswa.sort((a, b) => parseInt(a.Absen) - parseInt(b.Absen));
-                    const dataExcel = daftarSiswa.map(s => {
-                        const scanHariIni = localDB[cls].find(d => d.Absen === s.Absen && d.Tanggal === today);
-                        const totalHadir = localDB[cls].filter(d => d.Absen === s.Absen && d.Tanggal !== "-").length;
-                        return {
-                            "NO": s.Absen,
-                            "NAMA MURID": s.Nama.toUpperCase(),
-                            "STATUS": scanHariIni ? "✓ HADIR" : "X ALFA",
-                            "JAM SCAN": scanHariIni ? scanHariIni.Jam : "-",
-                            "KEHADIRAN KE-": totalHadir
-                        };
-                    });
-
-                    const ws = XLSX.utils.json_to_sheet(dataExcel);
-                    const wb = XLSX.utils.book_new();
-                    XLSX.utils.book_append_sheet(wb, ws, "REKAP");
-                    const excelBuffer = XLSX.write(wb, { bookType: 'xlsx', type: 'array' });
-                    zip.file(`REKAP_${cls}_${today.replace(/\//g, '-')}.xlsx`, excelBuffer);
-                }
+    for (const cls of DAFTAR_KELAS) {
+        // --- LOGIKA SAKTI DIMULAI DISINI ---
+        // 1. Ambil semua data di kelas ini, lalu kita bikin daftar MURID UNIK
+        const mapSiswa = new Map();
+        
+        localDB[cls].forEach(item => {
+            // Kita simpan Nama & Absen ke Map (otomatis nindih kalau double, jadi gak duplikat)
+            // Ini mastiin siapa pun yang terdaftar (MASTER) atau pernah scan (SCAN) masuk list
+            if (item.Nama && item.Absen) {
+                mapSiswa.set(item.Absen, item.Nama.toUpperCase());
             }
+        });
 
-            const content = await zip.generateAsync({type:"blob"});
-            const l = document.createElement('a');
-            l.href = URL.createObjectURL(content);
-            l.download = `ABSEN_DZUHUR_12_${today.replace(/\//g, '-')}.zip`;
-            l.click();
-            btn.innerText = "📦 Download Rekap Harian (ZIP)"; btn.disabled = false;
+        if (mapSiswa.size > 0) {
+            adaFile = true;
+            // 2. Ubah Map jadi Array biar bisa diurutin no absennya
+            let daftarSemuaMurid = [];
+            mapSiswa.forEach((nama, absen) => {
+                daftarSemuaMurid.push({ nama, absen });
+            });
+
+            // 3. Urutkan berdasarkan nomor absen
+            daftarSemuaMurid.sort((a, b) => parseInt(a.absen) - parseInt(b.absen));
+
+            // 4. Cek Status satu-satu buat Excel
+            const dataExcel = daftarSemuaMurid.map(m => {
+                // Cari apakah ada data scan dengan absen ini di TANGGAL HARI INI
+                const scanHariIni = localDB[cls].find(d => 
+                    d.Absen === m.absen && 
+                    d.Tanggal === today
+                );
+
+                // Hitung total kehadiran asli (berapa kali dia masuk di database)
+                // Kita hitung data yang ada Tanggal-nya (bukan data master kosong)
+                const totalHadir = localDB[cls].filter(d => d.Absen === m.absen && d.Tanggal !== "-").length;
+
+                return {
+                    "NO ABSEN": m.absen,
+                    "NAMA MURID": m.nama,
+                    "STATUS": scanHariIni ? "✓ HADIR" : "X ALFA",
+                    "JAM SCAN": scanHariIni ? scanHariIni.Jam : "-",
+                    "TOTAL HADIR": totalHadir
+                };
+            });
+
+            const ws = XLSX.utils.json_to_sheet(dataExcel);
+            const wb = XLSX.utils.book_new();
+            XLSX.utils.book_append_sheet(wb, ws, "REKAP");
+            const excelBuffer = XLSX.write(wb, { bookType: 'xlsx', type: 'array' });
+            zip.file(`REKAP_${cls}_${today.replace(/\//g, '-')}.xlsx`, excelBuffer);
         }
+    }
+
+    if (!adaFile) {
+        alert("Gak ada data sama sekali di Gist, Cok!");
+    } else {
+        const content = await zip.generateAsync({type:"blob"});
+        const l = document.createElement('a');
+        l.href = URL.createObjectURL(content);
+        l.download = `REKAP_DZUHUR_12_${today.replace(/\//g, '-')}.zip`;
+        l.click();
+    }
+    btn.innerText = "📦 Download Rekap Harian (ZIP)"; btn.disabled = false;
+}
+
 
         async function prosesAbsen(nama, kelas, absen) {
             if(!localDB[kelas]) return;
