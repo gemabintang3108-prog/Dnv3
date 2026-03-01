@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Dzuhur 12 - Smart Gate V4</title>
+    <title>Dzuhur 12 - Sistem Presensi Digital</title>
     <meta name="mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="theme-color" content="#0d1117">
@@ -30,40 +30,40 @@
 
     <div id="loading-overlay" class="fixed inset-0 bg-black/80 z-[100] flex flex-col items-center justify-center gap-4 transition-opacity duration-500">
         <div class="w-12 h-12 border-4 border-cyan-500 border-t-transparent rounded-full animate-spin"></div>
-        <p class="text-cyan-400 font-bold text-[10px] tracking-[0.3em] animate-pulse uppercase">SINKRONISASI DATABASE...</p>
+        <p class="text-cyan-400 font-bold text-[10px] tracking-[0.3em] animate-pulse uppercase">Sinkronisasi Database...</p>
     </div>
 
     <header class="py-8 text-center relative">
         <h1 class="text-4xl font-extrabold bg-gradient-to-b from-white to-gray-500 bg-clip-text text-transparent italic uppercase tracking-tighter">Dzuhur 12</h1>
-        <p class="text-[9px] text-cyan-500 mt-2 uppercase tracking-[0.3em] font-black italic">Rohis Sma 12 Jakarta</p>
-        <button id="btn-logout" onclick="prosesLogout()" class="hidden absolute top-4 right-4 bg-red-900/30 text-red-500 border border-red-500/30 px-3 py-1.5 rounded-xl text-[8px] font-black uppercase tracking-widest">Logout</button>
+        <p class="text-[9px] text-cyan-500 mt-2 uppercase tracking-[0.3em] font-black italic">Sistem Administrasi Presensi</p>
+        <button id="btn-logout" onclick="prosesLogout()" class="hidden absolute top-4 right-4 bg-red-900/30 text-red-500 border border-red-500/30 px-3 py-1.5 rounded-xl text-[8px] font-black uppercase tracking-widest">Keluar</button>
     </header>
 
     <div class="flex justify-center mb-8 px-4 relative z-[50]">
         <div class="glass p-1.5 rounded-2xl flex gap-2 w-full max-w-[320px]">
-            <button onclick="switchTab('admin')" id="btn-admin" class="flex-1 py-3.5 rounded-xl font-bold active-tab text-xs transition-all duration-300">🎫 KARTU</button>
-            <button onclick="switchTab('scan')" id="btn-scan" class="flex-1 py-3.5 rounded-xl font-bold text-gray-400 text-xs transition-all duration-300">📷 SCANNER</button>
+            <button onclick="switchTab('admin')" id="btn-admin" class="flex-1 py-3.5 rounded-xl font-bold active-tab text-xs transition-all duration-300">ADMINISTRASI</button>
+            <button onclick="switchTab('scan')" id="btn-scan" class="flex-1 py-3.5 rounded-xl font-bold text-gray-400 text-xs transition-all duration-300">PEMINDAI</button>
         </div>
     </div>
 
     <div id="modal-login" class="fixed inset-0 bg-black/95 backdrop-blur-xl z-[999] hidden items-center justify-center p-4">
         <div class="glass w-full max-w-sm p-10 rounded-[3rem] border border-cyan-500/30 text-center">
-            <h2 class="text-2xl font-bold text-white mb-2 italic uppercase">GURU LOGIN</h2>
-            <input type="password" id="login-pass" placeholder="Password Guru" class="w-full bg-gray-900 border border-gray-700 p-4 rounded-2xl outline-none text-white focus:border-cyan-500 text-center text-lg mb-4">
-            <button onclick="prosesLogin()" class="w-full py-4 bg-cyan-600 text-white font-bold rounded-2xl shadow-lg uppercase text-xs">Masuk</button>
-            <button onclick="tutupLogin()" class="mt-4 text-gray-500 text-[10px] uppercase font-bold tracking-widest">Batal</button>
+            <h2 class="text-2xl font-bold text-white mb-2 italic uppercase">OTENTIKASI GURU</h2>
+            <input type="password" id="login-pass" placeholder="Masukkan Kata Sandi" class="w-full bg-gray-900 border border-gray-700 p-4 rounded-2xl outline-none text-white focus:border-cyan-500 text-center text-lg mb-4">
+            <button onclick="prosesLogin()" class="w-full py-4 bg-cyan-600 text-white font-bold rounded-2xl shadow-lg uppercase text-xs">MASUK</button>
+            <button onclick="tutupLogin()" class="mt-4 text-gray-500 text-[10px] uppercase font-bold tracking-widest">BATALKAN</button>
         </div>
     </div>
 
     <main class="max-w-2xl mx-auto px-4">
         <section id="tab-admin" class="space-y-6">
             <div class="glass p-8 rounded-[2.5rem]">
-                <h2 class="text-sm font-black mb-6 text-white uppercase tracking-widest italic">Pendaftaran Murid</h2>
+                <h2 class="text-sm font-black mb-6 text-white uppercase tracking-widest italic">Pendaftaran Peserta Didik</h2>
                 <div class="grid gap-4">
-                    <input type="text" id="input-nama" placeholder="Nama Lengkap" class="w-full bg-gray-900 border border-gray-800 p-4 rounded-2xl outline-none text-white focus:border-cyan-500">
+                    <input type="text" id="input-nama" placeholder="Nama Lengkap Sesuai Dapodik" class="w-full bg-gray-900 border border-gray-800 p-4 rounded-2xl outline-none text-white focus:border-cyan-500">
                     <div class="flex gap-4">
                         <select id="select-kelas-admin" class="w-1/2 bg-gray-900 border border-gray-800 p-4 rounded-2xl outline-none text-white text-sm"></select>
-                        <input type="number" id="input-nis" placeholder="No. Absen" class="w-1/2 bg-gray-900 border border-gray-800 p-4 rounded-2xl outline-none text-white">
+                        <input type="number" id="input-nis" placeholder="Nomor Presensi" class="w-1/2 bg-gray-900 border border-gray-800 p-4 rounded-2xl outline-none text-white">
                     </div>
                     <div class="flex gap-4">
                         <select id="select-jk" class="w-1/2 bg-gray-900 border border-gray-800 p-4 rounded-2xl outline-none text-white text-sm">
@@ -75,28 +75,28 @@
                             <option value="Kristen">KRISTEN</option>
                         </select>
                     </div>
-                    <button onclick="buatQR()" class="bg-blue-600 py-4 rounded-2xl font-black text-xs uppercase tracking-widest mt-2 active:scale-95 transition-all">Generate & Simpan</button>
+                    <button onclick="buatQR()" class="bg-blue-600 py-4 rounded-2xl font-black text-xs uppercase tracking-widest mt-2 active:scale-95 transition-all">Simpan & Terbitkan Kartu</button>
                 </div>
             </div>
             <div id="qr-result-area" class="flex flex-col items-center"></div>
 
             <div id="bulk-area-guru" class="hidden glass p-8 rounded-[2.5rem] border border-yellow-500/20">
-                <h2 class="text-sm font-black mb-2 text-yellow-500 uppercase italic">Bulk Daftar Murid</h2>
-                <p class="text-[8px] text-gray-500 mb-4 uppercase font-bold tracking-widest italic">Format: Nama [Spasi] Absen [Spasi] JK (L/P) [Spasi] Agama</p>
-                <textarea id="bulk-input" rows="4" placeholder="ASEP 1 L Islam&#10;SITI 2 P Islam" class="w-full bg-black/40 border border-gray-800 p-5 rounded-2xl text-xs text-white mb-4 outline-none"></textarea>
-                <button onclick="prosesBulkQR()" id="btn-bulk" class="w-full py-4 bg-yellow-600 text-white font-bold rounded-2xl text-[10px] uppercase tracking-widest">🚀 Download ZIP & Simpan</button>
+                <h2 class="text-sm font-black mb-2 text-yellow-500 uppercase italic">Input Data Massal</h2>
+                <p class="text-[8px] text-gray-500 mb-4 uppercase font-bold tracking-widest italic">Format: [Nama] [No. Absen] [JK] [Agama]</p>
+                <textarea id="bulk-input" rows="4" placeholder="Contoh: AHMAD 01 L Islam" class="w-full bg-black/40 border border-gray-800 p-5 rounded-2xl text-xs text-white mb-4 outline-none"></textarea>
+                <button onclick="prosesBulkQR()" id="btn-bulk" class="w-full py-4 bg-yellow-600 text-white font-bold rounded-2xl text-[10px] uppercase tracking-widest">Proses & Unduh Berkas ZIP</button>
             </div>
         </section>
 
         <section id="tab-scan" class="hidden space-y-6">
             <div class="glass p-2 rounded-[2rem] flex gap-2">
-                <button onclick="setMode('Islam')" id="mode-islam" class="flex-1 py-4 rounded-[1.5rem] font-black text-[10px] uppercase tracking-widest border border-gray-800 text-gray-500 transition-all active-mode-islam">☪️ Mode Islam</button>
-                <button onclick="setMode('Kristen')" id="mode-kristen" class="flex-1 py-4 rounded-[1.5rem] font-black text-[10px] uppercase tracking-widest border border-gray-800 text-gray-500 transition-all">✝️ Mode Kristen</button>
+                <button onclick="setMode('Islam')" id="mode-islam" class="flex-1 py-4 rounded-[1.5rem] font-black text-[10px] uppercase tracking-widest border border-gray-800 text-gray-500 transition-all active-mode-islam">☪️ Kategori Islam</button>
+                <button onclick="setMode('Kristen')" id="mode-kristen" class="flex-1 py-4 rounded-[1.5rem] font-black text-[10px] uppercase tracking-widest border border-gray-800 text-gray-500 transition-all">✝️ Kategori Kristen</button>
             </div>
 
             <div class="flex gap-3">
-                <button id="btn-start-cam" onclick="startScanner()" class="flex-1 py-5 bg-cyan-600 text-white font-black rounded-[2rem] text-[10px] uppercase tracking-widest">📷 Aktifkan Kamera</button>
-                <button id="btn-stop-cam" onclick="stopScanner()" class="hidden flex-1 py-5 bg-red-600 text-white font-black rounded-[2rem] text-[10px] uppercase tracking-widest">🛑 Matikan</button>
+                <button id="btn-start-cam" onclick="startScanner()" class="flex-1 py-5 bg-cyan-600 text-white font-black rounded-[2rem] text-[10px] uppercase tracking-widest">Aktifkan Kamera</button>
+                <button id="btn-stop-cam" onclick="stopScanner()" class="hidden flex-1 py-5 bg-red-600 text-white font-black rounded-[2rem] text-[10px] uppercase tracking-widest">Matikan Kamera</button>
             </div>
 
             <div class="glass p-5 rounded-[3rem] border-2 border-cyan-500/10 relative min-h-[300px] flex items-center justify-center overflow-hidden">
@@ -111,7 +111,7 @@
             </div>
 
             <div class="glass p-6 rounded-[2.5rem]">
-                <button onclick="downloadZipLaporan()" id="btn-zip-laporan" class="w-full py-5 bg-green-700 text-white font-black rounded-2xl text-[10px] uppercase tracking-widest shadow-xl">📦 Download Rekap Harian (ZIP)</button>
+                <button onclick="downloadZipLaporan()" id="btn-zip-laporan" class="w-full py-5 bg-green-700 text-white font-black rounded-2xl text-[10px] uppercase tracking-widest shadow-xl">Unduh Laporan Harian (.ZIP)</button>
                 <div id="log-list" class="mt-8 space-y-3 max-h-[400px] overflow-y-auto pr-2"></div>
             </div>
         </section>
@@ -120,6 +120,7 @@
     <div id="hidden-qr-engine" style="position: absolute; left: -9999px; top: 0;"></div>
 
     <script>
+        // ... (Kode JavaScript di bawah tetap sama logikanya, hanya pesan teks yang diubah) ...
         const GURU_PASS = "bintang31"; 
         const GITHUB_TOKEN = "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"; 
         const GIST_ID_UTAMA = "8f37fc18c4fb9bd3593486f97919ca9f"; 
@@ -147,7 +148,7 @@
                     localDB[cls] = data.files[fileName] ? JSON.parse(data.files[fileName].content) : [];
                 });
                 renderLog();
-            } catch (e) { console.error("Database Down!"); }
+            } catch (e) { console.error("Database Error"); }
         }
 
         async function syncToGithub(kelas) {
@@ -171,8 +172,8 @@
             const a = document.getElementById('input-nis').value.trim();
             const ag = document.getElementById('select-agama').value;
             const jk = document.getElementById('select-jk').value;
-            if(!n || !a) return alert("Isi data!");
-            if (localDB[k].some(d => d.Absen === a)) return alert("Absen kedaftar!");
+            if(!n || !a) return alert("Mohon lengkapi seluruh data.");
+            if (localDB[k].some(d => d.Absen === a)) return alert("Peserta didik sudah terdaftar.");
             
             localDB[k].push({ Nama: n, Kelas: k, Absen: a, JK: jk, Agama: ag, Jam: "-", Tanggal: "-", Status: "-", KehadiranKe: 0 });
             await syncToGithub(k);
@@ -180,7 +181,7 @@
             const area = document.getElementById('qr-result-area');
             area.innerHTML = `<div id="qrd" class="p-8 bg-white rounded-[2.5rem] flex flex-col items-center mt-6">
                 <div id="qri" class="mb-4"></div><b class="text-black uppercase text-xl">${n}</b><p class="text-gray-500 font-bold uppercase text-[9px]">${k} • ${jk} • ${ag} • ABSEN ${a}</p>
-            </div><button onclick="downloadQR('${n}')" class="mt-4 bg-cyan-600 p-4 w-full max-w-[280px] rounded-2xl font-black italic text-white text-xs uppercase">💾 Simpan Kartu</button>`;
+            </div><button onclick="downloadQR('${n}')" class="mt-4 bg-cyan-600 p-4 w-full max-w-[280px] rounded-2xl font-black italic text-white text-xs uppercase">Simpan Kartu QR</button>`;
             new QRCode(document.getElementById("qri"), { text: `${n}|${k}|${a}|${jk}|${ag}`, width: 200, height: 200, correctLevel : QRCode.CorrectLevel.H });
         }
 
@@ -189,8 +190,8 @@
             const now = new Date();
             const today = now.toLocaleDateString('id-ID');
             
-            if (agama !== currentMode) return showFeedback("❌", nama, `SALAH PINTU! KHUSUS ${currentMode.toUpperCase()}`, "bg-red-700");
-            if (localDB[kelas].some(d => d.Absen === absen && d.Tanggal === today)) return showFeedback("⚠️", nama, "SUDAH SCAN HARI INI!", "bg-yellow-600");
+            if (agama !== currentMode) return showFeedback("❌", nama, `KATEGORI TIDAK SESUAI: ${currentMode.toUpperCase()}`, "bg-red-700");
+            if (localDB[kelas].some(d => d.Absen === absen && d.Tanggal === today)) return showFeedback("⚠️", nama, "PRESENSI SUDAH TERCATAT HARI INI", "bg-yellow-600");
 
             let idx = localDB[kelas].findIndex(d => d.Absen === absen);
             if (idx !== -1) {
@@ -200,7 +201,7 @@
                 localDB[kelas][idx].Status = tipeStatus;
                 localDB[kelas][idx].KehadiranKe = (parseInt(localDB[kelas][idx].KehadiranKe) || 0) + 1;
                 
-                showFeedback("✅", nama, `${tipeStatus} BERHASIL`, "bg-green-600");
+                showFeedback("✅", nama, `PRESENSI ${tipeStatus} BERHASIL`, "bg-green-600");
                 renderLog();
                 await syncToGithub(kelas);
             }
@@ -208,7 +209,7 @@
 
         async function downloadZipLaporan() {
             const btn = document.getElementById('btn-zip-laporan');
-            btn.innerText = "⏳ PROCESSING..."; btn.disabled = true;
+            btn.innerText = "SEDANG MEMPROSES..."; btn.disabled = true;
             const zip = new JSZip();
             const today = new Date().toLocaleDateString('id-ID');
             for (const cls of DAFTAR_KELAS) {
@@ -217,21 +218,21 @@
                     const dataExcel = sorted.map(s => {
                         const isHadir = s.Tanggal === today;
                         return {
-                            "ABSEN": s.Absen, "NAMA": s.Nama.toUpperCase(), "JK": s.JK || "-", "AGAMA": s.Agama || "Islam",
-                            "STATUS": isHadir ? `✓ ${s.Status}` : "X ALFA",
-                            "JAM": isHadir ? s.Jam : "-", "TOTAL": s.KehadiranKe || 0
+                            "NO ABSEN": s.Absen, "NAMA LENGKAP": s.Nama.toUpperCase(), "L/P": s.JK || "-", "AGAMA": s.Agama || "Islam",
+                            "KETERANGAN": isHadir ? `✓ ${s.Status}` : "A (TANPA KETERANGAN)",
+                            "WAKTU": isHadir ? s.Jam : "-", "TOTAL HADIR": s.KehadiranKe || 0
                         };
                     });
                     const ws = XLSX.utils.json_to_sheet(dataExcel);
                     const wb = XLSX.utils.book_new();
-                    XLSX.utils.book_append_sheet(wb, ws, "REKAP");
-                    zip.file(`REKAP_${cls}_${today.replace(/\//g, '-')}.xlsx`, XLSX.write(wb, {bookType:'xlsx', type:'array'}));
+                    XLSX.utils.book_append_sheet(wb, ws, "LAPORAN");
+                    zip.file(`LAPORAN_${cls}_${today.replace(/\//g, '-')}.xlsx`, XLSX.write(wb, {bookType:'xlsx', type:'array'}));
                 }
             }
             const content = await zip.generateAsync({type:"blob"});
             const l = document.createElement('a'); l.href = URL.createObjectURL(content);
-            l.download = `ABSEN_SMA12_${today.replace(/\//g, '-')}.zip`; l.click();
-            btn.innerText = "📦 Download Rekap Harian (ZIP)"; btn.disabled = false;
+            l.download = `REKAP_PRESENSI_${today.replace(/\//g, '-')}.zip`; l.click();
+            btn.innerText = "Unduh Laporan Harian (.ZIP)"; btn.disabled = false;
         }
 
         function renderLog() {
@@ -240,7 +241,7 @@
             let allLogs = [];
             DAFTAR_KELAS.forEach(cls => { localDB[cls].filter(d => d.Tanggal === today).forEach(d => allLogs.push(d)); });
             allLogs.sort((a,b) => b.Jam.localeCompare(a.Jam));
-            list.innerHTML = allLogs.length === 0 ? `<p class="text-center text-gray-600 py-10 italic text-[10px] uppercase">Belum ada scan masuk...</p>` :
+            list.innerHTML = allLogs.length === 0 ? `<p class="text-center text-gray-600 py-10 italic text-[10px] uppercase">Belum ada aktivitas presensi hari ini.</p>` :
                 allLogs.slice(0, 30).map(d => `<div class="log-item glass p-4 rounded-2xl flex justify-between items-center border-l-4 border-cyan-500 mb-2">
                     <div><b class="text-white text-xs uppercase">${d.Nama}</b><div class="text-[8px] text-gray-500">${d.JK} • ${d.Agama} • ${d.Status} • ${d.Jam}</div></div>
                     <div class="bg-gray-900 px-3 py-1 rounded-lg text-cyan-400 font-black text-[10px]">#${d.KehadiranKe}</div></div>`).join('');
@@ -269,13 +270,12 @@
             }
             await syncToGithub(k);
             const content = await zip.generateAsync({type:"blob"});
-            const l = document.createElement('a'); l.href = URL.createObjectURL(content); l.download = `QR_BULK_${k}.zip`; l.click();
+            const l = document.createElement('a'); l.href = URL.createObjectURL(content); l.download = `QR_BERKAS_${k}.zip`; l.click();
             document.getElementById('loading-overlay').classList.add('hidden');
         }
 
-        // UI HELPERS
         function switchTab(t) { if (t === 'scan' && !isGuruLoggedIn) { document.getElementById('modal-login').classList.remove('hidden'); document.getElementById('modal-login').classList.add('flex'); return; } document.getElementById('tab-admin').classList.toggle('hidden', t !== 'admin'); document.getElementById('tab-scan').classList.toggle('hidden', t !== 'scan'); document.getElementById('btn-admin').classList.toggle('active-tab', t === 'admin'); document.getElementById('btn-scan').classList.toggle('active-tab', t === 'scan'); if(t !== 'scan') stopScanner(); }
-        function prosesLogin() { if (document.getElementById('login-pass').value === GURU_PASS) { isGuruLoggedIn = true; localStorage.setItem('guruLogin', 'true'); tutupLogin(); updateUIAfterLogin(); switchTab('scan'); } else alert("Salah!"); }
+        function prosesLogin() { if (document.getElementById('login-pass').value === GURU_PASS) { isGuruLoggedIn = true; localStorage.setItem('guruLogin', 'true'); tutupLogin(); updateUIAfterLogin(); switchTab('scan'); } else alert("Kata sandi tidak valid."); }
         function tutupLogin() { document.getElementById('modal-login').classList.add('hidden'); document.getElementById('modal-login').classList.remove('flex'); }
         function updateUIAfterLogin() { document.getElementById('bulk-area-guru').classList.remove('hidden'); document.getElementById('btn-logout').classList.remove('hidden'); }
         function prosesLogout() { isGuruLoggedIn = false; localStorage.removeItem('guruLogin'); window.location.reload(); }
