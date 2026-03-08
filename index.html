@@ -280,7 +280,7 @@
         document.getElementById('btnStop').classList.add('hidden');
     };
     
-    // ========== PROSES QR DENGAN CEK DUPLIKAT ==========
+    // ========== PROSES QR DENGAN CEK DUPLIKAT - FIX ==========
 async function prosesQR(text) {
     try {
         console.log("📄 QR:", text);
@@ -303,16 +303,6 @@ async function prosesQR(text) {
             }
         }
         
-        // Format pipe
-        if(!kelas && text.includes('|')) {
-            const parts = text.split('|');
-            if(parts.length >= 1) nama = parts[0];
-            for(let p of parts) {
-                if(p.includes('X-') || p.includes('XI-') || p.includes('XII-')) kelas = p;
-                if(p.match(/^[0-9]+$/)) absen = p;
-            }
-        }
-        
         if(!nama || !kelas || !absen) throw "QR tidak valid";
         if(agama !== mode) throw `Mode harus ${mode}`;
         
@@ -322,7 +312,6 @@ async function prosesQR(text) {
         const presensiSnap = await presensiRef.once('value');
         
         if(presensiSnap.exists()) {
-            // Sudah absen hari ini
             const data = presensiSnap.val();
             throw `Sudah absen jam ${data.jam}`;
         }
@@ -330,22 +319,54 @@ async function prosesQR(text) {
         // ========== AMBIL DATA SISWA ==========
         const siswaRef = db.ref('siswa/' + kelas + '/' + absen);
         const siswaSnap = await siswaRef.once('value');
-        let totalHadir = siswaSnap.exists() ? (siswaSnap.val().totalHadir || 0) : 0;
-        totalHadir++;
         
-        // Update total hadir siswa
-        await siswaRef.update({
-            totalHadir: totalHadir,
-            lastUpdate: Date.now()
-        });
+        let totalHadir = 0;
+        let dataSiswa = {};
+        
+        if(siswaSnap.exists()) {
+            // Ambil data yang sudah ada
+            dataSiswa = siswaSnap.val();
+            totalHadir = dataSiswa.totalHadir || 0;
+            
+            // Pastikan data lengkap (kalau ada yang ilang, pakai dari QR)
+            if(!dataSiswa.nama) dataSiswa.nama = nama;
+            if(!dataSiswa.jk) dataSiswa.jk = jk;
+            if(!dataSiswa.agama) dataSiswa.agama = agama;
+            if(!dataSiswa.kelas) dataSiswa.kelas = kelas;
+            if(!dataSiswa.absen) dataSiswa.absen = absen;
+        } else {
+            // Data baru
+            dataSiswa = {
+                nama: nama,
+                kelas: kelas,
+                absen: absen,
+                jk: jk,
+                agama: agama,
+                totalHadir: 0
+            };
+        }
+        
+        // Tambah total hadir
+        totalHadir++;
+        dataSiswa.totalHadir = totalHadir;
+        dataSiswa.lastUpdate = Date.now();
+        
+        // ========== SIMPAN DATA SISWA LENGKAP (PAKAI SET, BUKAN UPDATE) ==========
+        await siswaRef.set(dataSiswa);
         
         // Simpan presensi hari ini
         const jam = new Date().toLocaleTimeString('id-ID');
         const status = mode === 'Islam' ? 'DZUHUR' : 'IBADAH';
         
         await presensiRef.set({
-            nama, kelas, absen, jk, agama, jam, status,
-            totalHadir,
+            nama: dataSiswa.nama,
+            kelas: dataSiswa.kelas,
+            absen: dataSiswa.absen,
+            jk: dataSiswa.jk,
+            agama: dataSiswa.agama,
+            jam: jam,
+            status: status,
+            totalHadir: totalHadir,
             timestamp: Date.now()
         });
         
@@ -558,7 +579,7 @@ window.downloadRekap = async function() {
     document.getElementById('loading').classList.add('hidden');
 };
 
-// ========== FUNGSI CEK DATA SISWA (DEBUG) - DIPERBAIKI ==========
+// ========== FUNGSI CEK DATA SISWA (DEBUG) ==========
 window.cekDataSiswa = async function() {
     try {
         const snap = await db.ref('siswa').once('value');
