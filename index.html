@@ -430,49 +430,67 @@ async function prosesQR(text) {
         document.getElementById('loading').classList.add('hidden');
     };
     
-    // ========== DOWNLOAD REKAP (PER KELAS) ==========
-    window.downloadRekap = async function() {
-        document.getElementById('loading').classList.remove('hidden');
-        
-        const zip = new JSZip();
-        
+    // ========== DOWNLOAD REKAP (PER KELAS) - FIXED VERSION ==========
+window.downloadRekap = async function() {
+    document.getElementById('loading').classList.remove('hidden');
+    
+    const zip = new JSZip();
+    
+    try {
         // Ambil data semua siswa
         const siswaSnap = await db.ref('siswa').once('value');
         const semuaSiswa = siswaSnap.val() || {};
         
+        console.log("🔥 DATA SISWA:", semuaSiswa); // buat debug
+        
         // Buat file Excel per kelas
         for(let kelas in semuaSiswa) {
             const siswa = [];
+            
+            // Loop setiap absen di kelas ini
             for(let absen in semuaSiswa[kelas]) {
+                const data = semuaSiswa[kelas][absen];
+                
+                // PASTIKAN DATA DIAMBIL DENGAN FALLBACK
                 siswa.push({
                     absen: parseInt(absen),
-                    ...semuaSiswa[kelas][absen]
+                    nama: data.nama || data.Nama || "TANPA NAMA",
+                    jk: data.jk || data.JK || "-",
+                    agama: data.agama || data.Agama || "-",
+                    totalHadir: data.totalHadir || 0
                 });
             }
             
             // Urutkan berdasarkan nomor absen
             siswa.sort((a,b) => a.absen - b.absen);
             
+            // Buat rows Excel
             const rows = [['NO', 'NAMA', 'JK', 'AGAMA', 'TOTAL HADIR']];
             siswa.forEach(s => {
-                rows.push([s.absen, s.nama, s.jk, s.agama, s.totalHadir || 0]);
+                rows.push([s.absen, s.nama, s.jk, s.agama, s.totalHadir]);
             });
             
+            // Buat file Excel
             const ws = XLSX.utils.aoa_to_sheet(rows);
             const wb = XLSX.utils.book_new();
             XLSX.utils.book_append_sheet(wb, ws, 'Rekap');
             zip.file(`REKAP_${kelas}.xlsx`, XLSX.write(wb, { type: 'array' }));
         }
         
-        // Download
+        // Download ZIP
         const content = await zip.generateAsync({ type: 'blob' });
         const link = document.createElement('a');
         link.href = URL.createObjectURL(content);
         link.download = `REKAP_ALL_KELAS.zip`;
         link.click();
         
-        document.getElementById('loading').classList.add('hidden');
-    };
+    } catch(error) {
+        console.error("ERROR REKAP:", error);
+        alert("Gagal download rekap: " + error.message);
+    }
+    
+    document.getElementById('loading').classList.add('hidden');
+};
 </script>
 
 <!-- Library -->
