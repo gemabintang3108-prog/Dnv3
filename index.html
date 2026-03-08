@@ -24,20 +24,19 @@
 </head>
 <body class="p-4">
 
-<!-- Firebase Config - PASTE PUNYA LU DI SINI -->
+<!-- Firebase Config - PASTE PUNYA LU -->
 <script>
     const firebaseConfig = {
-    apiKey: "AIzaSyBQwKb5BgWywX3bx3gKjNJsugJ1sUBr4X4",
-    authDomain: "absen-dzuhur.firebaseapp.com",
-    databaseURL: "https://absen-dzuhur-default-rtdb.asia-southeast1.firebasedatabase.app/",
-    projectId: "absen-dzuhur",
-    storageBucket: "absen-dzuhur.firebasestorage.app",
-    messagingSenderId: "254784143918",
-    appId: "1:254784143918:web:5d9769d58fced6a0b015bf",
-    measurementId: "G-KZS8SZ5GZE"
-};
+        apiKey: "AIzaSyBQwKb5BgWywX3bx3gKjNJsugJ1sUBr4X4",
+        authDomain: "absen-dzuhur.firebaseapp.com",
+        databaseURL: "https://absen-dzuhur-default-rtdb.asia-southeast1.firebasedatabase.app",
+        projectId: "absen-dzuhur",
+        storageBucket: "absen-dzuhur.firebasestorage.app",
+        messagingSenderId: "254784143918",
+        appId: "1:254784143918:web:5d9769d58fced6a0b015bf",
+        measurementId: "G-KZS8SZ5GZE"
+    };
     
-    // Init Firebase
     firebase.initializeApp(firebaseConfig);
     const database = firebase.database();
 </script>
@@ -93,7 +92,7 @@
             <option value="Kristen">Kristen</option>
         </select>
         
-        <button onclick="tambahSiswa()" class="w-full py-3 bg-blue-600 rounded font-bold">SIMPAN SISWA</button>
+        <button onclick="tambahSiswa()" class="w-full py-3 bg-blue-600 rounded font-bold">BUAT QR</button>
     </div>
     
     <div id="qrResult" class="glass p-6 flex flex-col items-center hidden">
@@ -190,7 +189,10 @@ function listenPresensi() {
 async function simpanPresensi(data) {
     const today = new Date().toLocaleDateString('id-ID').replace(/\//g, '-');
     const id = `${data.Kelas}_${data.Absen}`;
-    return database.ref('presensi/' + today + '/' + id).set(data);
+    return database.ref('presensi/' + today + '/' + id).set({
+        ...data,
+        timestamp: firebase.database.ServerValue.TIMESTAMP
+    });
 }
 
 // ==================== SCAN ====================
@@ -210,64 +212,147 @@ function startKamera() {
         { fps: 10, qrbox: 250 },
         (teks) => prosesQR(teks),
         () => {}
-    ).catch(() => stopKamera());
+    ).catch((err) => {
+        console.error(err);
+        stopKamera();
+    });
 }
 
 function stopKamera() {
-    if (scannerQR?.isScanning) scannerQR.stop();
+    if (scannerQR && scannerQR.isScanning) {
+        scannerQR.stop().then(() => {
+            scannerQR.clear();
+        });
+    }
     document.getElementById('btnStart').classList.remove('hidden');
     document.getElementById('btnStop').classList.add('hidden');
 }
 
-// PROSES QR LAMA
+// ========== PROSES QR DENGAN PARSING YANG LEBIH FLEKSIBEL ==========
 async function prosesQR(teks) {
     stopKamera();
     
     try {
-        console.log("QR:", teks);
+        console.log("📄 QR MENTAH:", teks);
         
-        // Parse format: NAMA - KELAS - JK - AGAMA - ABSEN 1
-        let nama = "", kelas = "", absen = "", jk = "", agama = "";
+        // Bersihin teks dari karakter aneh
+        let cleanText = teks.replace(/[–—|]/g, '-').trim();
         
-        const cleanText = teks.replace(/[–—]/g, '-');
-        const parts = cleanText.split('-').map(p => p.trim());
+        // COBA FORMAT 1: NAMA|KELAS|ABSEN|JK|AGAMA (punya lu)
+        if (teks.includes('|')) {
+            const parts = teks.split('|');
+            if (parts.length >= 5) {
+                const [nama, kelas, absen, jk, agama] = parts;
+                await prosesPresensi(nama, kelas, absen, jk, agama);
+                return;
+            }
+        }
         
-        // Ambil data
-        if (parts[0]) nama = parts[0];
+        // COBA FORMAT 2: "ADAM ATRIA PUTRA - X-1 - L - Islam - ABSEN 1"
+        // Hapus semua spasi berlebih
+        cleanText = cleanText.replace(/\s+/g, ' ').trim();
         
-        for (let p of parts) {
-            if (p.includes('X-') || p.includes('XI-') || p.includes('XII-')) kelas = p;
-            if (p === 'L' || p === 'P') jk = p;
-            if (p.includes('Islam')) agama = 'Islam';
-            if (p.includes('Kristen')) agama = 'Kristen';
-            if (p.includes('ABSEN')) absen = p.replace('ABSEN', '').trim();
+        // Pisah berdasarkan '-'
+        let parts = cleanText.split('-').map(p => p.trim());
+        console.log("🔍 PARTS:", parts);
+        
+        if (parts.length < 3) {
+            // COBA FORMAT 3: "ADAM ATRIA PUTRA X-1 L Islam ABSEN 1" (tanpa strip)
+            parts = cleanText.split(' ').filter(p => p.trim() !== '');
+            console.log("🔍 PARTS (spasi):", parts);
+        }
+        
+        // Inisialisasi variabel
+        let nama = "";
+        let kelas = "";
+        let absen = "";
+        let jk = "L"; // default
+        let agama = "Islam"; // default
+        
+        // AMBIL NAMA (kumpulin kata sampai ketemu kelas)
+        let namaParts = [];
+        for (let i = 0; i < parts.length; i++) {
+            const part = parts[i];
+            // Kalau ketemu pola kelas (X-, XI-, XII-), berhenti
+            if (part.match(/X[I]*-[0-9]/) || part.includes('X-') || part.includes('XI-') || part.includes('XII-')) {
+                kelas = part;
+                break;
+            }
+            namaParts.push(part);
+        }
+        nama = namaParts.join(' ');
+        
+        // CARI ABSEN
+        for (let part of parts) {
+            if (part.includes('ABSEN')) {
+                absen = part.replace('ABSEN', '').trim();
+                break;
+            }
+            // Coba cari angka doang yang mungkin nomor absen
+            if (part.match(/^[0-9]+$/)) {
+                absen = part;
+            }
+        }
+        
+        // CARI JK
+        for (let part of parts) {
+            if (part === 'L' || part === 'P') {
+                jk = part;
+                break;
+            }
+        }
+        
+        // CARI AGAMA
+        for (let part of parts) {
+            if (part.includes('Islam')) {
+                agama = 'Islam';
+                break;
+            } else if (part.includes('Kristen')) {
+                agama = 'Kristen';
+                break;
+            }
         }
         
         // Validasi
-        if (!nama || !kelas || !absen) throw "QR tidak valid";
-        if (agama !== modeScan) throw `Mode harus ${modeScan}`;
+        if (!nama || !kelas || !absen) {
+            console.error("❌ GAGAL PARSE:", { nama, kelas, absen });
+            throw "Tidak bisa membaca data dari QR";
+        }
         
-        const jam = new Date().toLocaleTimeString('id-ID');
-        const status = modeScan === 'Islam' ? 'DZUHUR' : 'IBADAH';
-        
-        // Simpan ke Firebase
-        await simpanPresensi({
-            Nama: nama,
-            Kelas: kelas,
-            Absen: absen,
-            JK: jk || 'L',
-            Agama: agama || 'Islam',
-            Jam: jam,
-            Status: status
-        });
-        
-        tampilkanFeedback("✅", nama, `Presensi ${status} berhasil!`, "bg-green-600");
+        await prosesPresensi(nama, kelas, absen, jk, agama);
         
     } catch (e) {
+        console.error("❌ ERROR:", e);
         tampilkanFeedback("❌", "ERROR", e.toString(), "bg-red-700");
+        setTimeout(() => startKamera(), 2000);
+    }
+}
+
+// FUNGSI PROSES PRESENSI
+async function prosesPresensi(nama, kelas, absen, jk, agama) {
+    console.log("✅ DATA TERPARSING:", { nama, kelas, absen, jk, agama });
+    
+    // Validasi mode
+    if (agama !== modeScan) {
+        throw `Mode harus ${modeScan}`;
     }
     
-    setTimeout(() => startKamera(), 2000);
+    const jam = new Date().toLocaleTimeString('id-ID');
+    const status = modeScan === 'Islam' ? 'DZUHUR' : 'IBADAH';
+    
+    // Simpan ke Firebase
+    await simpanPresensi({
+        Nama: nama,
+        Kelas: kelas,
+        Absen: absen,
+        JK: jk,
+        Agama: agama,
+        Jam: jam,
+        Status: status
+    });
+    
+    tampilkanFeedback("✅", nama, `Presensi ${status} berhasil!`, "bg-green-600");
+    setTimeout(() => startKamera(), 1500);
 }
 
 // ==================== TAMPILAN ====================
@@ -312,9 +397,16 @@ async function downloadLaporan() {
     });
     
     for (const [kelas, siswa] of Object.entries(perKelas)) {
-        const ws = XLSX.utils.json_to_sheet(siswa.map(s => ({
-            "NO": s.Absen, "NAMA": s.Nama, "JAM": s.Jam, "STATUS": s.Status
-        })));
+        const dataExcel = siswa.map(s => ({
+            "NO": s.Absen,
+            "NAMA": s.Nama,
+            "L/P": s.JK,
+            "AGAMA": s.Agama,
+            "JAM": s.Jam,
+            "STATUS": s.Status
+        }));
+        
+        const ws = XLSX.utils.json_to_sheet(dataExcel);
         const wb = XLSX.utils.book_new();
         XLSX.utils.book_append_sheet(wb, ws, "Presensi");
         zip.file(`LAPORAN_${kelas}_${today}.xlsx`, XLSX.write(wb, { type: 'array' }));
@@ -353,6 +445,7 @@ function switchTab(tab) {
         scan.classList.remove('hidden');
         btnScan.classList.add('active-tab');
         btnAdmin.classList.remove('active-tab');
+        setMode('Islam');
     }
 }
 
@@ -363,7 +456,9 @@ function login() {
         document.getElementById('modalLogin').classList.add('hidden');
         document.getElementById('btnLogout').classList.remove('hidden');
         switchTab('scan');
-    } else alert("Password salah!");
+    } else {
+        alert("Password salah!");
+    }
 }
 
 function tutupLogin() {
@@ -389,13 +484,21 @@ function tambahSiswa() {
     document.getElementById('qrResult').classList.remove('hidden');
     document.getElementById('qrCode').innerHTML = '';
     
+    // BUAT QR DENGAN 2 FORMAT (biar kompatibel)
+    const qrText = `${nama.toUpperCase()} - ${kelas} - ${jk} - ${agama} - ABSEN ${absen}`;
+    
     new QRCode(document.getElementById("qrCode"), {
-        text: `${nama.toUpperCase()} - ${kelas} - ${jk} - ${agama} - ABSEN ${absen}`,
-        width: 180, height: 180
+        text: qrText,
+        width: 180,
+        height: 180
     });
     
     document.getElementById('qrNama').innerText = nama.toUpperCase();
     document.getElementById('qrInfo').innerText = `${kelas} • ${jk} • ${agama} • NO.${absen}`;
+    
+    // Reset form
+    document.getElementById('nama').value = '';
+    document.getElementById('absen').value = '';
 }
 
 function downloadQR() {
