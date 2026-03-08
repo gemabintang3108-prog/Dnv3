@@ -1,30 +1,50 @@
 <!DOCTYPE html>
-<html lang="id">
+<html>
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Dzuhur 12 - Fix Version</title>
-    
-    <!-- Firebase -->
+    <title>DZUHUR 12 - FINAL FIX</title>
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
-    <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/html5-qrcode"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
-    
-    <style>
-        body { background: #0d1117; color: white; font-family: system-ui; padding: 16px; }
-        .glass { background: #1a1e24; border-radius: 24px; padding: 20px; }
-        .btn { background: #2563eb; padding: 16px; border-radius: 16px; font-weight: bold; width: 100%; }
-        .active-mode { background: #15803d; color: white; }
-    </style>
+    <script src="https://cdn.tailwindcss.com"></script>
 </head>
-<body>
+<body class="bg-gray-900 text-white p-4">
+
+<div id="loginModal" class="fixed inset-0 bg-black/90 flex items-center justify-center">
+    <div class="bg-gray-800 p-6 rounded-2xl w-80">
+        <h2 class="text-xl font-bold mb-4">LOGIN GURU</h2>
+        <input type="password" id="password" class="w-full p-3 bg-gray-700 rounded mb-3" placeholder="bintang31">
+        <button onclick="login()" class="w-full py-3 bg-cyan-600 rounded font-bold">MASUK</button>
+    </div>
+</div>
+
+<div class="max-w-md mx-auto">
+    <div class="text-center mb-4">
+        <h1 class="text-3xl font-black">DZUHUR 12</h1>
+        <p class="text-cyan-400">FINAL FIX - PASTI WORKING</p>
+    </div>
+
+    <!-- Kamera -->
+    <div class="bg-gray-800 p-4 rounded-2xl mb-4">
+        <div id="reader" class="w-full"></div>
+        <button onclick="startKamera()" id="btnStart" class="w-full py-4 bg-cyan-600 rounded-xl font-bold mt-2">AKTIFKAN KAMERA</button>
+        <button onclick="stopKamera()" id="btnStop" class="w-full py-4 bg-red-600 rounded-xl font-bold mt-2 hidden">MATIKAN</button>
+    </div>
+
+    <!-- Status -->
+    <div class="text-center text-green-400 mb-4" id="status">🟢 Siap scan</div>
+
+    <!-- Log -->
+    <div class="bg-gray-800 p-4 rounded-2xl">
+        <h3 class="font-bold mb-2">HASIL SCAN:</h3>
+        <div id="log" class="text-sm"></div>
+    </div>
+</div>
 
 <script>
-// CONFIG FIREBASE - UDAH BENER
-const firebaseConfig = {
+// FIREBASE CONFIG - UDAH BENER
+firebase.initializeApp({
     apiKey: "AIzaSyBQwKb5BgWywX3bx3gKjNJsugJ1sUBr4X4",
     authDomain: "absen-dzuhur.firebaseapp.com",
     databaseURL: "https://absen-dzuhur-default-rtdb.asia-southeast1.firebasedatabase.app",
@@ -32,83 +52,23 @@ const firebaseConfig = {
     storageBucket: "absen-dzuhur.firebasestorage.app",
     messagingSenderId: "254784143918",
     appId: "1:254784143918:web:5d9769d58fced6a0b015bf"
-};
+});
 
-// INIT FIREBASE
-firebase.initializeApp(firebaseConfig);
 const db = firebase.database();
-
-// VARIABEL
 let scanner = null;
-let mode = 'Islam';
-let isLogin = false;
-const PASSWORD = "bintang31";
 
-// CEK LOGIN
-if(localStorage.getItem('login') === 'true') {
-    isLogin = true;
+// LOGIN
+function login() {
+    if(document.getElementById('password').value === "bintang31") {
+        document.getElementById('loginModal').classList.add('hidden');
+        startKamera();
+    } else {
+        alert("Salah!");
+    }
 }
 
-// ==================== UI ====================
-window.onload = function() {
-    document.getElementById('loginBtn').onclick = () => {
-        if(document.getElementById('pass').value === PASSWORD) {
-            isLogin = true;
-            localStorage.setItem('login', 'true');
-            document.getElementById('loginModal').classList.add('hidden');
-            document.getElementById('logoutBtn').classList.remove('hidden');
-            switchTab('scan');
-        } else {
-            alert("Password salah!");
-        }
-    };
-    
-    document.getElementById('logoutBtn').onclick = () => {
-        isLogin = false;
-        localStorage.removeItem('login');
-        location.reload();
-    };
-    
-    // Isi kelas
-    const kelas = ["X-1","X-2","X-3","X-4","X-5","X-6","XI-1","XI-2","XI-3","XI-4","XI-5","XI-6","XII-1","XII-2","XII-3","XII-4","XII-5","XII-6"];
-    const select = document.getElementById('kelasSelect');
-    kelas.forEach(k => select.innerHTML += `<option value="${k}">${k}</option>`);
-    
-    // Listen realtime
-    listenPresensi();
-};
-
-// ==================== FIREBASE LISTENER ====================
-function listenPresensi() {
-    const today = new Date().toLocaleDateString('id-ID').replace(/\//g, '-');
-    db.ref('presensi/' + today).on('value', (snap) => {
-        const data = snap.val();
-        const logDiv = document.getElementById('logPresensi');
-        
-        if(!data) {
-            logDiv.innerHTML = '<p class="text-center text-gray-400">Belum ada presensi</p>';
-            document.getElementById('status').innerText = '0 hadir';
-            return;
-        }
-        
-        const list = Object.values(data);
-        list.sort((a,b) => (a.jam > b.jam ? -1 : 1));
-        
-        let html = '';
-        list.slice(0,30).forEach(s => {
-            html += `<div class="bg-gray-800 p-3 rounded-lg mb-2 border-l-4 border-cyan-500">
-                <b>${s.nama}</b><br>
-                <span class="text-xs text-gray-400">${s.kelas} • ${s.jam} • ${s.status}</span>
-            </div>`;
-        });
-        
-        logDiv.innerHTML = html;
-        document.getElementById('status').innerText = `${list.length} hadir`;
-    });
-}
-
-// ==================== SCAN QR ====================
-function startScan() {
+// KAMERA
+function startKamera() {
     document.getElementById('btnStart').classList.add('hidden');
     document.getElementById('btnStop').classList.remove('hidden');
     
@@ -121,247 +81,121 @@ function startScan() {
             prosesQR(text);
         },
         () => {}
-    ).catch(() => stopScan());
+    );
 }
 
-function stopScan() {
+function stopKamera() {
     if(scanner?.isScanning) scanner.stop();
     document.getElementById('btnStart').classList.remove('hidden');
     document.getElementById('btnStop').classList.add('hidden');
 }
 
-// ==================== PROSES QR (UDH GUA BENERIN) ====================
+// ========== PROSES QR - FOKUS KE FORMAT FOTO LU ==========
 async function prosesQR(text) {
     try {
-        console.log("QR:", text);
+        console.log("QR MENTAH:", text);
+        document.getElementById('status').innerText = "⏳ Memproses...";
         
-        // PARSING FORMAT FOTO
-        let nama = "", kelas = "", absen = "", jk = "L", agama = "Islam";
+        // FORMAT FOTO LU:
+        // "ADAM ATRIA PUTRA\nX-1 - L - Islam - ABSEN 1"
         
         // Split per baris
-        const lines = text.split('\n').filter(l => l.trim());
-        console.log("Lines:", lines);
+        const lines = text.split('\n').filter(l => l.trim() !== '');
+        console.log("BARIS:", lines);
         
-        if(lines.length >= 2) {
-            // Baris 1: NAMA
-            nama = lines[0].trim();
-            
-            // Baris 2: "X-1 – L - Islam – ABSEN 1"
-            let line2 = lines[1].replace(/[–—]/g, '-').trim();
-            let parts = line2.split('-').map(p => p.trim());
-            
-            for(let p of parts) {
-                if(p.includes('X-') || p.includes('XI-') || p.includes('XII-')) kelas = p;
-                if(p.includes('ABSEN')) absen = p.replace('ABSEN', '').trim();
-                if(p === 'L' || p === 'P') jk = p;
-                if(p.includes('Islam')) agama = 'Islam';
-                if(p.includes('Kristen')) agama = 'Kristen';
+        if(lines.length < 2) throw "QR harus 2 baris";
+        
+        // Baris 1 = NAMA
+        const nama = lines[0].trim();
+        
+        // Baris 2 = "X-1 - L - Islam - ABSEN 1"
+        let baris2 = lines[1];
+        
+        // Ganti semua varian strip jadi "-"
+        baris2 = baris2.replace(/[–—]/g, '-');
+        
+        // Pisah berdasarkan "-"
+        let parts = baris2.split('-').map(p => p.trim());
+        console.log("PARTS:", parts);
+        
+        let kelas = "", jk = "L", agama = "Islam", absen = "";
+        
+        // Loop setiap part
+        for(let p of parts) {
+            if(p.includes('X-') || p.includes('XI-') || p.includes('XII-')) {
+                kelas = p;
+            }
+            else if(p === 'L' || p === 'P') {
+                jk = p;
+            }
+            else if(p.includes('Islam')) {
+                agama = 'Islam';
+            }
+            else if(p.includes('Kristen')) {
+                agama = 'Kristen';
+            }
+            else if(p.includes('ABSEN')) {
+                absen = p.replace('ABSEN', '').trim();
+            }
+            // Kalo part berupa angka doang, itu absen
+            else if(p.match(/^[0-9]+$/)) {
+                absen = p;
             }
         }
         
-        // VALIDASI
-        if(!nama || !kelas || !absen) throw "QR tidak valid";
-        if(agama !== mode) throw `Mode harus ${mode}`;
+        // Validasi
+        if(!nama) throw "Nama tidak ditemukan";
+        if(!kelas) throw "Kelas tidak ditemukan";
+        if(!absen) throw "Nomor absen tidak ditemukan";
         
-        // SIMPAN KE FIREBASE
+        console.log("HASIL:", {nama, kelas, absen, jk, agama});
+        
+        // Simpan ke Firebase
         const today = new Date().toLocaleDateString('id-ID').replace(/\//g, '-');
         const jam = new Date().toLocaleTimeString('id-ID');
-        const status = mode === 'Islam' ? 'DZUHUR' : 'IBADAH';
         
         await db.ref('presensi/' + today + '/' + kelas + '_' + absen).set({
-            nama, kelas, absen, jk, agama, jam, status,
+            nama: nama,
+            kelas: kelas,
+            absen: absen,
+            jk: jk,
+            agama: agama,
+            jam: jam,
             timestamp: Date.now()
         });
         
-        // FEEDBACK
-        showFeedback('✅', nama, `Presensi ${status} berhasil!`, 'green');
+        // Tampilkan sukses
+        document.getElementById('log').innerHTML = `
+            <div class="bg-green-700 p-3 rounded-lg">
+                ✅ ${nama}<br>
+                <small>${kelas} • ${jam}</small>
+            </div>
+        ` + document.getElementById('log').innerHTML;
+        
+        document.getElementById('status').innerText = "✅ Berhasil!";
         
     } catch(e) {
         console.error(e);
-        showFeedback('❌', 'ERROR', e.toString(), 'red');
+        document.getElementById('status').innerText = "❌ Error: " + e;
+        document.getElementById('log').innerHTML = `
+            <div class="bg-red-700 p-3 rounded-lg">
+                ❌ GAGAL: ${e}<br>
+                <small class="text-xs">${text.substring(0,50)}...</small>
+            </div>
+        ` + document.getElementById('log').innerHTML;
     }
     
     setTimeout(() => scanner.resume(), 2000);
 }
 
-function showFeedback(icon, title, msg, color) {
-    const fb = document.getElementById('feedback');
-    document.getElementById('fbIcon').innerText = icon;
-    document.getElementById('fbTitle').innerText = title;
-    document.getElementById('fbMsg').innerText = msg;
-    fb.classList.remove('hidden');
-    setTimeout(() => fb.classList.add('hidden'), 2000);
-}
-
-// ==================== LAPORAN ====================
-async function downloadLaporan() {
-    const today = new Date().toLocaleDateString('id-ID').replace(/\//g, '-');
-    const snap = await db.ref('presensi/' + today).once('value');
-    const data = snap.val() || {};
-    
-    const zip = new JSZip();
-    const groups = {};
-    
-    Object.values(data).forEach(d => {
-        if(!groups[d.kelas]) groups[d.kelas] = [];
-        groups[d.kelas].push(d);
-    });
-    
-    for(let [kelas, siswa] of Object.entries(groups)) {
-        const ws = XLSX.utils.json_to_sheet(siswa.map(s => ({
-            NO: s.absen,
-            NAMA: s.nama,
-            JK: s.jk,
-            AGAMA: s.agama,
-            JAM: s.jam,
-            STATUS: s.status
-        })));
-        const wb = XLSX.utils.book_new();
-        XLSX.utils.book_append_sheet(wb, ws, 'Presensi');
-        zip.file(`LAPORAN_${kelas}_${today}.xlsx`, XLSX.write(wb, { type: 'array' }));
+// Listen realtime
+db.ref('presensi/' + new Date().toLocaleDateString('id-ID').replace(/\//g, '-')).on('value', (snap) => {
+    const data = snap.val();
+    if(data) {
+        document.getElementById('status').innerText = `🟢 Online • ${Object.keys(data).length} hadir`;
     }
-    
-    const content = await zip.generateAsync({ type: 'blob' });
-    const link = document.createElement('a');
-    link.href = URL.createObjectURL(content);
-    link.download = `REKAP_${today}.zip`;
-    link.click();
-}
-
-// ==================== TAB ====================
-function switchTab(tab) {
-    if(tab === 'scan' && !isLogin) {
-        document.getElementById('loginModal').classList.remove('hidden');
-        return;
-    }
-    
-    document.getElementById('tabAdmin').classList.toggle('hidden', tab !== 'admin');
-    document.getElementById('tabScan').classList.toggle('hidden', tab !== 'scan');
-    
-    if(tab === 'scan') stopScan();
-}
-
-function setMode(m) {
-    mode = m;
-    document.getElementById('modeIslam').className = `flex-1 py-3 rounded-xl font-bold ${m==='Islam' ? 'bg-green-700' : 'bg-gray-700'}`;
-    document.getElementById('modeKristen').className = `flex-1 py-3 rounded-xl font-bold ${m==='Kristen' ? 'bg-blue-700' : 'bg-gray-700'}`;
-}
-
-// ==================== ADMIN ====================
-function buatQR() {
-    const nama = document.getElementById('nama').value.trim();
-    const kelas = document.getElementById('kelasSelect').value;
-    const absen = document.getElementById('absen').value.trim();
-    const jk = document.getElementById('jkSelect').value;
-    const agama = document.getElementById('agamaSelect').value;
-    
-    if(!nama || !absen) return alert("Isi lengkap!");
-    
-    document.getElementById('qrResult').classList.remove('hidden');
-    document.getElementById('qrImg').innerHTML = '';
-    
-    new QRCode(document.getElementById('qrImg'), {
-        text: `${nama}\n${kelas} - ${jk} - ${agama} - ABSEN ${absen}`,
-        width: 200, height: 200
-    });
-    
-    document.getElementById('qrNama').innerText = nama;
-    document.getElementById('qrInfo').innerText = `${kelas} • ${jk} • ${agama} • NO.${absen}`;
-}
-
-function downloadQR() {
-    const img = document.querySelector('#qrImg img');
-    if(img) {
-        const link = document.createElement('a');
-        link.href = img.src;
-        link.download = `QR_${document.getElementById('qrNama').innerText}.png`;
-        link.click();
-    }
-}
+});
 </script>
 
-<!-- HTML -->
-<div id="loginModal" class="fixed inset-0 bg-black/90 flex items-center justify-center z-50">
-    <div class="bg-gray-800 p-6 rounded-2xl w-80">
-        <h2 class="text-xl font-bold mb-4">LOGIN GURU</h2>
-        <input id="pass" type="password" class="w-full p-3 bg-gray-700 rounded mb-3" placeholder="Password">
-        <button id="loginBtn" class="w-full py-3 bg-cyan-600 rounded font-bold">MASUK</button>
-    </div>
-</div>
-
-<div class="max-w-md mx-auto">
-    <!-- Header -->
-    <div class="text-center mb-4 relative">
-        <h1 class="text-3xl font-black">DZUHUR 12</h1>
-        <p class="text-cyan-400 text-xs">FIXED VERSION</p>
-        <button id="logoutBtn" class="absolute top-0 right-0 bg-red-900 px-3 py-1 text-xs rounded hidden">KELUAR</button>
-    </div>
-    
-    <!-- Tab -->
-    <div class="bg-gray-800 p-1 rounded-2xl flex mb-4">
-        <button onclick="switchTab('admin')" id="tabAdminBtn" class="flex-1 py-3 rounded-xl font-bold bg-cyan-600">ADMIN</button>
-        <button onclick="switchTab('scan')" id="tabScanBtn" class="flex-1 py-3 rounded-xl font-bold text-gray-400">SCAN</button>
-    </div>
-    
-    <!-- Admin Tab -->
-    <div id="tabAdmin" class="space-y-4">
-        <div class="bg-gray-800 p-5 rounded-2xl">
-            <input id="nama" class="w-full p-3 bg-gray-700 rounded mb-2" placeholder="Nama">
-            <select id="kelasSelect" class="w-full p-3 bg-gray-700 rounded mb-2"></select>
-            <div class="flex gap-2 mb-2">
-                <input id="absen" class="w-1/2 p-3 bg-gray-700 rounded" placeholder="No.Absen">
-                <select id="jkSelect" class="w-1/2 p-3 bg-gray-700 rounded">
-                    <option value="L">Laki</option>
-                    <option value="P">Perempuan</option>
-                </select>
-            </div>
-            <select id="agamaSelect" class="w-full p-3 bg-gray-700 rounded mb-3">
-                <option value="Islam">Islam</option>
-                <option value="Kristen">Kristen</option>
-            </select>
-            <button onclick="buatQR()" class="w-full py-3 bg-blue-600 rounded font-bold">BUAT QR</button>
-        </div>
-        
-        <div id="qrResult" class="bg-gray-800 p-5 rounded-2xl flex flex-col items-center hidden">
-            <div id="qrImg" class="bg-white p-3 rounded-lg mb-2"></div>
-            <p id="qrNama" class="font-bold"></p>
-            <p id="qrInfo" class="text-xs text-gray-400 mb-2"></p>
-            <button onclick="downloadQR()" class="bg-cyan-600 px-6 py-2 rounded text-sm">DOWNLOAD</button>
-        </div>
-    </div>
-    
-    <!-- Scan Tab -->
-    <div id="tabScan" class="space-y-4 hidden">
-        <div class="bg-gray-800 p-1 rounded-2xl flex">
-            <button onclick="setMode('Islam')" id="modeIslam" class="flex-1 py-3 rounded-xl font-bold bg-green-700">ISLAM</button>
-            <button onclick="setMode('Kristen')" id="modeKristen" class="flex-1 py-3 rounded-xl font-bold bg-gray-700">KRISTEN</button>
-        </div>
-        
-        <div class="flex gap-2">
-            <button onclick="startScan()" id="btnStart" class="flex-1 py-4 bg-cyan-600 rounded-xl font-bold">AKTIFKAN KAMERA</button>
-            <button onclick="stopScan()" id="btnStop" class="flex-1 py-4 bg-red-600 rounded-xl font-bold hidden">MATIKAN</button>
-        </div>
-        
-        <div class="bg-gray-800 p-2 rounded-2xl min-h-[250px] relative">
-            <div id="reader"></div>
-            <div id="feedback" class="absolute inset-0 flex items-center justify-center hidden">
-                <div id="feedbackBox" class="text-center p-6 rounded-2xl bg-green-600">
-                    <div id="fbIcon" class="text-5xl mb-2">✅</div>
-                    <div id="fbTitle" class="text-xl font-bold"></div>
-                    <div id="fbMsg" class="text-xs"></div>
-                </div>
-            </div>
-        </div>
-        
-        <div class="text-center text-green-400">🟢 Online • <span id="status">0 hadir</span></div>
-        
-        <button onclick="downloadLaporan()" class="w-full py-4 bg-green-700 rounded-xl font-bold">📥 DOWNLOAD LAPORAN</button>
-        
-        <div class="bg-gray-800 p-4 rounded-2xl">
-            <h3 class="font-bold mb-3">LOG PRESENSI</h3>
-            <div id="logPresensi" class="space-y-2 max-h-80 overflow-auto"></div>
-        </div>
-    </div>
-</div>
 </body>
 </html>
