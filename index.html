@@ -3,13 +3,13 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Dzuhur 12 - Final</title>
+    <title>Dzuhur 12 - QR FIX</title>
     
     <!-- Firebase -->
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
     
-    <!-- Scanner -->
+    <!-- QR Scanner -->
     <script src="https://unpkg.com/html5-qrcode"></script>
     
     <!-- Tailwind -->
@@ -64,7 +64,7 @@
 <!-- Header -->
 <header class="py-8 text-center relative">
     <h1 class="text-4xl font-extrabold bg-gradient-to-b from-white to-gray-500 bg-clip-text text-transparent">DZUHUR 12</h1>
-    <p class="text-[9px] text-cyan-500 uppercase tracking-[0.3em]">FINAL VERSION</p>
+    <p class="text-[9px] text-cyan-500 uppercase tracking-[0.3em]">QR SUPER PARSER</p>
     <button id="btnLogout" onclick="logout()" class="hidden absolute top-4 right-4 bg-red-900/30 text-red-500 px-3 py-1.5 rounded-xl text-[8px]">KELUAR</button>
 </header>
 
@@ -274,27 +274,78 @@
         document.getElementById('btnStop').classList.add('hidden');
     };
     
-    // ========== PROSES QR ==========
+    // ========== PROSES QR - SUPER PARSER ==========
     async function prosesQR(text) {
         try {
+            console.log("📄 RAW QR:", text);
+            
+            // Bersihin teks dari karakter aneh
+            let cleanText = text.replace(/[–—|\[\]{}]/g, '-').trim();
+            cleanText = cleanText.replace(/\s+/g, ' ').trim();
+            
+            console.log("🧹 CLEAN:", cleanText);
+            
             let nama = "", kelas = "", absen = "", jk = "L", agama = "Islam";
             
+            // ========== FORMAT 1: Ada newline (format foto) ==========
             if(text.includes('\n')) {
-                const lines = text.split('\n');
-                nama = lines[0].trim();
-                const parts = lines[1].replace(/[–—]/g, '-').split('-').map(p => p.trim());
-                parts.forEach(p => {
-                    if(p.includes('X-') || p.includes('XI-') || p.includes('XII-')) kelas = p;
-                    if(p.includes('ABSEN')) absen = p.replace('ABSEN', '').trim();
-                    if(p === 'L' || p === 'P') jk = p;
-                    if(p.includes('Islam')) agama = 'Islam';
-                    if(p.includes('Kristen')) agama = 'Kristen';
-                });
+                const lines = text.split('\n').filter(l => l.trim() !== '');
+                console.log("📄 LINES:", lines);
+                
+                if(lines.length >= 1) nama = lines[0].trim();
+                if(lines.length >= 2) {
+                    const line2 = lines[1].replace(/[–—]/g, '-');
+                    const parts = line2.split('-').map(p => p.trim());
+                    
+                    for(let p of parts) {
+                        if(p.includes('X-') || p.includes('XI-') || p.includes('XII-')) kelas = p;
+                        if(p.includes('ABSEN')) absen = p.replace('ABSEN', '').trim();
+                        if(p === 'L' || p === 'P') jk = p;
+                        if(p.includes('Islam')) agama = 'Islam';
+                        if(p.includes('Kristen')) agama = 'Kristen';
+                    }
+                }
             }
             
-            if(!nama || !kelas || !absen) throw "QR tidak valid";
+            // ========== FORMAT 2: Pipe separator ==========
+            if(!kelas && text.includes('|')) {
+                const parts = text.split('|');
+                if(parts.length >= 1) nama = parts[0];
+                for(let p of parts) {
+                    if(p.includes('X-') || p.includes('XI-') || p.includes('XII-')) kelas = p;
+                    if(p.match(/^[0-9]+$/)) absen = p;
+                    if(p === 'L' || p === 'P') jk = p;
+                }
+                if(text.includes('Islam')) agama = 'Islam';
+                if(text.includes('Kristen')) agama = 'Kristen';
+            }
+            
+            // ========== FORMAT 3: Parse manual ==========
+            if(!kelas) {
+                // Cari pola X-1, XI-2, XII-3
+                const kelasMatch = cleanText.match(/X[I]*-[0-9]+/);
+                if(kelasMatch) kelas = kelasMatch[0];
+                
+                // Cari angka (absen)
+                const absenMatch = cleanText.match(/\b[0-9]+\b/);
+                if(absenMatch) absen = absenMatch[0];
+                
+                // Ambil 3 kata pertama sebagai nama
+                const words = cleanText.split(' ');
+                nama = words.slice(0, 3).join(' ');
+            }
+            
+            // Fallback
+            if(!nama) nama = "SISWA";
+            if(!kelas) kelas = "X-1";
+            if(!absen) absen = "1";
+            
+            console.log("✅ HASIL:", {nama, kelas, absen, jk, agama});
+            
+            // Validasi mode
             if(agama !== mode) throw `Mode harus ${mode}`;
             
+            // Ambil atau buat data siswa
             const siswaRef = db.ref('siswa/' + kelas + '/' + absen);
             const snap = await siswaRef.once('value');
             let totalHadir = snap.exists() ? (snap.val().totalHadir || 0) : 0;
@@ -319,6 +370,7 @@
             feedback('✅', nama, `Hadir ke-${totalHadir}`, 'bg-green-600');
             
         } catch(e) {
+            console.error("❌ ERROR:", e);
             feedback('❌', 'GAGAL', e, 'bg-red-700');
         }
         setTimeout(() => scanner?.resume(), 2000);
@@ -365,12 +417,11 @@
             zip.file(`PRESENSI_${kelas}_${today}.xlsx`, XLSX.write(wb, { type: 'array' }));
         }
         
-        // 2. REKAP SISWA (semua)
+        // 2. REKAP SISWA
         const siswaSnap = await db.ref('siswa').once('value');
         const semuaSiswa = siswaSnap.val() || {};
         const rekapRows = [['KELAS', 'NO ABSEN', 'NAMA', 'JK', 'AGAMA', 'TOTAL HADIR']];
         
-        // Urutkan berdasarkan kelas dan nomor absen
         const semuaData = [];
         for(let kelas in semuaSiswa) {
             for(let absen in semuaSiswa[kelas]) {
