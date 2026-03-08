@@ -136,10 +136,11 @@
                 <span class="text-cyan-400 font-bold" id="totalHadir">0 HADIR</span>
             </div>
             
-            <div class="grid grid-cols-2 gap-3 mb-4">
-                <button onclick="downloadHarian()" class="py-5 bg-blue-600 text-white font-black rounded-2xl text-[10px] uppercase">📋 HARIAN</button>
-                <button onclick="downloadRekap()" class="py-5 bg-purple-600 text-white font-black rounded-2xl text-[10px] uppercase">📊 REKAP</button>
-            </div>
+            <div class="grid grid-cols-3 gap-2 mb-4">
+    <button onclick="downloadHarian()" class="py-4 bg-blue-600 text-white font-black rounded-2xl text-[8px] uppercase">HARIAN</button>
+    <button onclick="downloadRekap()" class="py-4 bg-purple-600 text-white font-black rounded-2xl text-[8px] uppercase">REKAP</button>
+    <button onclick="cekDataSiswa()" class="py-4 bg-gray-600 text-white font-black rounded-2xl text-[8px] uppercase">DEBUG</button>
+</div>
             
             <div id="logPresensi" class="space-y-3 max-h-[400px] overflow-y-auto"></div>
         </div>
@@ -429,8 +430,15 @@ async function prosesQR(text) {
         
         document.getElementById('loading').classList.add('hidden');
     };
+
+    // TAMBAHKAN FUNGSI INI UNTUK DEBUG
+window.cekDataSiswa = async function() {
+    const snap = await db.ref('siswa').once('value');
+    console.log("📦 SEMUA DATA SISWA:", snap.val());
+    alert("Cek console F12 untuk lihat data siswa");
+};
     
-    // ========== DOWNLOAD REKAP (PER KELAS) - FIXED VERSION ==========
+    // ========== DOWNLOAD REKAP (PER KELAS) - SUPER FIX ==========
 window.downloadRekap = async function() {
     document.getElementById('loading').classList.remove('hidden');
     
@@ -441,34 +449,60 @@ window.downloadRekap = async function() {
         const siswaSnap = await db.ref('siswa').once('value');
         const semuaSiswa = siswaSnap.val() || {};
         
-        console.log("🔥 DATA SISWA:", semuaSiswa); // buat debug
+        console.log("🔥 DATA SISWA MENTAH:", JSON.stringify(semuaSiswa, null, 2));
         
         // Buat file Excel per kelas
         for(let kelas in semuaSiswa) {
+            console.log(`📚 KELAS ${kelas}:`, semuaSiswa[kelas]);
+            
             const siswa = [];
             
             // Loop setiap absen di kelas ini
             for(let absen in semuaSiswa[kelas]) {
                 const data = semuaSiswa[kelas][absen];
                 
-                // PASTIKAN DATA DIAMBIL DENGAN FALLBACK
+                console.log(`   👤 ABSEN ${absen}:`, data);
+                
+                // AMBIL DATA DENGAN FALLBACK LENGKAP
+                let namaSiswa = "TANPA NAMA";
+                if(data.nama) namaSiswa = data.nama;
+                else if(data.Nama) namaSiswa = data.Nama;
+                else if(data.NAMA) namaSiswa = data.NAMA;
+                
+                let jkSiswa = "-";
+                if(data.jk) jkSiswa = data.jk;
+                else if(data.JK) jkSiswa = data.JK;
+                else if(data.JenisKelamin) jkSiswa = data.JenisKelamin;
+                
+                let agamaSiswa = "-";
+                if(data.agama) agamaSiswa = data.agama;
+                else if(data.Agama) agamaSiswa = data.Agama;
+                
+                let totalHadirSiswa = 0;
+                if(data.totalHadir !== undefined) totalHadirSiswa = data.totalHadir;
+                else if(data.TotalHadir) totalHadirSiswa = data.TotalHadir;
+                
                 siswa.push({
                     absen: parseInt(absen),
-                    nama: data.nama || data.Nama || "TANPA NAMA",
-                    jk: data.jk || data.JK || "-",
-                    agama: data.agama || data.Agama || "-",
-                    totalHadir: data.totalHadir || 0
+                    nama: namaSiswa,
+                    jk: jkSiswa,
+                    agama: agamaSiswa,
+                    totalHadir: totalHadirSiswa
                 });
             }
             
             // Urutkan berdasarkan nomor absen
             siswa.sort((a,b) => a.absen - b.absen);
             
+            console.log(`📊 SISWA TERPROSES ${kelas}:`, siswa);
+            
             // Buat rows Excel
             const rows = [['NO', 'NAMA', 'JK', 'AGAMA', 'TOTAL HADIR']];
             siswa.forEach(s => {
                 rows.push([s.absen, s.nama, s.jk, s.agama, s.totalHadir]);
             });
+            
+            console.log(`📋 ROWS ${kelas}:`, rows);
             
             // Buat file Excel
             const ws = XLSX.utils.aoa_to_sheet(rows);
@@ -485,7 +519,7 @@ window.downloadRekap = async function() {
         link.click();
         
     } catch(error) {
-        console.error("ERROR REKAP:", error);
+        console.error("🔥 ERROR REKAP:", error);
         alert("Gagal download rekap: " + error.message);
     }
     
