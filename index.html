@@ -2,257 +2,571 @@
 <html lang="id">
 <head>
     <meta charset="UTF-8">
-    <title>Konverter QR - Dzuhur 12</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dzuhur 12 + Konverter</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/html5-qrcode"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <style>
+        body { background: #0d1117; color: #c9d1d9; }
+        .glass { background: #161b22; border: 1px solid #30363d; border-radius: 1.5rem; }
+        .active-tab { background: #0891b2; color: white; }
+        .mode-active { background: #15803d; color: white; }
+    </style>
 </head>
-<body class="bg-gray-900 text-white p-4">
+<body class="p-4">
 
-<div class="max-w-md mx-auto space-y-4">
-    <h1 class="text-2xl font-bold text-center text-cyan-400">🔄 KONVERTER QR</h1>
-    <p class="text-xs text-center text-gray-400">Scan QR lama → Dapat QR baru yang compatible</p>
-    
-    <!-- Pilihan Kelas -->
-    <div class="bg-gray-800 p-4 rounded-xl">
-        <label class="block text-sm mb-2">Pilih Kelas untuk QR ini:</label>
-        <select id="kelasTujuan" class="w-full p-3 bg-gray-700 rounded-lg">
-            <option value="X-1">X-1</option>
-            <option value="X-2">X-2</option>
-            <option value="X-3">X-3</option>
-            <option value="X-4">X-4</option>
-            <option value="X-5">X-5</option>
-            <option value="X-6">X-6</option>
-            <option value="XI-1">XI-1</option>
-            <option value="XI-2">XI-2</option>
-            <option value="XI-3">XI-3</option>
-            <option value="XI-4">XI-4</option>
-            <option value="XI-5">XI-5</option>
-            <option value="XI-6">XI-6</option>
-            <option value="XII-1">XII-1</option>
-            <option value="XII-2">XII-2</option>
-            <option value="XII-3">XII-3</option>
-            <option value="XII-4">XII-4</option>
-            <option value="XII-5">XII-5</option>
-            <option value="XII-6">XII-6</option>
+<!-- Loading -->
+<div id="loading" class="fixed inset-0 bg-black/80 flex items-center justify-center z-50 hidden">
+    <div class="text-cyan-400 text-xl">Loading...</div>
+</div>
+
+<!-- Login Modal -->
+<div id="modalLogin" class="fixed inset-0 bg-black/90 hidden items-center justify-center z-40">
+    <div class="glass p-6 w-80">
+        <h2 class="text-xl font-bold mb-4 text-center">LOGIN GURU</h2>
+        <input type="password" id="password" class="w-full p-3 bg-gray-800 rounded mb-3" placeholder="Password">
+        <button onclick="login()" class="w-full py-3 bg-cyan-600 rounded font-bold mb-2">MASUK</button>
+        <button onclick="tutupLogin()" class="w-full py-2 text-gray-400 text-sm">Batal</button>
+    </div>
+</div>
+
+<!-- Header -->
+<div class="text-center mb-6 relative">
+    <h1 class="text-3xl font-black text-white">DZUHUR 12</h1>
+    <p class="text-cyan-500 text-xs">+ KONVERTER QR OTOMATIS</p>
+    <button id="btnLogout" onclick="logout()" class="hidden absolute top-0 right-0 bg-red-900/30 text-red-500 px-3 py-1 text-xs rounded">KELUAR</button>
+</div>
+
+<!-- Tab Navigation -->
+<div class="flex justify-center mb-6">
+    <div class="glass p-1 flex gap-1 w-64">
+        <button onclick="switchTab('admin')" id="tabAdminBtn" class="flex-1 py-3 rounded-xl font-bold text-sm active-tab">ADMIN</button>
+        <button onclick="switchTab('scan')" id="tabScanBtn" class="flex-1 py-3 rounded-xl font-bold text-sm text-gray-400">SCAN</button>
+    </div>
+</div>
+
+<!-- TAB ADMIN -->
+<div id="tabAdmin" class="max-w-md mx-auto space-y-4">
+    <div class="glass p-6">
+        <h2 class="font-bold mb-4">TAMBAH SISWA</h2>
+        <input type="text" id="nama" placeholder="Nama Lengkap" class="w-full p-3 bg-gray-800 rounded mb-2">
+        
+        <select id="kelas" class="w-full p-3 bg-gray-800 rounded mb-2"></select>
+        
+        <div class="flex gap-2 mb-2">
+            <input type="number" id="absen" placeholder="No. Absen" class="w-1/2 p-3 bg-gray-800 rounded">
+            <select id="jk" class="w-1/2 p-3 bg-gray-800 rounded">
+                <option value="L">Laki-laki</option>
+                <option value="P">Perempuan</option>
+            </select>
+        </div>
+        
+        <select id="agamaInput" class="w-full p-3 bg-gray-800 rounded mb-3">
+            <option value="Islam">Islam</option>
+            <option value="Kristen">Kristen</option>
         </select>
+        
+        <button onclick="tambahSiswa()" class="w-full py-3 bg-blue-600 rounded font-bold">BUAT QR</button>
+    </div>
+    
+    <div id="qrResult" class="glass p-6 flex flex-col items-center hidden">
+        <div id="qrCode" class="bg-white p-4 rounded-lg mb-3"></div>
+        <p id="qrNama" class="text-white font-bold"></p>
+        <p id="qrInfo" class="text-gray-400 text-xs mb-3"></p>
+        <button onclick="downloadQR()" class="bg-cyan-600 px-6 py-2 rounded text-sm">SIMPAN QR</button>
+    </div>
+    
+    <div id="bulkArea" class="glass p-6 border border-yellow-500/30 hidden">
+        <h2 class="text-yellow-500 font-bold mb-2">INPUT MASSAL</h2>
+        <textarea id="bulkText" rows="4" class="w-full p-3 bg-gray-800 rounded mb-2 font-mono text-xs" placeholder="NAMA|ABSEN|JK|AGAMA"></textarea>
+        <button onclick="prosesBulk()" class="w-full py-3 bg-yellow-600 rounded font-bold">PROSES</button>
+    </div>
+</div>
+
+<!-- TAB SCAN (DENGAN KONVERTER OTOMATIS) -->
+<div id="tabScan" class="max-w-md mx-auto space-y-4 hidden">
+    <!-- Mode Pilihan -->
+    <div class="glass p-1 flex gap-1">
+        <button onclick="setMode('Islam')" id="modeIslam" class="flex-1 py-3 rounded-xl font-bold text-sm mode-active">ISLAM</button>
+        <button onclick="setMode('Kristen')" id="modeKristen" class="flex-1 py-3 rounded-xl font-bold text-sm">KRISTEN</button>
     </div>
     
     <!-- Tombol Kamera -->
     <div class="flex gap-2">
-        <button onclick="startScanner()" id="btnStart" class="flex-1 py-4 bg-cyan-600 rounded-xl font-bold">SCAN QR LAMA</button>
-        <button onclick="stopScanner()" id="btnStop" class="flex-1 py-4 bg-red-600 rounded-xl font-bold hidden">HENTIKAN</button>
+        <button onclick="startKamera()" id="btnStart" class="flex-1 py-4 bg-cyan-600 rounded-xl font-bold">AKTIFKAN KAMERA</button>
+        <button onclick="stopKamera()" id="btnStop" class="flex-1 py-4 bg-red-600 rounded-xl font-bold hidden">MATIKAN</button>
     </div>
     
     <!-- Area Scanner -->
-    <div class="bg-gray-800 p-2 rounded-xl min-h-[250px] relative">
-        <div id="scanner"></div>
-        <div id="preview" class="text-center p-4 hidden">
-            <p id="previewText" class="text-lg"></p>
-            <p id="previewInfo" class="text-sm text-gray-400"></p>
+    <div class="glass p-2 min-h-[300px] relative">
+        <div id="reader"></div>
+        <div id="feedback" class="absolute inset-0 flex items-center justify-center bg-black/80 hidden">
+            <div id="feedbackBox" class="text-center p-6 rounded-2xl">
+                <div id="fbIcon" class="text-5xl mb-2"></div>
+                <div id="fbNama" class="text-xl font-bold"></div>
+                <div id="fbMsg" class="text-xs mt-1"></div>
+            </div>
         </div>
     </div>
     
-    <!-- Hasil Konversi -->
-    <div id="hasilKonversi" class="bg-gray-800 p-6 rounded-xl hidden">
-        <h2 class="font-bold mb-3 text-green-400">✅ QR BARU:</h2>
-        <div class="bg-white p-4 rounded-lg flex flex-col items-center">
-            <div id="qrBaru"></div>
-            <p id="namaBaru" class="text-black font-bold mt-2"></p>
-            <p id="infoBaru" class="text-black text-xs"></p>
-        </div>
-        <button onclick="downloadQRBaru()" class="w-full mt-3 py-3 bg-green-600 rounded-lg font-bold">💾 DOWNLOAD QR BARU</button>
+    <!-- Info Konverter -->
+    <div class="bg-blue-900/30 border border-blue-500/30 p-3 rounded-xl text-xs">
+        <span class="text-blue-400 font-bold">🔄 KONVERTER OTOMATIS:</span> QR lama format apapun (ADAM - X-1 - L - Islam - ABSEN 1) akan otomatis dikonversi
     </div>
     
-    <!-- Tombol Batch -->
-    <button onclick="batchConvert()" class="w-full py-4 bg-purple-600 rounded-xl font-bold text-sm">
-        📦 KONVERT BANYAK QR SEKALIGUS
-    </button>
+    <!-- Tombol Aksi -->
+    <div class="flex gap-2">
+        <button onclick="refreshData()" class="flex-1 py-4 bg-blue-600 rounded-xl font-bold text-sm">🔄 REFRESH</button>
+        <button onclick="downloadLaporan()" class="flex-1 py-4 bg-green-700 rounded-xl font-bold text-sm">📥 LAPORAN</button>
+    </div>
+    
+    <!-- Status -->
+    <div id="statusInfo" class="text-center text-xs text-cyan-500"></div>
+    
+    <!-- Log Presensi -->
+    <div class="glass p-4">
+        <h3 class="font-bold mb-3 text-sm">📋 LOG PRESENSI</h3>
+        <div id="logPresensi" class="space-y-2 max-h-96 overflow-auto"></div>
+    </div>
 </div>
 
 <script>
-let scanner = null;
-let hasilConvert = null;
-let batchData = [];
+// ==================== KONFIGURASI ====================
+const PASSWORD_GURU = "bintang31";
+const GITHUB_TOKEN = "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";
+const GIST_ID = "8f37fc18c4fb9bd3593486f97919ca9f";
+const DAFTAR_KELAS = ["X-1", "X-2", "X-3", "X-4", "X-5", "X-6", "XI-1", "XI-2", "XI-3", "XI-4", "XI-5", "XI-6", "XII-1", "XII-2", "XII-3", "XII-4", "XII-5", "XII-6"];
 
-function startScanner() {
-    document.getElementById('btnStart').classList.add('hidden');
-    document.getElementById('btnStop').classList.remove('hidden');
-    document.getElementById('preview').classList.add('hidden');
+// ==================== VARIABEL ====================
+let isLogin = false;
+let database = {};
+let modeScan = "Islam";
+let scannerQR = null;
+let intervalRefresh = null;
+
+// ==================== INIT ====================
+window.onload = async function() {
+    const selectKelas = document.getElementById('kelas');
+    DAFTAR_KELAS.forEach(k => {
+        selectKelas.innerHTML += `<option value="${k}">${k}</option>`;
+    });
     
-    scanner = new Html5Qrcode("scanner");
-    scanner.start(
-        { facingMode: "environment" },
-        { fps: 10, qrbox: 250 },
-        (text) => {
-            // QR terbaca
-            prosesQR(text);
-        },
-        () => {}
-    );
-}
-
-function stopScanner() {
-    if(scanner && scanner.isScanning) {
-        scanner.stop().then(() => {
-            scanner.clear();
-        });
+    if(localStorage.getItem('loginGuru') === 'true') {
+        isLogin = true;
+        document.getElementById('bulkArea').classList.remove('hidden');
+        document.getElementById('btnLogout').classList.remove('hidden');
     }
-    document.getElementById('btnStart').classList.remove('hidden');
-    document.getElementById('btnStop').classList.add('hidden');
-}
-
-function prosesQR(teks) {
-    stopScanner();
     
-    // Parse QR lama (format: NAMA - KELAS - JK - AGAMA - ABSEN)
+    await ambilData();
+    mulaiAutoRefresh();
+};
+
+// ==================== GITHUB ====================
+async function ambilData() {
     try {
-        let nama = "", kelas = "", jk = "", agama = "", absen = "";
+        showLoading(true);
+        const res = await fetch(`https://api.github.com/gists/${GIST_ID}?t=${Date.now()}`);
+        const data = await res.json();
         
-        // Coba parse format lama
-        if(teks.includes("–") || teks.includes("-")) {
-            // Format: "ADAM ATRIA PUTRA X-1 – L - Islam – ABSEN 1"
-            const parts = teks.replace(/–/g, '-').split('-').map(p => p.trim());
-            
-            if(parts.length >= 4) {
-                // Ambil nama dari bagian pertama
-                const namaParts = parts[0].split(' ');
-                nama = namaParts[0] + ' ' + namaParts[1]; // Ambil 2 kata pertama
-                
-                // Ambil kelas dari bagian yang mengandung X/XI/XII
-                for(let part of parts) {
-                    if(part.includes('X-') || part.includes('XI-') || part.includes('XII-')) {
-                        kelas = part.trim();
-                        break;
-                    }
-                }
-                
-                // Ambil JK (L/P)
-                for(let part of parts) {
-                    if(part === 'L' || part === 'P') {
-                        jk = part;
-                        break;
-                    }
-                }
-                
-                // Ambil Agama
-                for(let part of parts) {
-                    if(part.includes('Islam') || part.includes('Kristen')) {
-                        agama = part;
-                        break;
-                    }
-                }
-                
-                // Ambil nomor absen
-                for(let part of parts) {
-                    if(part.includes('ABSEN')) {
-                        absen = part.replace('ABSEN', '').trim();
-                        break;
-                    }
-                }
+        database = {};
+        DAFTAR_KELAS.forEach(kelas => {
+            const file = `${kelas}.json`;
+            if(data.files[file]) {
+                database[kelas] = JSON.parse(data.files[file].content);
+            } else {
+                database[kelas] = [];
             }
-        }
-        
-        // Fallback: minta input manual
-        if(!nama || !kelas || !absen) {
-            nama = prompt("Nama siswa:", "ADAM ATRIA PUTRA") || "SISWA";
-            absen = prompt("Nomor Absen:", "1") || "1";
-            jk = prompt("JK (L/P):", "L") || "L";
-            agama = prompt("Agama (Islam/Kristen):", "Islam") || "Islam";
-            kelas = document.getElementById('kelasTujuan').value;
-        }
-        
-        // Format baru: NAMA|KELAS|ABSEN|JK|AGAMA
-        const teksBaru = `${nama.toUpperCase()}|${kelas}|${absen}|${jk}|${agama}`;
-        
-        // Simpan hasil
-        hasilConvert = {
-            lama: teks,
-            baru: teksBaru,
-            nama: nama.toUpperCase(),
-            kelas: kelas,
-            absen: absen,
-            jk: jk,
-            agama: agama
-        };
-        
-        // Tampilkan QR baru
-        document.getElementById('qrBaru').innerHTML = '';
-        new QRCode(document.getElementById("qrBaru"), {
-            text: teksBaru,
-            width: 200,
-            height: 200
         });
         
-        document.getElementById('namaBaru').innerText = nama.toUpperCase();
-        document.getElementById('infoBaru').innerText = `${kelas} • ${jk} • ${agama} • NO.${absen}`;
-        document.getElementById('hasilKonversi').classList.remove('hidden');
-        document.getElementById('preview').classList.add('hidden');
-        
-        // Tambah ke batch
-        batchData.push(hasilConvert);
-        
+        updateStatus();
+        tampilkanLog();
+        showLoading(false);
     } catch(e) {
-        alert("Gagal parse QR. Silahkan isi manual.");
-        console.error(e);
+        DAFTAR_KELAS.forEach(k => database[k] = []);
+        showLoading(false);
     }
 }
 
-function downloadQRBaru() {
-    if(hasilConvert) {
-        const img = document.querySelector('#qrBaru img');
+async function simpanData(kelas) {
+    try {
+        await fetch(`https://api.github.com/gists/${GIST_ID}`, {
+            method: "PATCH",
+            headers: { "Authorization": `token ${GITHUB_TOKEN}` },
+            body: JSON.stringify({
+                files: { [`${kelas}.json`]: { content: JSON.stringify(database[kelas]) } }
+            })
+        });
+    } catch(e) {}
+}
+
+// ==================== AUTO REFRESH ====================
+function mulaiAutoRefresh() {
+    if(intervalRefresh) clearInterval(intervalRefresh);
+    intervalRefresh = setInterval(async () => {
+        if(isLogin && !document.getElementById('tabScan').classList.contains('hidden')) {
+            await ambilData();
+        }
+    }, 15000);
+}
+
+async function refreshData() {
+    await ambilData();
+    tampilkanLog();
+}
+
+function updateStatus() {
+    const today = new Date().toLocaleDateString('id-ID');
+    let total = 0, hadir = 0;
+    DAFTAR_KELAS.forEach(k => {
+        if(database[k]) {
+            total += database[k].length;
+            hadir += database[k].filter(s => s.Tanggal === today).length;
+        }
+    });
+    document.getElementById('statusInfo').innerHTML = `📊 ${total} Siswa | ✅ ${hadir} Hadir`;
+}
+
+// ==================== LOGIN ====================
+function switchTab(tab) {
+    if(tab === 'scan' && !isLogin) {
+        document.getElementById('modalLogin').classList.remove('hidden');
+        document.getElementById('modalLogin').classList.add('flex');
+        return;
+    }
+    
+    const admin = document.getElementById('tabAdmin');
+    const scan = document.getElementById('tabScan');
+    const btnAdmin = document.getElementById('tabAdminBtn');
+    const btnScan = document.getElementById('tabScanBtn');
+    
+    if(tab === 'admin') {
+        admin.classList.remove('hidden');
+        scan.classList.add('hidden');
+        btnAdmin.classList.add('active-tab');
+        btnScan.classList.remove('active-tab');
+        btnScan.classList.add('text-gray-400');
+        stopKamera();
+    } else {
+        admin.classList.add('hidden');
+        scan.classList.remove('hidden');
+        btnScan.classList.add('active-tab');
+        btnAdmin.classList.remove('active-tab');
+        btnAdmin.classList.add('text-gray-400');
+    }
+}
+
+function login() {
+    if(document.getElementById('password').value === PASSWORD_GURU) {
+        isLogin = true;
+        localStorage.setItem('loginGuru', 'true');
+        document.getElementById('modalLogin').classList.add('hidden');
+        document.getElementById('bulkArea').classList.remove('hidden');
+        document.getElementById('btnLogout').classList.remove('hidden');
+        switchTab('scan');
+        ambilData();
+    } else alert("Password salah!");
+}
+
+function tutupLogin() {
+    document.getElementById('modalLogin').classList.add('hidden');
+}
+
+function logout() {
+    isLogin = false;
+    localStorage.removeItem('loginGuru');
+    location.reload();
+}
+
+// ==================== ADMIN ====================
+async function tambahSiswa() {
+    const nama = document.getElementById('nama').value.trim();
+    const kelas = document.getElementById('kelas').value;
+    const absen = document.getElementById('absen').value.trim();
+    const jk = document.getElementById('jk').value;
+    const agama = document.getElementById('agamaInput').value;
+    
+    if(!nama || !absen) return alert("Isi lengkap!");
+    if(database[kelas].some(s => s.Absen === absen)) return alert("No. absen sudah ada!");
+    
+    const siswa = { Nama: nama.toUpperCase(), Kelas: kelas, Absen: absen, JK: jk, Agama: agama, Jam: "-", Tanggal: "-", Status: "-", KehadiranKe: 0 };
+    database[kelas].push(siswa);
+    await simpanData(kelas);
+    
+    document.getElementById('qrResult').classList.remove('hidden');
+    document.getElementById('qrCode').innerHTML = '';
+    new QRCode(document.getElementById("qrCode"), { text: `${nama.toUpperCase()}|${kelas}|${absen}|${jk}|${agama}`, width: 180, height: 180 });
+    document.getElementById('qrNama').innerText = nama.toUpperCase();
+    document.getElementById('qrInfo').innerText = `${kelas} • ${jk} • ${agama} • NO.${absen}`;
+    window.qrSiswa = { nama: nama.toUpperCase(), kelas, absen };
+    
+    document.getElementById('nama').value = '';
+    document.getElementById('absen').value = '';
+}
+
+function downloadQR() {
+    if(window.qrSiswa) {
+        const img = document.querySelector('#qrCode img');
         if(img) {
             const link = document.createElement('a');
             link.href = img.src;
-            link.download = `QR_${hasilConvert.nama}_${hasilConvert.absen}.png`;
+            link.download = `QR_${window.qrSiswa.nama}.png`;
             link.click();
         }
     }
 }
 
-function batchConvert() {
-    if(batchData.length === 0) {
-        alert("Belum ada QR yang discan!");
+// ==================== SCAN + KONVERTER OTOMATIS ====================
+function setMode(mode) {
+    modeScan = mode;
+    document.getElementById('modeIslam').classList.toggle('mode-active', mode === 'Islam');
+    document.getElementById('modeKristen').classList.toggle('mode-active', mode === 'Kristen');
+}
+
+function startKamera() {
+    document.getElementById('btnStart').classList.add('hidden');
+    document.getElementById('btnStop').classList.remove('hidden');
+    
+    scannerQR = new Html5Qrcode("reader");
+    scannerQR.start(
+        { facingMode: "environment" },
+        { fps: 10, qrbox: 250 },
+        (teks) => prosesQR(teks),
+        () => {}
+    ).catch(() => stopKamera());
+}
+
+function stopKamera() {
+    if(scannerQR && scannerQR.isScanning) scannerQR.stop();
+    document.getElementById('btnStart').classList.remove('hidden');
+    document.getElementById('btnStop').classList.add('hidden');
+}
+
+// ==================== KONVERTER OTOMATIS ====================
+function konversiQRLama(teks) {
+    console.log("QR mentah:", teks);
+    
+    // COBA FORMAT BARU DULU (NAMA|KELAS|ABSEN|JK|AGAMA)
+    if(teks.includes('|')) {
+        const parts = teks.split('|');
+        if(parts.length === 5) {
+            return {
+                nama: parts[0],
+                kelas: parts[1],
+                absen: parts[2],
+                jk: parts[3],
+                agama: parts[4],
+                format: "baru"
+            };
+        }
+    }
+    
+    // FORMAT LAMA: "ADAM ATRIA PUTRA X-1 – L - Islam – ABSEN 1"
+    try {
+        let nama = "", kelas = "", absen = "", jk = "", agama = "Islam"; // default
+        
+        // Bersihin teks
+        let clean = teks.replace(/[–\-—]/g, '-').replace(/\s+/g, ' ').trim();
+        
+        // Pisah berdasarkan '-'
+        const parts = clean.split('-').map(p => p.trim());
+        console.log("Parts:", parts);
+        
+        // Ambil nama (bagian pertama)
+        if(parts[0]) {
+            const kataNama = parts[0].split(' ');
+            nama = kataNama.slice(0, 3).join(' '); // ambil 3 kata pertama
+        }
+        
+        // Cari kelas
+        for(let part of parts) {
+            if(part.includes('X-') || part.includes('XI-') || part.includes('XII-')) {
+                kelas = part.match(/X[I]*-[0-9]+/)?.[0] || part;
+                break;
+            }
+        }
+        
+        // Cari JK
+        for(let part of parts) {
+            if(part === 'L' || part === 'P' || part.includes('L') || part.includes('P')) {
+                jk = part.includes('L') ? 'L' : 'P';
+                break;
+            }
+        }
+        
+        // Cari nomor absen
+        for(let part of parts) {
+            if(part.includes('ABSEN')) {
+                absen = part.replace('ABSEN', '').trim();
+                break;
+            }
+        }
+        
+        // Cari agama
+        for(let part of parts) {
+            if(part.includes('Islam')) {
+                agama = 'Islam';
+                break;
+            } else if(part.includes('Kristen')) {
+                agama = 'Kristen';
+                break;
+            }
+        }
+        
+        // Fallback
+        if(!kelas) kelas = document.getElementById('kelas')?.value || 'X-1';
+        if(!absen) absen = '1';
+        if(!jk) jk = 'L';
+        
+        return {
+            nama: nama || "SISWA",
+            kelas: kelas,
+            absen: absen,
+            jk: jk,
+            agama: agama,
+            format: "lama"
+        };
+        
+    } catch(e) {
+        console.error("Gagal konversi:", e);
+        return null;
+    }
+}
+
+async function prosesQR(teks) {
+    stopKamera();
+    
+    // Konversi QR lama ke format baru
+    const hasilKonversi = konversiQRLama(teks);
+    
+    if(!hasilKonversi) {
+        tampilkanFeedback("❌", "ERROR", "QR tidak dikenal", "bg-red-700");
+        setTimeout(() => startKamera(), 2000);
         return;
     }
     
-    const zip = new JSZip();
-    const folder = zip.folder("QR_TERKONVERT");
+    console.log("Hasil konversi:", hasilKonversi);
     
-    batchData.forEach((data, index) => {
-        // Buat QR secara virtual
-        const div = document.createElement('div');
-        div.innerHTML = `<div id="tempQR"></div>`;
-        document.body.appendChild(div);
-        
-        new QRCode(document.getElementById("tempQR"), {
-            text: data.baru,
-            width: 200,
-            height: 200
-        });
-        
-        // Simpan ke zip (simulasi - perlu html2canvas)
-        setTimeout(() => {
-            const img = document.querySelector('#tempQR img');
-            if(img) {
-                // Ini simulasi, untuk real perlu html2canvas
-                console.log(`QR ${data.nama} siap`);
-            }
-        }, 500);
-    });
+    // Validasi mode
+    if(hasilKonversi.agama !== modeScan) {
+        tampilkanFeedback("❌", hasilKonversi.nama, `Mode harus ${modeScan}`, "bg-red-700");
+        setTimeout(() => startKamera(), 2000);
+        return;
+    }
     
-    alert(`${batchData.length} QR siap dikonvert. Download manual satu-satu dulu ya.`);
+    // Cari di database
+    const siswaIndex = database[hasilKonversi.kelas]?.findIndex(s => s.Absen === hasilKonversi.absen);
+    
+    if(siswaIndex === -1 || siswaIndex === undefined) {
+        tampilkanFeedback("❌", hasilKonversi.nama, "SISWA TIDAK TERDAFTAR!", "bg-red-700");
+        setTimeout(() => startKamera(), 2000);
+        return;
+    }
+    
+    const siswa = database[hasilKonversi.kelas][siswaIndex];
+    const today = new Date().toLocaleDateString('id-ID');
+    const now = new Date().toLocaleTimeString('id-ID');
+    
+    if(siswa.Tanggal === today) {
+        tampilkanFeedback("⚠️", hasilKonversi.nama, "Sudah absen hari ini!", "bg-yellow-600");
+        setTimeout(() => startKamera(), 2000);
+        return;
+    }
+    
+    // Update
+    const status = modeScan === 'Islam' ? 'DZUHUR' : 'IBADAH';
+    siswa.Jam = now;
+    siswa.Tanggal = today;
+    siswa.Status = status;
+    siswa.KehadiranKe = (siswa.KehadiranKe || 0) + 1;
+    
+    await simpanData(hasilKonversi.kelas);
+    
+    tampilkanLog();
+    updateStatus();
+    tampilkanFeedback("✅", hasilKonversi.nama, `Presensi ${status} berhasil!`, "bg-green-600");
+    
+    setTimeout(() => startKamera(), 2000);
 }
 
-window.onload = function() {
-    // Isi dropdown kelas
-    const select = document.getElementById('kelasTujuan');
-    const kelas = ["X-1","X-2","X-3","X-4","X-5","X-6","XI-1","XI-2","XI-3","XI-4","XI-5","XI-6","XII-1","XII-2","XII-3","XII-4","XII-5","XII-6"];
-    kelas.forEach(k => {
-        select.innerHTML += `<option value="${k}">${k}</option>`;
+function tampilkanFeedback(icon, nama, pesan, warna) {
+    const fb = document.getElementById('feedback');
+    document.getElementById('fbIcon').innerText = icon;
+    document.getElementById('fbNama').innerText = nama;
+    document.getElementById('fbMsg').innerText = pesan;
+    document.getElementById('feedbackBox').className = `text-center p-6 rounded-2xl ${warna}`;
+    fb.classList.remove('hidden');
+    setTimeout(() => fb.classList.add('hidden'), 2000);
+}
+
+function tampilkanLog() {
+    const logDiv = document.getElementById('logPresensi');
+    const today = new Date().toLocaleDateString('id-ID');
+    const semua = [];
+    
+    DAFTAR_KELAS.forEach(k => {
+        if(database[k]) database[k].forEach(s => {
+            if(s.Tanggal === today) semua.push(s);
+        });
     });
-};
+    
+    semua.sort((a,b) => (a.Jam > b.Jam ? -1 : 1));
+    
+    if(semua.length === 0) {
+        logDiv.innerHTML = '<p class="text-center text-gray-500 text-sm py-4">Belum ada presensi</p>';
+        return;
+    }
+    
+    let html = '';
+    semua.forEach(s => {
+        html += `<div class="bg-gray-800 p-3 rounded-lg border-l-4 border-cyan-500">
+            <div class="font-bold text-sm">${s.Nama}</div>
+            <div class="text-xs text-gray-400">${s.Kelas} • ${s.Agama} • ${s.Jam} • ${s.Status}</div>
+            <div class="text-xs text-cyan-400">Hadir ke-${s.KehadiranKe}</div>
+        </div>`;
+    });
+    logDiv.innerHTML = html;
+}
+
+// ==================== LAPORAN ====================
+async function downloadLaporan() {
+    showLoading(true);
+    const zip = new JSZip();
+    const today = new Date().toLocaleDateString('id-ID').replace(/\//g, '-');
+    const t = new Date().toLocaleDateString('id-ID');
+    
+    for(const kelas of DAFTAR_KELAS) {
+        if(database[kelas]?.length) {
+            const data = [...database[kelas]].sort((a,b) => parseInt(a.Absen) - parseInt(b.Absen));
+            const excel = data.map(s => ({
+                "NO": s.Absen,
+                "NAMA": s.Nama,
+                "L/P": s.JK,
+                "AGAMA": s.Agama,
+                "KETERANGAN": s.Tanggal === t ? s.Status : "A",
+                "JAM": s.Tanggal === t ? s.Jam : "-",
+                "HADIR": s.KehadiranKe || 0
+            }));
+            const ws = XLSX.utils.json_to_sheet(excel);
+            const wb = XLSX.utils.book_new();
+            XLSX.utils.book_append_sheet(wb, ws, "Presensi");
+            zip.file(`LAPORAN_${kelas}_${today}.xlsx`, XLSX.write(wb, { type: 'array' }));
+        }
+    }
+    
+    const content = await zip.generateAsync({ type: "blob" });
+    const link = document.createElement('a');
+    link.href = URL.createObjectURL(content);
+    link.download = `REKAP_${today}.zip`;
+    link.click();
+    showLoading(false);
+}
+
+function prosesBulk() {}
+function showLoading(s) {
+    document.getElementById('loading').classList.toggle('hidden', !s);
+}
 </script>
 
 </body>
