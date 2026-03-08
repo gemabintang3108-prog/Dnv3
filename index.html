@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Dzuhur 12 - Final + Upload</title>
+    <title>Dzuhur 12 - Final</title>
     
     <!-- Firebase -->
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
@@ -111,11 +111,10 @@
             <button onclick="setMode('Kristen')" id="modeKristen" class="flex-1 py-4 rounded-[1.5rem] font-black text-[10px] uppercase border border-gray-800">✝️ KRISTEN</button>
         </div>
 
-        <!-- Tombol Kamera & Upload -->
-        <div class="grid grid-cols-2 gap-3">
-            <button onclick="startCam()" id="btnStart" class="py-5 bg-cyan-600 text-white font-black rounded-[2rem] text-[10px] uppercase">📷 KAMERA</button>
-            <button onclick="stopCam()" id="btnStop" class="hidden py-5 bg-red-600 text-white font-black rounded-[2rem] text-[10px] uppercase">⏹️ MATIKAN</button>
-            <button onclick="uploadGambar()" id="btnUpload" class="py-5 bg-yellow-600 text-white font-black rounded-[2rem] text-[10px] uppercase">🖼️ UPLOAD GAMBAR</button>
+        <!-- Kamera -->
+        <div class="flex gap-3">
+            <button onclick="startCam()" id="btnStart" class="flex-1 py-5 bg-cyan-600 text-white font-black rounded-[2rem] text-[10px] uppercase">AKTIFKAN KAMERA</button>
+            <button onclick="stopCam()" id="btnStop" class="hidden flex-1 py-5 bg-red-600 text-white font-black rounded-[2rem] text-[10px] uppercase">MATIKAN</button>
         </div>
 
         <!-- Scanner -->
@@ -138,31 +137,15 @@
             </div>
             
             <div class="grid grid-cols-3 gap-2 mb-4">
-                <button onclick="downloadHarian()" class="py-4 bg-blue-600 text-white font-black rounded-2xl text-[8px] uppercase">HARIAN</button>
-                <button onclick="downloadRekap()" class="py-4 bg-purple-600 text-white font-black rounded-2xl text-[8px] uppercase">REKAP</button>
-                <button onclick="cekDataSiswa()" class="py-4 bg-gray-600 text-white font-black rounded-2xl text-[8px] uppercase">DEBUG</button>
-            </div>
+    <button onclick="downloadHarian()" class="py-4 bg-blue-600 text-white font-black rounded-2xl text-[8px] uppercase">HARIAN</button>
+    <button onclick="downloadRekap()" class="py-4 bg-purple-600 text-white font-black rounded-2xl text-[8px] uppercase">REKAP</button>
+    <button onclick="cekDataSiswa()" class="py-4 bg-gray-600 text-white font-black rounded-2xl text-[8px] uppercase">DEBUG</button>
+</div>
             
             <div id="logPresensi" class="space-y-3 max-h-[400px] overflow-y-auto"></div>
         </div>
     </section>
 </main>
-
-<!-- Panel Testing (Hidden by default, muncul pas debug) -->
-<div id="debugPanel" class="fixed bottom-4 left-4 right-4 glass p-4 rounded-2xl z-50 hidden">
-    <div class="flex justify-between items-center mb-2">
-        <p class="text-xs font-bold">🔧 PANEL DEBUG</p>
-        <button onclick="document.getElementById('debugPanel').classList.add('hidden')" class="text-gray-500">✖️</button>
-    </div>
-    <div class="grid grid-cols-2 gap-2">
-        <button onclick="testManual()" class="bg-green-600 p-3 rounded-xl text-xs font-bold">TEST MANUAL</button>
-        <button onclick="window.location.reload()" class="bg-blue-600 p-3 rounded-xl text-xs font-bold">RELOAD</button>
-        <button onclick="tampilkanDebugPanel()" class="bg-gray-600 p-3 rounded-xl text-xs font-bold col-span-2">SEMBUNYIKAN</button>
-    </div>
-    <p class="text-[8px] text-gray-500 mt-2">
-        Isi QR manual: "NAMA\nKELAS - L - Islam - ABSEN 1"
-    </p>
-</div>
 
 <script>
     const PASSWORD = "bintang31";
@@ -183,14 +166,6 @@
             document.getElementById('btnLogout').classList.remove('hidden');
             listenPresensi();
         }
-        
-        // Tambah tombol debug di pojok (rahasia)
-        setTimeout(() => {
-            const header = document.querySelector('header h1');
-            header.addEventListener('dblclick', () => {
-                document.getElementById('debugPanel').classList.remove('hidden');
-            });
-        }, 1000);
     };
     
     // Login
@@ -202,8 +177,6 @@
             document.getElementById('btnLogout').classList.remove('hidden');
             switchTab('scan');
             listenPresensi();
-        } else {
-            alert("Password salah!");
         }
     };
     
@@ -229,11 +202,6 @@
         mode = m;
         document.getElementById('modeIslam').classList.toggle('active-mode-islam', m === 'Islam');
         document.getElementById('modeKristen').classList.toggle('active-mode-kristen', m === 'Kristen');
-    };
-    
-    // Fungsi buat munculin debug panel
-    window.tampilkanDebugPanel = function() {
-        document.getElementById('debugPanel').classList.toggle('hidden');
     };
     
     // Listen realtime
@@ -292,55 +260,8 @@
         });
     };
     
-    // ========== UPLOAD GAMBAR (PAKAI PASSWORD) ==========
-    window.uploadGambar = function() {
-        // Cek login dulu
-        if(!isLogin) {
-            document.getElementById('modalLogin').classList.remove('hidden');
-            return;
-        }
-        
-        // Buat input file
-        const input = document.createElement('input');
-        input.type = 'file';
-        input.accept = 'image/*';
-        
-        input.onchange = function(e) {
-            const file = e.target.files[0];
-            if (!file) return;
-            
-            // Matikan scanner kalau sedang jalan
-            if (scanner?.isScanning) {
-                scanner.pause();
-            }
-            
-            // Tampilkan loading
-            document.getElementById('loading').classList.remove('hidden');
-            
-            // Scan dari file gambar
-            Html5Qrcode.scanFile(file, true)
-                .then(decodedText => {
-                    console.log("Hasil scan dari gambar:", decodedText);
-                    document.getElementById('loading').classList.add('hidden');
-                    prosesQR(decodedText);
-                })
-                .catch(err => {
-                    console.error("Gagal scan file:", err);
-                    document.getElementById('loading').classList.add('hidden');
-                    alert("❌ Gagal membaca QR dari gambar. Pastikan gambar berisi QR code yang jelas.");
-                });
-        };
-        
-        input.click();
-    };
-    
     // ========== SCANNER ==========
     window.startCam = function() {
-        if(!isLogin) {
-            document.getElementById('modalLogin').classList.remove('hidden');
-            return;
-        }
-        
         document.getElementById('btnStart').classList.add('hidden');
         document.getElementById('btnStop').classList.remove('hidden');
         
@@ -348,10 +269,7 @@
         scanner.start(
             { facingMode: "environment" },
             { fps: 10, qrbox: 250 },
-            (text) => { 
-                scanner.pause(); 
-                prosesQR(text); 
-            },
+            (text) => { scanner.pause(); prosesQR(text); },
             () => {}
         );
     };
@@ -363,95 +281,81 @@
     };
     
     // ========== PROSES QR DENGAN CEK DUPLIKAT ==========
-    async function prosesQR(text) {
-        try {
-            console.log("📄 QR terbaca:", text);
+async function prosesQR(text) {
+    try {
+        console.log("📄 QR:", text);
+        
+        let nama = "", kelas = "", absen = "", jk = "L", agama = "Islam";
+        
+        // Format foto: "ADAM ATRIA PUTRA\nX-1 - L - Islam - ABSEN 1"
+        if(text.includes('\n')) {
+            const lines = text.split('\n');
+            nama = lines[0].trim();
+            const line2 = lines[1].replace(/[–—]/g, '-');
+            const parts = line2.split('-').map(p => p.trim());
             
-            let nama = "", kelas = "", absen = "", jk = "L", agama = "Islam";
-            
-            // Format foto: "ADAM ATRIA PUTRA\nX-1 - L - Islam - ABSEN 1"
-            if(text.includes('\n')) {
-                const lines = text.split('\n');
-                nama = lines[0].trim();
-                
-                if(lines.length > 1) {
-                    const line2 = lines[1].replace(/[–—]/g, '-');
-                    const parts = line2.split('-').map(p => p.trim());
-                    
-                    for(let p of parts) {
-                        if(p.includes('X-') || p.includes('XI-') || p.includes('XII-')) kelas = p;
-                        if(p.includes('ABSEN')) absen = p.replace('ABSEN', '').trim();
-                        if(p === 'L' || p === 'P') jk = p;
-                        if(p.includes('Islam') || p === 'ISLAM') agama = 'Islam';
-                        if(p.includes('Kristen') || p === 'KRISTEN') agama = 'Kristen';
-                    }
-                }
+            for(let p of parts) {
+                if(p.includes('X-') || p.includes('XI-') || p.includes('XII-')) kelas = p;
+                if(p.includes('ABSEN')) absen = p.replace('ABSEN', '').trim();
+                if(p === 'L' || p === 'P') jk = p;
+                if(p.includes('Islam')) agama = 'Islam';
+                if(p.includes('Kristen')) agama = 'Kristen';
             }
-            
-            // Format pipe
-            if(!kelas && text.includes('|')) {
-                const parts = text.split('|');
-                if(parts.length >= 1) nama = parts[0].trim();
-                for(let p of parts) {
-                    if(p.includes('X-') || p.includes('XI-') || p.includes('XII-')) kelas = p.trim();
-                    if(p.match(/^[0-9]+$/)) absen = p.trim();
-                }
-            }
-            
-            // Validasi
-            if(!nama || !kelas || !absen) {
-                console.log("Parsing gagal:", {nama, kelas, absen});
-                throw "QR tidak valid atau format salah";
-            }
-            
-            if(agama !== mode) throw `Mode harus ${mode}, tapi QR untuk ${agama}`;
-            
-            // ========== CEK DUPLIKAT HARI INI ==========
-            const today = new Date().toLocaleDateString('id-ID').replace(/\//g, '-');
-            const presensiRef = db.ref('presensi/' + today + '/' + kelas + '_' + absen);
-            const presensiSnap = await presensiRef.once('value');
-            
-            if(presensiSnap.exists()) {
-                const data = presensiSnap.val();
-                throw `Sudah absen jam ${data.jam}`;
-            }
-            
-            // ========== AMBIL DATA SISWA ==========
-            const siswaRef = db.ref('siswa/' + kelas + '/' + absen);
-            const siswaSnap = await siswaRef.once('value');
-            let totalHadir = siswaSnap.exists() ? (siswaSnap.val().totalHadir || 0) : 0;
-            totalHadir++;
-            
-            // Update total hadir siswa
-            await siswaRef.update({
-                totalHadir: totalHadir,
-                lastUpdate: Date.now()
-            });
-            
-            // Simpan presensi hari ini
-            const jam = new Date().toLocaleTimeString('id-ID');
-            const status = mode === 'Islam' ? 'DZUHUR' : 'IBADAH';
-            
-            await presensiRef.set({
-                nama, kelas, absen, jk, agama, jam, status,
-                totalHadir,
-                timestamp: Date.now()
-            });
-            
-            feedback('✅', nama, `Hadir ke-${totalHadir}`, 'bg-green-600');
-            
-        } catch(e) {
-            console.error("Error proses QR:", e);
-            feedback('❌', 'GAGAL', e.toString(), 'bg-red-700');
         }
         
-        // Resume scanner setelah 2 detik
-        setTimeout(() => {
-            if(scanner?.isScanning) {
-                scanner.resume();
+        // Format pipe
+        if(!kelas && text.includes('|')) {
+            const parts = text.split('|');
+            if(parts.length >= 1) nama = parts[0];
+            for(let p of parts) {
+                if(p.includes('X-') || p.includes('XI-') || p.includes('XII-')) kelas = p;
+                if(p.match(/^[0-9]+$/)) absen = p;
             }
-        }, 2000);
+        }
+        
+        if(!nama || !kelas || !absen) throw "QR tidak valid";
+        if(agama !== mode) throw `Mode harus ${mode}`;
+        
+        // ========== CEK DUPLIKAT HARI INI ==========
+        const today = new Date().toLocaleDateString('id-ID').replace(/\//g, '-');
+        const presensiRef = db.ref('presensi/' + today + '/' + kelas + '_' + absen);
+        const presensiSnap = await presensiRef.once('value');
+        
+        if(presensiSnap.exists()) {
+            // Sudah absen hari ini
+            const data = presensiSnap.val();
+            throw `Sudah absen jam ${data.jam}`;
+        }
+        
+        // ========== AMBIL DATA SISWA ==========
+        const siswaRef = db.ref('siswa/' + kelas + '/' + absen);
+        const siswaSnap = await siswaRef.once('value');
+        let totalHadir = siswaSnap.exists() ? (siswaSnap.val().totalHadir || 0) : 0;
+        totalHadir++;
+        
+        // Update total hadir siswa
+        await siswaRef.update({
+            totalHadir: totalHadir,
+            lastUpdate: Date.now()
+        });
+        
+        // Simpan presensi hari ini
+        const jam = new Date().toLocaleTimeString('id-ID');
+        const status = mode === 'Islam' ? 'DZUHUR' : 'IBADAH';
+        
+        await presensiRef.set({
+            nama, kelas, absen, jk, agama, jam, status,
+            totalHadir,
+            timestamp: Date.now()
+        });
+        
+        feedback('✅', nama, `Hadir ke-${totalHadir}`, 'bg-green-600');
+        
+    } catch(e) {
+        feedback('❌', 'GAGAL', e, 'bg-red-700');
     }
+    setTimeout(() => scanner?.resume(), 2000);
+}
     
     function feedback(icon, name, msg, bg) {
         const fb = document.getElementById('feedback');
@@ -463,276 +367,232 @@
         setTimeout(() => fb.classList.add('hidden'), 2000);
     }
     
-    // ========== TEST MANUAL ==========
-    window.testManual = function() {
-        if(!isLogin) {
-            alert("Login dulu!");
-            return;
-        }
-        
-        const contohQR = prompt("Masukkan teks QR:", "ADAM ATRIA PUTRA\nX-1 - L - Islam - ABSEN 1");
-        if(contohQR) {
-            prosesQR(contohQR);
-        }
-    };
-    
     // ========== DOWNLOAD HARIAN (PER KELAS) ==========
     window.downloadHarian = async function() {
-        if(!isLogin) {
-            document.getElementById('modalLogin').classList.remove('hidden');
-            return;
-        }
-        
         document.getElementById('loading').classList.remove('hidden');
         
         const today = new Date().toLocaleDateString('id-ID').replace(/\//g, '-');
         const zip = new JSZip();
         
-        try {
-            // Ambil data presensi hari ini
-            const presensiSnap = await db.ref('presensi/' + today).once('value');
-            const presensi = presensiSnap.val() || {};
+        // Ambil data presensi hari ini
+        const presensiSnap = await db.ref('presensi/' + today).once('value');
+        const presensi = presensiSnap.val() || {};
+        
+        // Kelompokkan per kelas
+        const perKelas = {};
+        Object.values(presensi).forEach(p => {
+            if(!perKelas[p.kelas]) perKelas[p.kelas] = [];
+            perKelas[p.kelas].push(p);
+        });
+        
+        // Buat file Excel per kelas
+        for(let kelas in perKelas) {
+            const siswa = perKelas[kelas].sort((a,b) => parseInt(a.absen) - parseInt(b.absen));
+            const rows = [['NO', 'NAMA', 'KETERANGAN', 'JAM']];
             
-            // Kelompokkan per kelas
-            const perKelas = {};
-            Object.values(presensi).forEach(p => {
-                if(!perKelas[p.kelas]) perKelas[p.kelas] = [];
-                perKelas[p.kelas].push(p);
+            // Buat daftar semua nomor absen di kelas ini
+            const semuaAbsen = {};
+            siswa.forEach(s => semuaAbsen[s.absen] = s);
+            
+            // Ambil semua siswa dari database untuk kelas ini
+            const siswaSnap = await db.ref('siswa/' + kelas).once('value');
+            const dataSiswa = siswaSnap.val() || {};
+            
+            // Urutkan berdasarkan nomor absen
+            const daftarAbsen = Object.keys(dataSiswa).map(Number).sort((a,b) => a - b);
+            
+            daftarAbsen.forEach(no => {
+                const s = semuaAbsen[no];
+                if(s) {
+                    // Hadir
+                    rows.push([no, s.nama, s.status, s.jam]);
+                } else {
+                    // Tidak hadir (ALPA)
+                    const siswaData = dataSiswa[no];
+                    if(siswaData) {
+                        rows.push([no, siswaData.nama, 'A', '-']);
+                    }
+                }
             });
             
-            // Buat file Excel per kelas
-            for(let kelas in perKelas) {
-                const siswa = perKelas[kelas].sort((a,b) => parseInt(a.absen) - parseInt(b.absen));
-                const rows = [['NO', 'NAMA', 'KELAS', 'JK', 'AGAMA', 'KETERANGAN', 'JAM']];
-                
-                // Ambil semua siswa dari database untuk kelas ini
-                const siswaSnap = await db.ref('siswa/' + kelas).once('value');
-                const dataSiswa = siswaSnap.val() || {};
-                
-                // Buat map untuk quick lookup
-                const hadirMap = {};
-                siswa.forEach(s => hadirMap[s.absen] = s);
-                
-                // Urutkan berdasarkan nomor absen
-                const daftarAbsen = Object.keys(dataSiswa).map(Number).sort((a,b) => a - b);
-                
-                daftarAbsen.forEach(no => {
-                    const s = hadirMap[no];
-                    const siswaData = dataSiswa[no] || {};
-                    
-                    if(s) {
-                        // Hadir
-                        rows.push([
-                            no, 
-                            s.nama, 
-                            s.kelas, 
-                            s.jk === 'L' ? 'LAKI' : 'PEREMPUAN', 
-                            s.agama, 
-                            s.status, 
-                            s.jam
-                        ]);
-                    } else {
-                        // Tidak hadir
-                        rows.push([
-                            no, 
-                            siswaData.nama || 'DATA TIDAK DITEMUKAN', 
-                            kelas, 
-                            siswaData.jk === 'L' ? 'LAKI' : (siswaData.jk === 'P' ? 'PEREMPUAN' : '-'), 
-                            siswaData.agama || '-', 
-                            'ALPA', 
-                            '-'
-                        ]);
-                    }
-                });
-                
-                const ws = XLSX.utils.aoa_to_sheet(rows);
-                
-                // Atur lebar kolom
-                ws['!cols'] = [
-                    { wch: 8 },  // NO
-                    { wch: 30 }, // NAMA
-                    { wch: 10 }, // KELAS
-                    { wch: 12 }, // JK
-                    { wch: 12 }, // AGAMA
-                    { wch: 12 }, // KETERANGAN
-                    { wch: 10 }  // JAM
-                ];
-                
-                const wb = XLSX.utils.book_new();
-                XLSX.utils.book_append_sheet(wb, ws, 'Presensi');
-                zip.file(`PRESENSI_${kelas}_${today}.xlsx`, XLSX.write(wb, { type: 'array' }));
-            }
-            
-            // Download
-            const content = await zip.generateAsync({ type: 'blob' });
-            const link = document.createElement('a');
-            link.href = URL.createObjectURL(content);
-            link.download = `HARIAN_${today}.zip`;
-            link.click();
-            
-        } catch(error) {
-            console.error("Error download harian:", error);
-            alert("Gagal download: " + error.message);
+            const ws = XLSX.utils.aoa_to_sheet(rows);
+            const wb = XLSX.utils.book_new();
+            XLSX.utils.book_append_sheet(wb, ws, 'Presensi');
+            zip.file(`PRESENSI_${kelas}_${today}.xlsx`, XLSX.write(wb, { type: 'array' }));
         }
+        
+        // Download
+        const content = await zip.generateAsync({ type: 'blob' });
+        const link = document.createElement('a');
+        link.href = URL.createObjectURL(content);
+        link.download = `HARIAN_${today}.zip`;
+        link.click();
         
         document.getElementById('loading').classList.add('hidden');
     };
+
+    // ========== DOWNLOAD REKAP (PER KELAS) - FIXED VERSION ==========
+window.downloadRekap = async function() {
+    document.getElementById('loading').classList.remove('hidden');
     
-    // ========== DOWNLOAD REKAP (FIXED VERSION) ==========
-    window.downloadRekap = async function() {
-        if(!isLogin) {
-            document.getElementById('modalLogin').classList.remove('hidden');
-            return;
-        }
+    const zip = new JSZip();
+    
+    try {
+        // Ambil data semua siswa
+        const siswaSnap = await db.ref('siswa').once('value');
+        const semuaSiswa = siswaSnap.val() || {};
         
-        document.getElementById('loading').classList.remove('hidden');
+        console.log("🔥 DATA SISWA MENTAH:", JSON.stringify(semuaSiswa, null, 2));
         
-        const zip = new JSZip();
-        
-        try {
-            // Ambil data semua siswa
-            const siswaSnap = await db.ref('siswa').once('value');
-            const semuaSiswa = siswaSnap.val() || {};
+        // Buat file Excel per kelas
+        for(let kelas in semuaSiswa) {
+            console.log(`📚 KELAS ${kelas}:`, semuaSiswa[kelas]);
             
-            console.log("🔥 DATA SISWA MENTAH:", JSON.stringify(semuaSiswa, null, 2));
+            const siswa = [];
             
-            // Buat file Excel per kelas
-            for(let kelas in semuaSiswa) {
-                console.log(`📚 KELAS ${kelas}:`, semuaSiswa[kelas]);
+            // Loop setiap absen di kelas ini
+            for(let absen in semuaSiswa[kelas]) {
+                const data = semuaSiswa[kelas][absen];
                 
-                const siswa = [];
+                console.log(`   👤 ABSEN ${absen}:`, data);
                 
-                // Loop setiap absen di kelas ini
-                for(let absen in semuaSiswa[kelas]) {
-                    const data = semuaSiswa[kelas][absen];
-                    
-                    // PASTIKAN DATA DIAMBIL DENGAN STRUKTUR YANG TEPAT
-                    let namaSiswa = "TANPA NAMA";
-                    if(data.nama) namaSiswa = data.nama;
-                    else if(data.Nama) namaSiswa = data.Nama;
-                    
-                    let jkSiswa = "-";
-                    if(data.jk) jkSiswa = data.jk;
-                    else if(data.JK) jkSiswa = data.JK;
-                    
-                    let agamaSiswa = "-";
-                    if(data.agama) agamaSiswa = data.agama;
-                    else if(data.Agama) agamaSiswa = data.Agama;
-                    
-                    let totalHadirSiswa = 0;
-                    if(data.totalHadir !== undefined) totalHadirSiswa = data.totalHadir;
-                    
-                    siswa.push({
-                        absen: parseInt(absen),
-                        nama: namaSiswa,
-                        jk: jkSiswa,
-                        agama: agamaSiswa,
-                        totalHadir: totalHadirSiswa,
-                        kelas: kelas
-                    });
+                // PASTIKAN DATA DIAMBIL DENGAN STRUKTUR YANG TEPAT
+                // Data harusnya disimpan dengan struktur: { nama, jk, agama, totalHadir }
+                
+                let namaSiswa = "TANPA NAMA";
+                if(data.nama) namaSiswa = data.nama;
+                else if(data.Nama) namaSiswa = data.Nama;
+                else if(data.NAMA) namaSiswa = data.NAMA;
+                
+                let jkSiswa = "-";
+                if(data.jk) jkSiswa = data.jk;
+                else if(data.JK) jkSiswa = data.JK;
+                else if(data.jenis_kelamin) jkSiswa = data.jenis_kelamin;
+                else if(data.JenisKelamin) jkSiswa = data.JenisKelamin;
+                
+                let agamaSiswa = "-";
+                if(data.agama) agamaSiswa = data.agama;
+                else if(data.Agama) agamaSiswa = data.Agama;
+                
+                let totalHadirSiswa = 0;
+                if(data.totalHadir !== undefined && data.totalHadir !== null) {
+                    totalHadirSiswa = data.totalHadir;
+                } else if(data.TotalHadir) {
+                    totalHadirSiswa = data.TotalHadir;
+                } else if(data.hadir) {
+                    totalHadirSiswa = data.hadir;
                 }
                 
-                // Urutkan berdasarkan nomor absen
-                siswa.sort((a,b) => a.absen - b.absen);
+                // Tambahkan juga kelas dari data jika ada
+                let kelasSiswa = kelas;
+                if(data.kelas) kelasSiswa = data.kelas;
                 
-                // Buat rows Excel dengan format yang lebih jelas
-                const rows = [
-                    ['NO. ABSEN', 'NAMA LENGKAP', 'JENIS KELAMIN', 'AGAMA', 'TOTAL HADIR', 'KELAS']
-                ];
-                
-                siswa.forEach(s => {
-                    rows.push([
-                        s.absen, 
-                        s.nama, 
-                        s.jk === 'L' ? 'LAKI-LAKI' : (s.jk === 'P' ? 'PEREMPUAN' : s.jk),
-                        s.agama,
-                        s.totalHadir,
-                        s.kelas
-                    ]);
+                siswa.push({
+                    absen: parseInt(absen),
+                    nama: namaSiswa,
+                    jk: jkSiswa,
+                    agama: agamaSiswa,
+                    totalHadir: totalHadirSiswa,
+                    kelas: kelasSiswa
                 });
-                
-                // Buat file Excel
-                const ws = XLSX.utils.aoa_to_sheet(rows);
-                
-                // Atur lebar kolom
-                ws['!cols'] = [
-                    { wch: 12 }, // NO
-                    { wch: 35 }, // NAMA
-                    { wch: 15 }, // JK
-                    { wch: 15 }, // AGAMA
-                    { wch: 15 }, // TOTAL HADIR
-                    { wch: 10 }  // KELAS
-                ];
-                
-                const wb = XLSX.utils.book_new();
-                XLSX.utils.book_append_sheet(wb, ws, 'Rekap');
-                
-                // Simpan ke ZIP
-                zip.file(`REKAP_${kelas}.xlsx`, XLSX.write(wb, { type: 'array' }));
             }
             
-            // Download ZIP
-            const content = await zip.generateAsync({ type: 'blob' });
-            const link = document.createElement('a');
-            link.href = URL.createObjectURL(content);
-            link.download = `REKAP_ALL_KELAS_${new Date().toLocaleDateString('id-ID').replace(/\//g, '-')}.zip`;
-            link.click();
+            // Urutkan berdasarkan nomor absen
+            siswa.sort((a,b) => a.absen - b.absen);
             
-            alert("Download rekap berhasil!");
+            console.log(`📊 SISWA TERPROSES ${kelas}:`, siswa);
             
-        } catch(error) {
-            console.error("🔥 ERROR REKAP:", error);
-            alert("Gagal download rekap: " + error.message);
+            // Buat rows Excel dengan format yang lebih jelas
+            const rows = [
+                ['NO. ABSEN', 'NAMA LENGKAP', 'JENIS KELAMIN', 'AGAMA', 'TOTAL HADIR', 'KELAS']
+            ];
+            
+            siswa.forEach(s => {
+                rows.push([
+                    s.absen, 
+                    s.nama, 
+                    s.jk === 'L' ? 'LAKI-LAKI' : (s.jk === 'P' ? 'PEREMPUAN' : s.jk),
+                    s.agama,
+                    s.totalHadir,
+                    s.kelas
+                ]);
+            });
+            
+            console.log(`📋 ROWS ${kelas}:`, rows);
+            
+            // Buat file Excel
+            const ws = XLSX.utils.aoa_to_sheet(rows);
+            
+            // Atur lebar kolom
+            ws['!cols'] = [
+                { wch: 10 }, // NO
+                { wch: 30 }, // NAMA
+                { wch: 15 }, // JK
+                { wch: 15 }, // AGAMA
+                { wch: 15 }, // TOTAL HADIR
+                { wch: 10 }  // KELAS
+            ];
+            
+            const wb = XLSX.utils.book_new();
+            XLSX.utils.book_append_sheet(wb, ws, 'Rekap');
+            
+            // Simpan ke ZIP
+            const fileName = `REKAP_${kelas}.xlsx`;
+            zip.file(fileName, XLSX.write(wb, { type: 'array' }));
         }
         
-        document.getElementById('loading').classList.add('hidden');
-    };
+        // Download ZIP
+        const content = await zip.generateAsync({ type: 'blob' });
+        const link = document.createElement('a');
+        link.href = URL.createObjectURL(content);
+        link.download = `REKAP_ALL_KELAS_${new Date().toLocaleDateString('id-ID').replace(/\//g, '-')}.zip`;
+        link.click();
+        
+        alert("Download rekap berhasil!");
+        
+    } catch(error) {
+        console.error("🔥 ERROR REKAP:", error);
+        alert("Gagal download rekap: " + error.message);
+    }
     
-    // ========== CEK DATA SISWA (DEBUG) ==========
-    window.cekDataSiswa = async function() {
-        if(!isLogin) {
-            document.getElementById('modalLogin').classList.remove('hidden');
-            return;
+    document.getElementById('loading').classList.add('hidden');
+};
+
+// ========== FUNGSI CEK DATA SISWA (DEBUG) - DIPERBAIKI ==========
+window.cekDataSiswa = async function() {
+    try {
+        const snap = await db.ref('siswa').once('value');
+        const data = snap.val();
+        
+        console.log("📦 SEMUA DATA SISWA:", data);
+        
+        // Tampilkan dalam format yang lebih mudah dibaca
+        let pesan = "DATA SISWA:\n\n";
+        
+        if(!data) {
+            pesan = "TIDAK ADA DATA SISWA!";
+        } else {
+            for(let kelas in data) {
+                pesan += `📚 ${kelas}:\n`;
+                for(let absen in data[kelas]) {
+                    const siswa = data[kelas][absen];
+                    pesan += `   ${absen}. ${siswa.nama || '?'} | ${siswa.jk || '?'} | ${siswa.agama || '?'} | Hadir: ${siswa.totalHadir || 0}\n`;
+                }
+                pesan += "\n";
+            }
         }
         
-        try {
-            const snap = await db.ref('siswa').once('value');
-            const data = snap.val();
-            
-            console.log("📦 SEMUA DATA SISWA:", data);
-            
-            // Tampilkan dalam format yang lebih mudah dibaca
-            let pesan = "DATA SISWA:\n\n";
-            
-            if(!data) {
-                pesan = "TIDAK ADA DATA SISWA!";
-            } else {
-                for(let kelas in data) {
-                    pesan += `📚 ${kelas}:\n`;
-                    for(let absen in data[kelas]) {
-                        const siswa = data[kelas][absen];
-                        pesan += `   ${absen}. ${siswa.nama || '?'} | ${siswa.jk || '?'} | ${siswa.agama || '?'} | Hadir: ${siswa.totalHadir || 0}\n`;
-                    }
-                    pesan += "\n";
-                }
-            }
-            
-            alert(pesan);
-            
-        } catch(e) {
-            console.error("Error cek data:", e);
-            alert("Gagal cek data: " + e.message);
-        }
-    };
+        alert(pesan);
+        
+    } catch(e) {
+        console.error("Error cek data:", e);
+        alert("Gagal cek data: " + e.message);
+    }
+};
+                
 </script>
 
-<!-- Library QR Code -->
+<!-- Library -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
-
-<!-- Catatan Kaki -->
-<div class="text-center text-[6px] text-gray-800 mt-10">
-    v2.0 - dengan fitur upload gambar (wajib login)
-</div>
-
 </body>
 </html>
