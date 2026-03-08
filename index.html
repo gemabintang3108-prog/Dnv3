@@ -24,6 +24,7 @@
         #reader { border: none !important; border-radius: 1.5rem; overflow: hidden; background: #000; }
         .log-item { animation: slideIn 0.3s ease-out forwards; }
         @keyframes slideIn { from { transform: translateY(10px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+        .refresh-pulse { transition: background-color 0.3s; }
     </style>
 </head>
 <body class="pb-10">
@@ -111,8 +112,23 @@
             </div>
 
             <div class="glass p-6 rounded-[2.5rem]">
-                <button onclick="downloadZipLaporan()" id="btn-zip-laporan" class="w-full py-5 bg-green-700 text-white font-black rounded-2xl text-[10px] uppercase tracking-widest shadow-xl">Unduh Laporan Harian (.ZIP)</button>
-                <div id="log-list" class="mt-8 space-y-3 max-h-[400px] overflow-y-auto pr-2"></div>
+                <!-- Tombol Refresh Manual + Download ZIP -->
+                <div class="flex gap-2 mb-4">
+                    <button onclick="manualRefresh()" class="flex-1 py-4 bg-blue-600 text-white font-black rounded-2xl text-[8px] uppercase tracking-widest hover:bg-blue-700 transition-all">
+                        🔄 REFRESH DATA
+                    </button>
+                    <button onclick="downloadZipLaporan()" id="btn-zip-laporan" class="flex-1 py-4 bg-green-700 text-white font-black rounded-2xl text-[8px] uppercase tracking-widest hover:bg-green-800 transition-all">
+                        📦 UNDUH ZIP
+                    </button>
+                </div>
+                
+                <!-- Status Sync -->
+                <div id="sync-status" class="text-[8px] text-cyan-500 mb-2 text-center uppercase tracking-widest font-bold">
+                    🟢 Live Sync (30 detik)
+                </div>
+                
+                <!-- Log List -->
+                <div id="log-list" class="mt-2 space-y-3 max-h-[400px] overflow-y-auto pr-2 refresh-pulse"></div>
             </div>
         </section>
     </main>
@@ -120,7 +136,6 @@
     <div id="hidden-qr-engine" style="position: absolute; left: -9999px; top: 0;"></div>
 
     <script>
-        // ... (Kode JavaScript di bawah tetap sama logikanya, hanya pesan teks yang diubah) ...
         const GURU_PASS = "bintang31"; 
         const GITHUB_TOKEN = "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"; 
         const GIST_ID_UTAMA = "8f37fc18c4fb9bd3593486f97919ca9f"; 
@@ -130,34 +145,160 @@
         let localDB = {}; 
         let currentMode = 'Islam';
         let html5QrScanner;
+        let refreshInterval;
+        let lastUpdateCount = 0;
 
         async function init() {
-            if(localStorage.getItem('guruLogin') === 'true') { isGuruLoggedIn = true; updateUIAfterLogin(); }
+            // Cek login status
+            if(localStorage.getItem('guruLogin') === 'true') { 
+                isGuruLoggedIn = true; 
+                updateUIAfterLogin(); 
+            }
+            
+            // Isi dropdown kelas
             const adminSelect = document.getElementById('select-kelas-admin');
-            DAFTAR_KELAS.forEach(cls => { adminSelect.innerHTML += `<option value="${cls}">${cls}</option>`; });
+            DAFTAR_KELAS.forEach(cls => { 
+                adminSelect.innerHTML += `<option value="${cls}">${cls}</option>`; 
+            });
+            
+            // Load data awal
             await loadAllData();
             document.getElementById('loading-overlay').classList.add('hidden');
+            
+            // Start auto refresh jika sudah login
+            if (isGuruLoggedIn) {
+                startAutoRefresh();
+            }
         }
 
         async function loadAllData() {
             try {
                 const res = await fetch(`https://api.github.com/gists/${GIST_ID_UTAMA}?t=${new Date().getTime()}`);
                 const data = await res.json();
+                
+                let totalSiswa = 0;
                 DAFTAR_KELAS.forEach(cls => {
                     const fileName = `${cls}.json`;
-                    localDB[cls] = data.files[fileName] ? JSON.parse(data.files[fileName].content) : [];
+                    if (data.files[fileName]) {
+                        localDB[cls] = JSON.parse(data.files[fileName].content);
+                        totalSiswa += localDB[cls].length;
+                    } else {
+                        localDB[cls] = [];
+                    }
                 });
+                
+                // Hitung total presensi hari ini
+                const today = new Date().toLocaleDateString('id-ID');
+                let todayPresensi = 0;
+                DAFTAR_KELAS.forEach(cls => {
+                    if (localDB[cls]) {
+                        todayPresensi += localDB[cls].filter(d => d.Tanggal === today).length;
+                    }
+                });
+                
+                // Update status sync
+                document.getElementById('sync-status').innerHTML = `🟢 Terupdate • ${totalSiswa} Siswa • ${todayPresensi} Hadir Hari Ini`;
+                
                 renderLog();
-            } catch (e) { console.error("Database Error"); }
+                return true;
+            } catch (e) { 
+                console.error("Database Error", e);
+                // Initialize empty arrays for all classes if error
+                DAFTAR_KELAS.forEach(cls => {
+                    if (!localDB[cls]) localDB[cls] = [];
+                });
+                document.getElementById('sync-status').innerHTML = '🔴 Gagal Sinkronisasi';
+                return false;
+            }
         }
 
         async function syncToGithub(kelas) {
-            const fileName = `${kelas}.json`;
-            await fetch(`https://api.github.com/gists/${GIST_ID_UTAMA}`, {
-                method: "PATCH",
-                headers: { "Authorization": `token ${GITHUB_TOKEN}`, "Content-Type": "application/json" },
-                body: JSON.stringify({ files: { [fileName]: { content: JSON.stringify(localDB[kelas], null, 2) } } })
-            });
+            try {
+                const fileName = `${kelas}.json`;
+                
+                // First get the current gist to get the latest version
+                const getRes = await fetch(`https://api.github.com/gists/${GIST_ID_UTAMA}`);
+                const gistData = await getRes.json();
+                
+                // Update the file
+                const res = await fetch(`https://api.github.com/gists/${GIST_ID_UTAMA}`, {
+                    method: "PATCH",
+                    headers: { 
+                        "Authorization": `token ${GITHUB_TOKEN}`, 
+                        "Content-Type": "application/json" 
+                    },
+                    body: JSON.stringify({ 
+                        files: { 
+                            [fileName]: { 
+                                content: JSON.stringify(localDB[kelas], null, 2) 
+                            } 
+                        }
+                    })
+                });
+                
+                if (!res.ok) {
+                    console.error("Sync failed:", await res.text());
+                    return false;
+                }
+                
+                // Trigger refresh manual untuk update tampilan
+                setTimeout(() => {
+                    if (isGuruLoggedIn) {
+                        loadAllData(); // Refresh data setelah sync
+                    }
+                }, 500);
+                
+                return true;
+            } catch (e) {
+                console.error("Sync error:", e);
+                return false;
+            }
+        }
+
+        function startAutoRefresh() {
+            if (refreshInterval) clearInterval(refreshInterval);
+            
+            // Refresh setiap 30 detik (aman dari limit API)
+            refreshInterval = setInterval(async () => {
+                if (isGuruLoggedIn && document.getElementById('tab-scan').classList.contains('hidden') === false) {
+                    await loadAllData();
+                    
+                    // Kasih efek kedip biar tau ada update
+                    document.getElementById('log-list').classList.add('bg-cyan-500/5');
+                    setTimeout(() => {
+                        document.getElementById('log-list').classList.remove('bg-cyan-500/5');
+                    }, 200);
+                }
+            }, 30000); // 30 detik
+        }
+
+        async function manualRefresh() {
+            const btn = event.target;
+            const originalText = btn.innerText;
+            btn.innerText = "⏳ MEMUAT...";
+            btn.disabled = true;
+            document.getElementById('sync-status').innerHTML = '🟡 Menyinkronkan...';
+            
+            const success = await loadAllData();
+            
+            if (success) {
+                document.getElementById('sync-status').innerHTML = '✅ Sinkronasi Berhasil';
+                setTimeout(() => {
+                    const today = new Date().toLocaleDateString('id-ID');
+                    let todayPresensi = 0;
+                    DAFTAR_KELAS.forEach(cls => {
+                        if (localDB[cls]) {
+                            todayPresensi += localDB[cls].filter(d => d.Tanggal === today).length;
+                        }
+                    });
+                    document.getElementById('sync-status').innerHTML = `🟢 Live Sync • ${todayPresensi} Hadir Hari Ini`;
+                }, 2000);
+            } else {
+                document.getElementById('sync-status').innerHTML = '🔴 Gagal Sinkronisasi';
+            }
+            
+            btn.innerText = originalText;
+            btn.disabled = false;
         }
 
         function setMode(mode) {
@@ -172,129 +313,339 @@
             const a = document.getElementById('input-nis').value.trim();
             const ag = document.getElementById('select-agama').value;
             const jk = document.getElementById('select-jk').value;
+            
             if(!n || !a) return alert("Mohon lengkapi seluruh data.");
+            
+            // Initialize array if not exists
+            if (!localDB[k]) localDB[k] = [];
+            
             if (localDB[k].some(d => d.Absen === a)) return alert("Peserta didik sudah terdaftar.");
             
-            localDB[k].push({ Nama: n, Kelas: k, Absen: a, JK: jk, Agama: ag, Jam: "-", Tanggal: "-", Status: "-", KehadiranKe: 0 });
+            localDB[k].push({ 
+                Nama: n, 
+                Kelas: k, 
+                Absen: a, 
+                JK: jk, 
+                Agama: ag, 
+                Jam: "-", 
+                Tanggal: "-", 
+                Status: "-", 
+                KehadiranKe: 0 
+            });
+            
             await syncToGithub(k);
             
             const area = document.getElementById('qr-result-area');
             area.innerHTML = `<div id="qrd" class="p-8 bg-white rounded-[2.5rem] flex flex-col items-center mt-6">
-                <div id="qri" class="mb-4"></div><b class="text-black uppercase text-xl">${n}</b><p class="text-gray-500 font-bold uppercase text-[9px]">${k} • ${jk} • ${ag} • ABSEN ${a}</p>
-            </div><button onclick="downloadQR('${n}')" class="mt-4 bg-cyan-600 p-4 w-full max-w-[280px] rounded-2xl font-black italic text-white text-xs uppercase">Simpan Kartu QR</button>`;
-            new QRCode(document.getElementById("qri"), { text: `${n}|${k}|${a}|${jk}|${ag}`, width: 200, height: 200, correctLevel : QRCode.CorrectLevel.H });
+                <div id="qri" class="mb-4"></div>
+                <b class="text-black uppercase text-xl">${n}</b>
+                <p class="text-gray-500 font-bold uppercase text-[9px]">${k} • ${jk} • ${ag} • ABSEN ${a}</p>
+            </div>
+            <button onclick="downloadQR('${n}')" class="mt-4 bg-cyan-600 p-4 w-full max-w-[280px] rounded-2xl font-black italic text-white text-xs uppercase">Simpan Kartu QR</button>`;
+            
+            new QRCode(document.getElementById("qri"), { 
+                text: `${n}|${k}|${a}|${jk}|${ag}`, 
+                width: 200, 
+                height: 200, 
+                correctLevel: QRCode.CorrectLevel.H 
+            });
         }
 
         async function prosesAbsen(text) {
-            const [nama, kelas, absen, jk, agama] = text.split('|');
-            const now = new Date();
-            const today = now.toLocaleDateString('id-ID');
-            
-            if (agama !== currentMode) return showFeedback("❌", nama, `KATEGORI TIDAK SESUAI: ${currentMode.toUpperCase()}`, "bg-red-700");
-            if (localDB[kelas].some(d => d.Absen === absen && d.Tanggal === today)) return showFeedback("⚠️", nama, "PRESENSI SUDAH TERCATAT HARI INI", "bg-yellow-600");
-
-            let idx = localDB[kelas].findIndex(d => d.Absen === absen);
-            if (idx !== -1) {
-                const tipeStatus = currentMode === 'Islam' ? 'DZUHUR' : 'IBADAH';
-                localDB[kelas][idx].Jam = now.toLocaleTimeString('id-ID');
-                localDB[kelas][idx].Tanggal = today;
-                localDB[kelas][idx].Status = tipeStatus;
-                localDB[kelas][idx].KehadiranKe = (parseInt(localDB[kelas][idx].KehadiranKe) || 0) + 1;
+            try {
+                const [nama, kelas, absen, jk, agama] = text.split('|');
+                const now = new Date();
+                const today = now.toLocaleDateString('id-ID');
+                const currentTime = now.toLocaleTimeString('id-ID');
                 
-                showFeedback("✅", nama, `PRESENSI ${tipeStatus} BERHASIL`, "bg-green-600");
-                renderLog();
-                await syncToGithub(kelas);
+                console.log("Scanning:", {nama, kelas, absen, agama, currentMode});
+                
+                // Validate agama matches current mode
+                if (agama !== currentMode) {
+                    showFeedback("❌", nama, `KATEGORI TIDAK SESUAI`, "bg-red-700");
+                    return;
+                }
+                
+                // Initialize kelas array if not exists
+                if (!localDB[kelas]) {
+                    localDB[kelas] = [];
+                }
+                
+                // Check if already present today
+                const todayData = localDB[kelas].filter(d => 
+                    d.Absen === absen && d.Tanggal === today
+                );
+                
+                if (todayData.length > 0) {
+                    showFeedback("⚠️", nama, "PRESENSI SUDAH TERCATAT HARI INI", "bg-yellow-600");
+                    return;
+                }
+
+                // Find or create student record
+                let idx = localDB[kelas].findIndex(d => d.Absen === absen);
+                
+                if (idx !== -1) {
+                    // Update existing record
+                    const tipeStatus = currentMode === 'Islam' ? 'DZUHUR' : 'IBADAH';
+                    localDB[kelas][idx].Jam = currentTime;
+                    localDB[kelas][idx].Tanggal = today;
+                    localDB[kelas][idx].Status = tipeStatus;
+                    localDB[kelas][idx].KehadiranKe = (parseInt(localDB[kelas][idx].KehadiranKe) || 0) + 1;
+                    
+                    console.log("Updated record:", localDB[kelas][idx]);
+                    
+                    showFeedback("✅", nama, `PRESENSI ${tipeStatus} BERHASIL`, "bg-green-600");
+                    renderLog();
+                    await syncToGithub(kelas);
+                } else {
+                    // Student not found in database
+                    showFeedback("❌", nama, "SISWA TIDAK TERDAFTAR", "bg-red-700");
+                }
+            } catch (e) {
+                console.error("Error in prosesAbsen:", e);
+                showFeedback("❌", "ERROR", "QR TIDAK VALID", "bg-red-700");
             }
         }
 
         async function downloadZipLaporan() {
             const btn = document.getElementById('btn-zip-laporan');
-            btn.innerText = "SEDANG MEMPROSES..."; btn.disabled = true;
+            btn.innerText = "⏳ MEMPROSES..."; 
+            btn.disabled = true;
+            
             const zip = new JSZip();
             const today = new Date().toLocaleDateString('id-ID');
+            
             for (const cls of DAFTAR_KELAS) {
-                if (localDB[cls].length > 0) {
+                if (localDB[cls] && localDB[cls].length > 0) {
                     let sorted = [...localDB[cls]].sort((a,b) => parseInt(a.Absen)-parseInt(b.Absen));
+                    
                     const dataExcel = sorted.map(s => {
                         const isHadir = s.Tanggal === today;
                         return {
-                            "NO ABSEN": s.Absen, "NAMA LENGKAP": s.Nama.toUpperCase(), "L/P": s.JK || "-", "AGAMA": s.Agama || "Islam",
-                            "KETERANGAN": isHadir ? `✓ ${s.Status}` : "A (TANPA KETERANGAN)",
-                            "WAKTU": isHadir ? s.Jam : "-", "TOTAL HADIR": s.KehadiranKe || 0
+                            "NO ABSEN": s.Absen || "-",
+                            "NAMA LENGKAP": s.Nama ? s.Nama.toUpperCase() : "-",
+                            "L/P": s.JK || "-",
+                            "AGAMA": s.Agama || "-",
+                            "KETERANGAN": isHadir ? `✓ ${s.Status || 'HADIR'}` : "-",
+                            "WAKTU": isHadir ? (s.Jam || "-") : "-",
+                            "TOTAL HADIR": s.KehadiranKe || 0
                         };
                     });
-                    const ws = XLSX.utils.json_to_sheet(dataExcel);
-                    const wb = XLSX.utils.book_new();
-                    XLSX.utils.book_append_sheet(wb, ws, "LAPORAN");
-                    zip.file(`LAPORAN_${cls}_${today.replace(/\//g, '-')}.xlsx`, XLSX.write(wb, {bookType:'xlsx', type:'array'}));
+                    
+                    if (dataExcel.length > 0) {
+                        const ws = XLSX.utils.json_to_sheet(dataExcel);
+                        const wb = XLSX.utils.book_new();
+                        XLSX.utils.book_append_sheet(wb, ws, "LAPORAN");
+                        const excelData = XLSX.write(wb, {bookType:'xlsx', type:'array'});
+                        zip.file(`LAPORAN_${cls}_${today.replace(/\//g, '-')}.xlsx`, excelData);
+                    }
                 }
             }
+            
             const content = await zip.generateAsync({type:"blob"});
-            const l = document.createElement('a'); l.href = URL.createObjectURL(content);
-            l.download = `REKAP_PRESENSI_${today.replace(/\//g, '-')}.zip`; l.click();
-            btn.innerText = "Unduh Laporan Harian (.ZIP)"; btn.disabled = false;
+            const link = document.createElement('a'); 
+            link.href = URL.createObjectURL(content);
+            link.download = `REKAP_PRESENSI_${today.replace(/\//g, '-')}.zip`; 
+            link.click();
+            
+            btn.innerText = "📦 UNDUH ZIP"; 
+            btn.disabled = false;
         }
 
         function renderLog() {
             const list = document.getElementById('log-list');
             const today = new Date().toLocaleDateString('id-ID');
             let allLogs = [];
-            DAFTAR_KELAS.forEach(cls => { localDB[cls].filter(d => d.Tanggal === today).forEach(d => allLogs.push(d)); });
-            allLogs.sort((a,b) => b.Jam.localeCompare(a.Jam));
-            list.innerHTML = allLogs.length === 0 ? `<p class="text-center text-gray-600 py-10 italic text-[10px] uppercase">Belum ada aktivitas presensi hari ini.</p>` :
-                allLogs.slice(0, 30).map(d => `<div class="log-item glass p-4 rounded-2xl flex justify-between items-center border-l-4 border-cyan-500 mb-2">
-                    <div><b class="text-white text-xs uppercase">${d.Nama}</b><div class="text-[8px] text-gray-500">${d.JK} • ${d.Agama} • ${d.Status} • ${d.Jam}</div></div>
-                    <div class="bg-gray-900 px-3 py-1 rounded-lg text-cyan-400 font-black text-[10px]">#${d.KehadiranKe}</div></div>`).join('');
+            
+            DAFTAR_KELAS.forEach(cls => { 
+                if (localDB[cls]) {
+                    localDB[cls].filter(d => d.Tanggal === today).forEach(d => allLogs.push(d));
+                }
+            });
+            
+            allLogs.sort((a,b) => {
+                if (!a.Jam || a.Jam === "-") return 1;
+                if (!b.Jam || b.Jam === "-") return -1;
+                return b.Jam.localeCompare(a.Jam);
+            });
+            
+            list.innerHTML = allLogs.length === 0 ? 
+                `<p class="text-center text-gray-600 py-10 italic text-[10px] uppercase">Belum ada aktivitas presensi hari ini.</p>` :
+                allLogs.slice(0, 50).map(d => 
+                    `<div class="log-item glass p-4 rounded-2xl flex justify-between items-center border-l-4 border-cyan-500 mb-2">
+                        <div>
+                            <b class="text-white text-xs uppercase">${d.Nama || '-'}</b>
+                            <div class="text-[8px] text-gray-500">${d.Kelas || '-'} • ${d.JK || '-'} • ${d.Agama || '-'} • ${d.Status || '-'} • ${d.Jam || '-'}</div>
+                        </div>
+                        <div class="bg-gray-900 px-3 py-1 rounded-lg text-cyan-400 font-black text-[10px]">#${d.KehadiranKe || 0}</div>
+                    </div>`).join('');
         }
 
         async function prosesBulkQR() {
             const input = document.getElementById('bulk-input').value.trim();
             const k = document.getElementById('select-kelas-admin').value;
             if(!input) return;
+            
             const zip = new JSZip();
             document.getElementById('loading-overlay').classList.remove('hidden');
+            
             const lines = input.split('\n');
             for (let i = 0; i < lines.length; i++) {
                 const p = lines[i].trim().split(' ');
-                const agama = p.pop(); const jk = p.pop(); const absen = p.pop(); const nama = p.join(' ');
+                const agama = p.pop(); 
+                const jk = p.pop(); 
+                const absen = p.pop(); 
+                const nama = p.join(' ');
+                
                 if(!nama || isNaN(absen)) continue;
+                
+                if (!localDB[k]) localDB[k] = [];
+                
                 if (!localDB[k].some(d => d.Absen === absen)) {
-                    localDB[k].push({ Nama: nama, Kelas: k, Absen: absen, JK: jk, Agama: agama, Jam: "-", Tanggal: "-", Status: "-", KehadiranKe: 0 });
+                    localDB[k].push({ 
+                        Nama: nama, 
+                        Kelas: k, 
+                        Absen: absen, 
+                        JK: jk, 
+                        Agama: agama, 
+                        Jam: "-", 
+                        Tanggal: "-", 
+                        Status: "-", 
+                        KehadiranKe: 0 
+                    });
                 }
+                
                 const engine = document.getElementById('hidden-qr-engine');
-                engine.innerHTML = `<div id="tmp-card" style="padding:40px; background:white; width:350px; text-align:center;"><div id="tmp-img" style="display:flex; justify-content:center;"></div><div style="margin-top:20px;"><b style="color:black; font-size:24px; text-transform:uppercase;">${nama}</b><p style="color:#666; font-weight:bold; font-size:12px;">${k} - ${jk} - ${agama} - ABSEN ${absen}</p></div></div>`;
-                new QRCode(document.getElementById("tmp-img"), { text: `${nama}|${k}|${absen}|${jk}|${agama}`, width: 250, height: 250 });
+                engine.innerHTML = `<div id="tmp-card" style="padding:40px; background:white; width:350px; text-align:center;">
+                    <div id="tmp-img" style="display:flex; justify-content:center;"></div>
+                    <div style="margin-top:20px;">
+                        <b style="color:black; font-size:24px; text-transform:uppercase;">${nama}</b>
+                        <p style="color:#666; font-weight:bold; font-size:12px;">${k} - ${jk} - ${agama} - ABSEN ${absen}</p>
+                    </div>
+                </div>`;
+                
+                new QRCode(document.getElementById("tmp-img"), { 
+                    text: `${nama}|${k}|${absen}|${jk}|${agama}`, 
+                    width: 250, 
+                    height: 250 
+                });
+                
                 await new Promise(r => setTimeout(r, 200));
                 const canvas = await html2canvas(document.getElementById('tmp-card'), {scale: 2});
-                zip.file(`${k}/QR_${absen}_${nama}.png`, canvas.toDataURL("image/png").split(',')[1], {base64: true});
+                const imgData = canvas.toDataURL("image/png").split(',')[1];
+                zip.file(`QR_${absen}_${nama}.png`, imgData, {base64: true});
             }
+            
             await syncToGithub(k);
             const content = await zip.generateAsync({type:"blob"});
-            const l = document.createElement('a'); l.href = URL.createObjectURL(content); l.download = `QR_BERKAS_${k}.zip`; l.click();
+            const link = document.createElement('a'); 
+            link.href = URL.createObjectURL(content); 
+            link.download = `QR_BERKAS_${k}.zip`; 
+            link.click();
+            
             document.getElementById('loading-overlay').classList.add('hidden');
         }
 
-        function switchTab(t) { if (t === 'scan' && !isGuruLoggedIn) { document.getElementById('modal-login').classList.remove('hidden'); document.getElementById('modal-login').classList.add('flex'); return; } document.getElementById('tab-admin').classList.toggle('hidden', t !== 'admin'); document.getElementById('tab-scan').classList.toggle('hidden', t !== 'scan'); document.getElementById('btn-admin').classList.toggle('active-tab', t === 'admin'); document.getElementById('btn-scan').classList.toggle('active-tab', t === 'scan'); if(t !== 'scan') stopScanner(); }
-        function prosesLogin() { if (document.getElementById('login-pass').value === GURU_PASS) { isGuruLoggedIn = true; localStorage.setItem('guruLogin', 'true'); tutupLogin(); updateUIAfterLogin(); switchTab('scan'); } else alert("Kata sandi tidak valid."); }
-        function tutupLogin() { document.getElementById('modal-login').classList.add('hidden'); document.getElementById('modal-login').classList.remove('flex'); }
-        function updateUIAfterLogin() { document.getElementById('bulk-area-guru').classList.remove('hidden'); document.getElementById('btn-logout').classList.remove('hidden'); }
-        function prosesLogout() { isGuruLoggedIn = false; localStorage.removeItem('guruLogin'); window.location.reload(); }
-        function downloadQR(n) { html2canvas(document.getElementById('qrd'), {scale: 3}).then(c => { let l=document.createElement('a'); l.href=c.toDataURL(); l.download=`QR_${n}.png`; l.click(); }); }
-        
+        function switchTab(t) { 
+            if (t === 'scan' && !isGuruLoggedIn) { 
+                document.getElementById('modal-login').classList.remove('hidden'); 
+                document.getElementById('modal-login').classList.add('flex'); 
+                return; 
+            } 
+            document.getElementById('tab-admin').classList.toggle('hidden', t !== 'admin'); 
+            document.getElementById('tab-scan').classList.toggle('hidden', t !== 'scan'); 
+            document.getElementById('btn-admin').classList.toggle('active-tab', t === 'admin'); 
+            document.getElementById('btn-scan').classList.toggle('active-tab', t === 'scan'); 
+            if(t !== 'scan') stopScanner(); 
+        }
+
+        function prosesLogin() { 
+            if (document.getElementById('login-pass').value === GURU_PASS) { 
+                isGuruLoggedIn = true; 
+                localStorage.setItem('guruLogin', 'true'); 
+                tutupLogin(); 
+                updateUIAfterLogin(); 
+                switchTab('scan');
+                startAutoRefresh(); // Mulai auto refresh setelah login
+                manualRefresh(); // Langsung refresh data
+            } else alert("Kata sandi tidak valid."); 
+        }
+
+        function tutupLogin() { 
+            document.getElementById('modal-login').classList.add('hidden'); 
+            document.getElementById('modal-login').classList.remove('flex'); 
+        }
+
+        function updateUIAfterLogin() { 
+            document.getElementById('bulk-area-guru').classList.remove('hidden'); 
+            document.getElementById('btn-logout').classList.remove('hidden'); 
+        }
+
+        function prosesLogout() { 
+            isGuruLoggedIn = false; 
+            localStorage.removeItem('guruLogin'); 
+            if (refreshInterval) clearInterval(refreshInterval);
+            window.location.reload(); 
+        }
+
+        function downloadQR(n) { 
+            html2canvas(document.getElementById('qrd'), {scale: 3}).then(c => { 
+                let link = document.createElement('a'); 
+                link.href = c.toDataURL(); 
+                link.download = `QR_${n}.png`; 
+                link.click(); 
+            }); 
+        }
+
         function startScanner() {
             document.getElementById('btn-start-cam').classList.add('hidden');
             document.getElementById('btn-stop-cam').classList.remove('hidden');
-            if (html5QrScanner) { html5QrScanner.start({ facingMode: "environment" }, { fps: 20, qrbox: 250 }, (text) => prosesAbsen(text));
-            } else { html5QrScanner = new Html5Qrcode("reader"); startScanner(); }
+            
+            const reader = document.getElementById('reader');
+            reader.innerHTML = ''; // Clear previous scanner
+            
+            html5QrScanner = new Html5Qrcode("reader");
+            
+            const qrbox = { width: 250, height: 250 };
+            
+            html5QrScanner.start(
+                { facingMode: "environment" }, 
+                { 
+                    fps: 10, 
+                    qrbox: qrbox,
+                    aspectRatio: 1.0
+                }, 
+                (decodedText) => {
+                    // Success callback
+                    console.log("QR Scanned:", decodedText);
+                    prosesAbsen(decodedText);
+                },
+                (errorMessage) => {
+                    // Error callback - ignore scanning errors
+                    // console.log("Scan error:", errorMessage);
+                }
+            ).catch((err) => {
+                console.error("Failed to start scanner:", err);
+                alert("Gagal mengakses kamera. Pastikan izin kamera diberikan.");
+                stopScanner();
+            });
         }
-        async function stopScanner() { if (html5QrScanner && html5QrScanner.isScanning) await html5QrScanner.stop(); document.getElementById('btn-start-cam').classList.remove('hidden'); document.getElementById('btn-stop-cam').classList.add('hidden'); }
 
-        function showFeedback(i, n, f, b) {
+        async function stopScanner() { 
+            if (html5QrScanner && html5QrScanner.isScanning) {
+                await html5QrScanner.stop();
+                html5QrScanner.clear();
+            }
+            document.getElementById('btn-start-cam').classList.remove('hidden'); 
+            document.getElementById('btn-stop-cam').classList.add('hidden'); 
+        }
+
+        function showFeedback(icon, name, message, bgClass) {
             const fb = document.getElementById('scan-feedback');
-            document.getElementById('check-icons').innerText = i;
-            document.getElementById('scanned-name').innerText = n;
-            document.getElementById('scanned-info').innerText = f;
-            document.getElementById('feedback-content').className = `text-center text-white p-10 rounded-[3rem] shadow-2xl ${b} border border-white/20`;
+            document.getElementById('check-icons').innerText = icon;
+            document.getElementById('scanned-name').innerText = name || '-';
+            document.getElementById('scanned-info').innerText = message;
+            document.getElementById('feedback-content').className = `text-center text-white p-10 rounded-[3rem] shadow-2xl ${bgClass} border border-white/20`;
             fb.classList.remove('hidden');
             setTimeout(() => fb.classList.add('hidden'), 2000);
         }
