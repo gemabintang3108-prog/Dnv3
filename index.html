@@ -1,106 +1,126 @@
 <!DOCTYPE html>
-<html>
+<html lang="id">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>DZUHUR 12 - FINAL</title>
+    <title>DZUHUR 12 - PRESENSI PERMANEN</title>
+    
+    <!-- FIREBASE -->
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
-    <script src="https://unpkg.com/html5-qrcode"></script>
+    
     <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/html5-qrcode"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
 </head>
-<body class="bg-gray-900 text-white p-2">
+<body class="bg-gray-900 text-white p-4">
 
 <script>
-// CONFIG FIREBASE - UDAH BENER
-firebase.initializeApp({
-    apiKey: "AIzaSyBQwKb5BgWywX3bx3gKjNJsugJ1sUBr4X4",
-    authDomain: "absen-dzuhur.firebaseapp.com",
-    databaseURL: "https://absen-dzuhur-default-rtdb.asia-southeast1.firebasedatabase.app",
-    projectId: "absen-dzuhur",
-    storageBucket: "absen-dzuhur.firebasestorage.app",
-    messagingSenderId: "254784143918",
-    appId: "1:254784143918:web:5d9769d58fced6a0b015bf"
-});
-
-const db = firebase.database();
-let scanner = null;
-let isLogin = false;
-
-// CEK LOGIN
-if(localStorage.getItem('login') === 'true') {
-    isLogin = true;
-    document.getElementById('loginModal').classList.add('hidden');
-}
-
-// LOGIN
-window.login = function() {
-    if(document.getElementById('pass').value === "bintang31") {
+    // ========== FIREBASE CONFIG ==========
+    const firebaseConfig = {
+        apiKey: "AIzaSyBQwKb5BgWywX3bx3gKjNJsugJ1sUBr4X4",
+        authDomain: "absen-dzuhur.firebaseapp.com",
+        databaseURL: "https://absen-dzuhur-default-rtdb.asia-southeast1.firebasedatabase.app",
+        projectId: "absen-dzuhur",
+        storageBucket: "absen-dzuhur.firebasestorage.app",
+        messagingSenderId: "254784143918",
+        appId: "1:254784143918:web:5d9769d58fced6a0b015bf"
+    };
+    
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.database();
+    
+    // ========== GLOBAL ==========
+    let scanner = null;
+    let mode = 'Islam';
+    let isLogin = false;
+    
+    // Cek login
+    if(localStorage.getItem('login') === 'true') {
         isLogin = true;
-        localStorage.setItem('login', 'true');
-        document.getElementById('loginModal').classList.add('hidden');
-        startKamera();
-    } else {
-        alert("Password salah!");
-    }
-};
-
-// LOGOUT
-window.logout = function() {
-    isLogin = false;
-    localStorage.removeItem('login');
-    location.reload();
-};
-
-// KAMERA
-window.startKamera = function() {
-    if(!isLogin) {
-        document.getElementById('loginModal').classList.remove('hidden');
-        return;
+        document.getElementById('loginScreen').classList.add('hidden');
+        document.getElementById('mainScreen').classList.remove('hidden');
+        loadData();
     }
     
-    document.getElementById('btnStart').classList.add('hidden');
-    document.getElementById('btnStop').classList.remove('hidden');
-    document.getElementById('status').innerText = "🔵 Scanning...";
+    // ========== LOGIN ==========
+    window.login = function() {
+        if(document.getElementById('pass').value === 'bintang31') {
+            isLogin = true;
+            localStorage.setItem('login', 'true');
+            document.getElementById('loginScreen').classList.add('hidden');
+            document.getElementById('mainScreen').classList.remove('hidden');
+            loadData();
+        } else {
+            alert('Password salah!');
+        }
+    };
     
-    scanner = new Html5Qrcode("reader");
-    scanner.start(
-        { facingMode: "environment" },
-        { fps: 10, qrbox: 250 },
-        (text) => {
-            scanner.pause();
-            prosesQR(text);
-        },
-        () => {}
-    );
-};
-
-window.stopKamera = function() {
-    if(scanner?.isScanning) scanner.stop();
-    document.getElementById('btnStart').classList.remove('hidden');
-    document.getElementById('btnStop').classList.add('hidden');
-    document.getElementById('status').innerText = "⏸️ Scanner paused";
-};
-
-// ========== PROSES QR - VERSI SUPER FLEKSIBEL ==========
-async function prosesQR(text) {
-    try {
-        console.log("📄 RAW QR:", text);
-        document.getElementById('status').innerText = "⏳ Processing...";
+    window.logout = function() {
+        isLogin = false;
+        localStorage.removeItem('login');
+        location.reload();
+    };
+    
+    // ========== LOAD DATA SISWA & PRESENSI ==========
+    function loadData() {
+        // Load semua data siswa
+        db.ref('siswa').on('value', (snap) => {
+            const data = snap.val() || {};
+            console.log("Data siswa:", data);
+        });
         
-        // Bersihin teks
-        let clean = text.replace(/[–—|\[\]]/g, '-').trim();
-        clean = clean.replace(/\s+/g, ' ').trim();
+        // Listen presensi hari ini
+        const today = new Date().toLocaleDateString('id-ID').replace(/\//g, '-');
+        db.ref('presensi/' + today).on('value', (snap) => {
+            const data = snap.val() || {};
+            updateLog(data);
+            document.getElementById('count').innerText = Object.keys(data).length + ' hadir';
+        });
+    }
+    
+    // ========== MODE ==========
+    window.setMode = function(m) {
+        mode = m;
+        document.getElementById('modeIslam').className = `flex-1 py-4 rounded-xl font-bold ${m==='Islam' ? 'bg-green-600' : 'bg-gray-700'}`;
+        document.getElementById('modeKristen').className = `flex-1 py-4 rounded-xl font-bold ${m==='Kristen' ? 'bg-blue-600' : 'bg-gray-700'}`;
+    };
+    
+    // ========== SCANNER ==========
+    window.startScan = function() {
+        document.getElementById('btnStart').classList.add('hidden');
+        document.getElementById('btnStop').classList.remove('hidden');
         
-        console.log("🧹 CLEAN:", clean);
-        
-        // ========== COBA SEMUA FORMAT ==========
-        let nama = "", kelas = "", absen = "", jk = "L", agama = "Islam";
-        
-        // FORMAT 1: Ada baris baru (dari foto)
-        if(text.includes('\n')) {
-            const lines = text.split('\n').filter(l => l.trim());
-            if(lines.length >= 2) {
+        scanner = new Html5Qrcode("reader");
+        scanner.start(
+            { facingMode: "environment" },
+            { fps: 10, qrbox: 250 },
+            (text) => {
+                scanner.pause();
+                prosesQR(text);
+            },
+            () => {}
+        );
+    };
+    
+    window.stopScan = function() {
+        if(scanner?.isScanning) scanner.stop();
+        document.getElementById('btnStart').classList.remove('hidden');
+        document.getElementById('btnStop').classList.add('hidden');
+    };
+    
+    // ========== PROSES QR ==========
+    async function prosesQR(text) {
+        try {
+            console.log("QR:", text);
+            
+            // Parsing data dari QR
+            let nama = "", kelas = "", absen = "", jk = "L", agama = "Islam";
+            
+            // Format foto: "ADAM ATRIA PUTRA\nX-1 - L - Islam - ABSEN 1"
+            if(text.includes('\n')) {
+                const lines = text.split('\n');
                 nama = lines[0].trim();
                 const line2 = lines[1].replace(/[–—]/g, '-');
                 const parts = line2.split('-').map(p => p.trim());
@@ -113,126 +133,210 @@ async function prosesQR(text) {
                     if(p.includes('Kristen')) agama = 'Kristen';
                 }
             }
-        }
-        
-        // FORMAT 2: Pipe separator (dari error log lu)
-        if(!nama && clean.includes('|')) {
-            const parts = clean.split('|');
-            if(parts.length >= 3) {
-                nama = parts[0];
-                // Cari kelas di parts
-                for(let p of parts) {
-                    if(p.includes('X-') || p.includes('XI-') || p.includes('XII-')) kelas = p;
-                    if(p.match(/^[0-9]+$/)) absen = p;
+            
+            // Format pipe: "NAMA|KELAS|ABSEN|JK|AGAMA"
+            if(text.includes('|')) {
+                const parts = text.split('|');
+                if(parts.length >= 3) {
+                    nama = parts[0];
+                    kelas = parts[1];
+                    absen = parts[2];
+                    if(parts.length >= 4) jk = parts[3];
+                    if(parts.length >= 5) agama = parts[4];
                 }
-                if(parts.length >= 4) jk = parts[3];
-                if(clean.includes('Islam')) agama = 'Islam';
-                if(clean.includes('Kristen')) agama = 'Kristen';
             }
+            
+            if(!nama || !kelas || !absen) throw "QR tidak valid";
+            if(agama !== mode) throw `Mode harus ${mode}`;
+            
+            // ========== DATA PERMANEN (SISWA) ==========
+            const siswaRef = db.ref('siswa/' + kelas + '/' + absen);
+            const snapshot = await siswaRef.once('value');
+            let totalHadir = 0;
+            
+            if(snapshot.exists()) {
+                // Siswa sudah ada, ambil total hadir
+                totalHadir = snapshot.val().totalHadir || 0;
+            }
+            
+            // Tambah total hadir
+            totalHadir++;
+            
+            // Update data siswa
+            await siswaRef.set({
+                nama: nama,
+                kelas: kelas,
+                absen: absen,
+                jk: jk,
+                agama: agama,
+                totalHadir: totalHadir,
+                lastUpdate: Date.now()
+            });
+            
+            // ========== PRESENSI HARIAN ==========
+            const today = new Date().toLocaleDateString('id-ID').replace(/\//g, '-');
+            const jam = new Date().toLocaleTimeString('id-ID');
+            const status = mode === 'Islam' ? 'DZUHUR' : 'IBADAH';
+            
+            await db.ref('presensi/' + today + '/' + kelas + '_' + absen).set({
+                nama: nama,
+                kelas: kelas,
+                absen: absen,
+                jk: jk,
+                agama: agama,
+                jam: jam,
+                status: status,
+                totalHadir: totalHadir,
+                timestamp: Date.now()
+            });
+            
+            showFeedback('✅', nama, `Hadir ke-${totalHadir}`, 'bg-green-600');
+            
+        } catch(e) {
+            showFeedback('❌', 'GAGAL', e, 'bg-red-600');
         }
         
-        // FORMAT 3: Spasi biasa
-        if(!nama) {
-            const words = clean.split(' ');
-            nama = words.slice(0, 3).join(' '); // Ambil 3 kata pertama
-            for(let w of words) {
-                if(w.includes('X-') || w.includes('XI-') || w.includes('XII-')) kelas = w;
-                if(w.match(/^[0-9]+$/)) absen = w;
-                if(w === 'L' || w === 'P') jk = w;
-            }
-        }
-        
-        // Validasi
-        if(!nama) nama = "SISWA";
-        if(!kelas) kelas = "X-1";
-        if(!absen) absen = "1";
-        
-        console.log("✅ HASIL:", {nama, kelas, absen, jk, agama});
-        
-        // Simpan ke Firebase
-        const today = new Date().toLocaleDateString('id-ID').replace(/\//g, '-');
-        const jam = new Date().toLocaleTimeString('id-ID');
-        
-        await db.ref('presensi/' + today + '/' + kelas + '_' + absen).set({
-            nama, kelas, absen, jk, agama, jam,
-            timestamp: Date.now()
-        });
-        
-        // Tampilkan sukses
-        document.getElementById('log').innerHTML = `
-            <div class="bg-green-700 p-3 rounded-lg mb-2">
-                <div class="font-bold">✅ ${nama}</div>
-                <div class="text-xs">${kelas} • ${jam}</div>
-            </div>
-        ` + document.getElementById('log').innerHTML;
-        
-        document.getElementById('status').innerText = "✅ Sukses!";
-        
-    } catch(e) {
-        console.error(e);
-        document.getElementById('status').innerText = "❌ Error";
-        document.getElementById('log').innerHTML = `
-            <div class="bg-red-700 p-3 rounded-lg mb-2">
-                <div class="font-bold">❌ GAGAL</div>
-                <div class="text-xs">${text.substring(0,50)}</div>
-            </div>
-        ` + document.getElementById('log').innerHTML;
+        setTimeout(() => scanner?.resume(), 2000);
     }
     
-    setTimeout(() => scanner?.resume(), 2000);
-}
-
-// LISTENER REALTIME
-db.ref('presensi/' + new Date().toLocaleDateString('id-ID').replace(/\//g, '-')).on('value', (snap) => {
-    const data = snap.val();
-    if(data) {
-        document.getElementById('status').innerText = `🟢 ${Object.keys(data).length} hadir`;
+    // ========== FEEDBACK ==========
+    function showFeedback(icon, title, msg, color) {
+        const fb = document.getElementById('feedback');
+        document.getElementById('fbIcon').innerText = icon;
+        document.getElementById('fbTitle').innerText = title;
+        document.getElementById('fbMsg').innerText = msg;
+        document.getElementById('fbBox').className = `text-center p-6 rounded-2xl ${color}`;
+        fb.classList.remove('hidden');
+        setTimeout(() => fb.classList.add('hidden'), 2000);
     }
-});
+    
+    // ========== UPDATE LOG ==========
+    function updateLog(data) {
+        const logDiv = document.getElementById('log');
+        const items = Object.values(data);
+        
+        if(items.length === 0) {
+            logDiv.innerHTML = '<p class="text-gray-500 text-center py-4">Belum ada presensi</p>';
+            return;
+        }
+        
+        let html = '';
+        items.sort((a,b) => (b.timestamp||0) - (a.timestamp||0)).forEach(s => {
+            html += `<div class="bg-gray-800 p-3 rounded-lg mb-2 border-l-4 border-cyan-500">
+                <div class="flex justify-between">
+                    <b>${s.nama}</b>
+                    <span class="text-xs bg-gray-900 px-2 py-1 rounded-full text-cyan-400">#${s.totalHadir || 0}</span>
+                </div>
+                <span class="text-xs text-gray-400">${s.kelas} • ${s.jam} • ${s.status}</span>
+            </div>`;
+        });
+        logDiv.innerHTML = html;
+    }
+    
+    // ========== DOWNLOAD LAPORAN ==========
+    window.downloadLaporan = async function() {
+        const today = new Date().toLocaleDateString('id-ID').replace(/\//g, '-');
+        
+        // Ambil data presensi hari ini
+        const presensiSnap = await db.ref('presensi/' + today).once('value');
+        const presensi = presensiSnap.val() || {};
+        
+        // Ambil data siswa untuk total hadir
+        const siswaSnap = await db.ref('siswa').once('value');
+        const semuaSiswa = siswaSnap.val() || {};
+        
+        // Buat ZIP
+        const zip = new JSZip();
+        
+        // File Excel Presensi Harian
+        const rowsHarian = [['NO','NAMA','KELAS','JK','AGAMA','JAM','STATUS','TOTAL HADIR']];
+        Object.values(presensi).forEach((s,i) => {
+            rowsHarian.push([i+1, s.nama, s.kelas, s.jk, s.agama, s.jam, s.status, s.totalHadir || 0]);
+        });
+        
+        const wbHarian = XLSX.utils.book_new();
+        const wsHarian = XLSX.utils.aoa_to_sheet(rowsHarian);
+        XLSX.utils.book_append_sheet(wbHarian, wsHarian, 'Harian');
+        zip.file(`PRESENSI_${today}.xlsx`, XLSX.write(wbHarian, { type: 'array' }));
+        
+        // File Excel Rekap Semua Siswa
+        const rowsRekap = [['KELAS','NO ABSEN','NAMA','JK','AGAMA','TOTAL HADIR']];
+        
+        for(let kelas in semuaSiswa) {
+            for(let absen in semuaSiswa[kelas]) {
+                const s = semuaSiswa[kelas][absen];
+                rowsRekap.push([kelas, absen, s.nama, s.jk, s.agama, s.totalHadir || 0]);
+            }
+        }
+        
+        const wbRekap = XLSX.utils.book_new();
+        const wsRekap = XLSX.utils.aoa_to_sheet(rowsRekap);
+        XLSX.utils.book_append_sheet(wbRekap, wsRekap, 'Rekap');
+        zip.file(`REKAP_SISWA.xlsx`, XLSX.write(wbRekap, { type: 'array' }));
+        
+        // Download ZIP
+        const content = await zip.generateAsync({ type: 'blob' });
+        const link = document.createElement('a');
+        link.href = URL.createObjectURL(content);
+        link.download = `LAPORAN_DZUHUR_${today}.zip`;
+        link.click();
+    };
 </script>
 
-<!-- Login Modal -->
-<div id="loginModal" class="fixed inset-0 bg-black/90 flex items-center justify-center z-50" style="display: flex;">
-    <div class="bg-gray-800 p-6 rounded-2xl w-80">
-        <h2 class="text-xl font-bold mb-4 text-center">LOGIN GURU</h2>
-        <input type="password" id="pass" class="w-full p-3 bg-gray-700 rounded mb-3" placeholder="Password" value="bintang31">
-        <button onclick="login()" class="w-full py-3 bg-cyan-600 rounded font-bold">MASUK</button>
-    </div>
+<!-- LOGIN SCREEN -->
+<div id="loginScreen" class="max-w-md mx-auto bg-gray-800 p-8 rounded-3xl mt-10">
+    <h1 class="text-3xl font-black text-center mb-2">DZUHUR 12</h1>
+    <p class="text-cyan-400 text-xs text-center mb-6">PRESENSI PERMANEN</p>
+    <input id="pass" type="password" class="w-full bg-gray-700 p-4 rounded-xl mb-3" placeholder="bintang31">
+    <button onclick="login()" class="w-full bg-cyan-600 py-4 rounded-xl font-bold">MASUK</button>
 </div>
 
-<!-- Main -->
-<div class="max-w-md mx-auto">
-    <div class="flex justify-between items-center mb-2">
+<!-- MAIN SCREEN -->
+<div id="mainScreen" class="max-w-md mx-auto space-y-4 hidden">
+    <!-- Header -->
+    <div class="flex justify-between items-center">
         <h1 class="text-2xl font-black">DZUHUR 12</h1>
-        <button onclick="logout()" id="logoutBtn" class="bg-red-900 px-3 py-1 text-xs rounded hidden">KELUAR</button>
+        <button onclick="logout()" class="bg-red-900 px-4 py-2 rounded-xl text-xs">KELUAR</button>
+    </div>
+    
+    <!-- Mode -->
+    <div class="bg-gray-800 p-1 rounded-xl flex gap-1">
+        <button onclick="setMode('Islam')" id="modeIslam" class="flex-1 py-4 rounded-xl font-bold bg-green-600">ISLAM</button>
+        <button onclick="setMode('Kristen')" id="modeKristen" class="flex-1 py-4 rounded-xl font-bold bg-gray-700">KRISTEN</button>
     </div>
     
     <!-- Kamera -->
-    <div class="bg-gray-800 p-3 rounded-2xl mb-2">
-        <div id="reader" class="w-full"></div>
-        <div class="flex gap-2 mt-2">
-            <button onclick="startKamera()" id="btnStart" class="flex-1 py-3 bg-cyan-600 rounded-xl font-bold">AKTIFKAN KAMERA</button>
-            <button onclick="stopKamera()" id="btnStop" class="flex-1 py-3 bg-red-600 rounded-xl font-bold hidden">MATIKAN</button>
+    <div class="flex gap-2">
+        <button onclick="startScan()" id="btnStart" class="flex-1 py-4 bg-cyan-600 rounded-xl font-bold">AKTIFKAN KAMERA</button>
+        <button onclick="stopScan()" id="btnStop" class="flex-1 py-4 bg-red-600 rounded-xl font-bold hidden">MATIKAN</button>
+    </div>
+    
+    <!-- Scanner -->
+    <div class="bg-gray-800 p-2 rounded-2xl min-h-[250px] relative">
+        <div id="reader"></div>
+        <div id="feedback" class="absolute inset-0 flex items-center justify-center hidden">
+            <div id="fbBox" class="text-center p-6 rounded-2xl bg-green-600">
+                <div id="fbIcon" class="text-5xl mb-2">✅</div>
+                <div id="fbTitle" class="text-xl font-bold"></div>
+                <div id="fbMsg" class="text-xs"></div>
+            </div>
         </div>
     </div>
     
     <!-- Status -->
-    <div class="text-center text-sm mb-2" id="status">🟢 Siap</div>
+    <div class="flex justify-between text-sm">
+        <span class="text-green-400">🟢 ONLINE</span>
+        <span class="text-cyan-400" id="count">0 hadir</span>
+    </div>
+    
+    <!-- Download -->
+    <button onclick="downloadLaporan()" class="w-full py-4 bg-green-700 rounded-xl font-bold">📥 DOWNLOAD LAPORAN (ZIP + EXCEL)</button>
     
     <!-- Log -->
-    <div class="bg-gray-800 p-3 rounded-2xl">
-        <h3 class="font-bold mb-2 text-sm">📋 HASIL SCAN:</h3>
-        <div id="log" class="space-y-1 max-h-96 overflow-auto text-sm"></div>
+    <div class="bg-gray-800 p-4 rounded-2xl">
+        <h3 class="font-bold mb-3">LOG PRESENSI</h3>
+        <div id="log" class="space-y-2 max-h-80 overflow-auto"></div>
     </div>
 </div>
-
-<script>
-// Sembunyikan login kalo udah login
-if(localStorage.getItem('login') === 'true') {
-    document.getElementById('loginModal').style.display = 'none';
-    document.getElementById('logoutBtn').classList.remove('hidden');
-}
-</script>
-
 </body>
 </html>
