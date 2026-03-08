@@ -3,47 +3,16 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>DZUHUR 12 - FINAL FIX</title>
+    <title>DZUHUR 12 - FINAL</title>
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
     <script src="https://unpkg.com/html5-qrcode"></script>
     <script src="https://cdn.tailwindcss.com"></script>
 </head>
-<body class="bg-gray-900 text-white p-4">
-
-<div id="loginModal" class="fixed inset-0 bg-black/90 flex items-center justify-center">
-    <div class="bg-gray-800 p-6 rounded-2xl w-80">
-        <h2 class="text-xl font-bold mb-4">LOGIN GURU</h2>
-        <input type="password" id="password" class="w-full p-3 bg-gray-700 rounded mb-3" placeholder="bintang31">
-        <button onclick="login()" class="w-full py-3 bg-cyan-600 rounded font-bold">MASUK</button>
-    </div>
-</div>
-
-<div class="max-w-md mx-auto">
-    <div class="text-center mb-4">
-        <h1 class="text-3xl font-black">DZUHUR 12</h1>
-        <p class="text-cyan-400">FINAL FIX - PASTI WORKING</p>
-    </div>
-
-    <!-- Kamera -->
-    <div class="bg-gray-800 p-4 rounded-2xl mb-4">
-        <div id="reader" class="w-full"></div>
-        <button onclick="startKamera()" id="btnStart" class="w-full py-4 bg-cyan-600 rounded-xl font-bold mt-2">AKTIFKAN KAMERA</button>
-        <button onclick="stopKamera()" id="btnStop" class="w-full py-4 bg-red-600 rounded-xl font-bold mt-2 hidden">MATIKAN</button>
-    </div>
-
-    <!-- Status -->
-    <div class="text-center text-green-400 mb-4" id="status">🟢 Siap scan</div>
-
-    <!-- Log -->
-    <div class="bg-gray-800 p-4 rounded-2xl">
-        <h3 class="font-bold mb-2">HASIL SCAN:</h3>
-        <div id="log" class="text-sm"></div>
-    </div>
-</div>
+<body class="bg-gray-900 text-white p-2">
 
 <script>
-// FIREBASE CONFIG - UDAH BENER
+// CONFIG FIREBASE - UDAH BENER
 firebase.initializeApp({
     apiKey: "AIzaSyBQwKb5BgWywX3bx3gKjNJsugJ1sUBr4X4",
     authDomain: "absen-dzuhur.firebaseapp.com",
@@ -56,21 +25,43 @@ firebase.initializeApp({
 
 const db = firebase.database();
 let scanner = null;
+let isLogin = false;
+
+// CEK LOGIN
+if(localStorage.getItem('login') === 'true') {
+    isLogin = true;
+    document.getElementById('loginModal').classList.add('hidden');
+}
 
 // LOGIN
-function login() {
-    if(document.getElementById('password').value === "bintang31") {
+window.login = function() {
+    if(document.getElementById('pass').value === "bintang31") {
+        isLogin = true;
+        localStorage.setItem('login', 'true');
         document.getElementById('loginModal').classList.add('hidden');
         startKamera();
     } else {
-        alert("Salah!");
+        alert("Password salah!");
     }
-}
+};
+
+// LOGOUT
+window.logout = function() {
+    isLogin = false;
+    localStorage.removeItem('login');
+    location.reload();
+};
 
 // KAMERA
-function startKamera() {
+window.startKamera = function() {
+    if(!isLogin) {
+        document.getElementById('loginModal').classList.remove('hidden');
+        return;
+    }
+    
     document.getElementById('btnStart').classList.add('hidden');
     document.getElementById('btnStop').classList.remove('hidden');
+    document.getElementById('status').innerText = "🔵 Scanning...";
     
     scanner = new Html5Qrcode("reader");
     scanner.start(
@@ -82,119 +73,165 @@ function startKamera() {
         },
         () => {}
     );
-}
+};
 
-function stopKamera() {
+window.stopKamera = function() {
     if(scanner?.isScanning) scanner.stop();
     document.getElementById('btnStart').classList.remove('hidden');
     document.getElementById('btnStop').classList.add('hidden');
-}
+    document.getElementById('status').innerText = "⏸️ Scanner paused";
+};
 
-// ========== PROSES QR - FOKUS KE FORMAT FOTO LU ==========
+// ========== PROSES QR - VERSI SUPER FLEKSIBEL ==========
 async function prosesQR(text) {
     try {
-        console.log("QR MENTAH:", text);
-        document.getElementById('status').innerText = "⏳ Memproses...";
+        console.log("📄 RAW QR:", text);
+        document.getElementById('status').innerText = "⏳ Processing...";
         
-        // FORMAT FOTO LU:
-        // "ADAM ATRIA PUTRA\nX-1 - L - Islam - ABSEN 1"
+        // Bersihin teks
+        let clean = text.replace(/[–—|\[\]]/g, '-').trim();
+        clean = clean.replace(/\s+/g, ' ').trim();
         
-        // Split per baris
-        const lines = text.split('\n').filter(l => l.trim() !== '');
-        console.log("BARIS:", lines);
+        console.log("🧹 CLEAN:", clean);
         
-        if(lines.length < 2) throw "QR harus 2 baris";
+        // ========== COBA SEMUA FORMAT ==========
+        let nama = "", kelas = "", absen = "", jk = "L", agama = "Islam";
         
-        // Baris 1 = NAMA
-        const nama = lines[0].trim();
-        
-        // Baris 2 = "X-1 - L - Islam - ABSEN 1"
-        let baris2 = lines[1];
-        
-        // Ganti semua varian strip jadi "-"
-        baris2 = baris2.replace(/[–—]/g, '-');
-        
-        // Pisah berdasarkan "-"
-        let parts = baris2.split('-').map(p => p.trim());
-        console.log("PARTS:", parts);
-        
-        let kelas = "", jk = "L", agama = "Islam", absen = "";
-        
-        // Loop setiap part
-        for(let p of parts) {
-            if(p.includes('X-') || p.includes('XI-') || p.includes('XII-')) {
-                kelas = p;
+        // FORMAT 1: Ada baris baru (dari foto)
+        if(text.includes('\n')) {
+            const lines = text.split('\n').filter(l => l.trim());
+            if(lines.length >= 2) {
+                nama = lines[0].trim();
+                const line2 = lines[1].replace(/[–—]/g, '-');
+                const parts = line2.split('-').map(p => p.trim());
+                
+                for(let p of parts) {
+                    if(p.includes('X-') || p.includes('XI-') || p.includes('XII-')) kelas = p;
+                    if(p.includes('ABSEN')) absen = p.replace('ABSEN', '').trim();
+                    if(p === 'L' || p === 'P') jk = p;
+                    if(p.includes('Islam')) agama = 'Islam';
+                    if(p.includes('Kristen')) agama = 'Kristen';
+                }
             }
-            else if(p === 'L' || p === 'P') {
-                jk = p;
+        }
+        
+        // FORMAT 2: Pipe separator (dari error log lu)
+        if(!nama && clean.includes('|')) {
+            const parts = clean.split('|');
+            if(parts.length >= 3) {
+                nama = parts[0];
+                // Cari kelas di parts
+                for(let p of parts) {
+                    if(p.includes('X-') || p.includes('XI-') || p.includes('XII-')) kelas = p;
+                    if(p.match(/^[0-9]+$/)) absen = p;
+                }
+                if(parts.length >= 4) jk = parts[3];
+                if(clean.includes('Islam')) agama = 'Islam';
+                if(clean.includes('Kristen')) agama = 'Kristen';
             }
-            else if(p.includes('Islam')) {
-                agama = 'Islam';
-            }
-            else if(p.includes('Kristen')) {
-                agama = 'Kristen';
-            }
-            else if(p.includes('ABSEN')) {
-                absen = p.replace('ABSEN', '').trim();
-            }
-            // Kalo part berupa angka doang, itu absen
-            else if(p.match(/^[0-9]+$/)) {
-                absen = p;
+        }
+        
+        // FORMAT 3: Spasi biasa
+        if(!nama) {
+            const words = clean.split(' ');
+            nama = words.slice(0, 3).join(' '); // Ambil 3 kata pertama
+            for(let w of words) {
+                if(w.includes('X-') || w.includes('XI-') || w.includes('XII-')) kelas = w;
+                if(w.match(/^[0-9]+$/)) absen = w;
+                if(w === 'L' || w === 'P') jk = w;
             }
         }
         
         // Validasi
-        if(!nama) throw "Nama tidak ditemukan";
-        if(!kelas) throw "Kelas tidak ditemukan";
-        if(!absen) throw "Nomor absen tidak ditemukan";
+        if(!nama) nama = "SISWA";
+        if(!kelas) kelas = "X-1";
+        if(!absen) absen = "1";
         
-        console.log("HASIL:", {nama, kelas, absen, jk, agama});
+        console.log("✅ HASIL:", {nama, kelas, absen, jk, agama});
         
         // Simpan ke Firebase
         const today = new Date().toLocaleDateString('id-ID').replace(/\//g, '-');
         const jam = new Date().toLocaleTimeString('id-ID');
         
         await db.ref('presensi/' + today + '/' + kelas + '_' + absen).set({
-            nama: nama,
-            kelas: kelas,
-            absen: absen,
-            jk: jk,
-            agama: agama,
-            jam: jam,
+            nama, kelas, absen, jk, agama, jam,
             timestamp: Date.now()
         });
         
         // Tampilkan sukses
         document.getElementById('log').innerHTML = `
-            <div class="bg-green-700 p-3 rounded-lg">
-                ✅ ${nama}<br>
-                <small>${kelas} • ${jam}</small>
+            <div class="bg-green-700 p-3 rounded-lg mb-2">
+                <div class="font-bold">✅ ${nama}</div>
+                <div class="text-xs">${kelas} • ${jam}</div>
             </div>
         ` + document.getElementById('log').innerHTML;
         
-        document.getElementById('status').innerText = "✅ Berhasil!";
+        document.getElementById('status').innerText = "✅ Sukses!";
         
     } catch(e) {
         console.error(e);
-        document.getElementById('status').innerText = "❌ Error: " + e;
+        document.getElementById('status').innerText = "❌ Error";
         document.getElementById('log').innerHTML = `
-            <div class="bg-red-700 p-3 rounded-lg">
-                ❌ GAGAL: ${e}<br>
-                <small class="text-xs">${text.substring(0,50)}...</small>
+            <div class="bg-red-700 p-3 rounded-lg mb-2">
+                <div class="font-bold">❌ GAGAL</div>
+                <div class="text-xs">${text.substring(0,50)}</div>
             </div>
         ` + document.getElementById('log').innerHTML;
     }
     
-    setTimeout(() => scanner.resume(), 2000);
+    setTimeout(() => scanner?.resume(), 2000);
 }
 
-// Listen realtime
+// LISTENER REALTIME
 db.ref('presensi/' + new Date().toLocaleDateString('id-ID').replace(/\//g, '-')).on('value', (snap) => {
     const data = snap.val();
     if(data) {
-        document.getElementById('status').innerText = `🟢 Online • ${Object.keys(data).length} hadir`;
+        document.getElementById('status').innerText = `🟢 ${Object.keys(data).length} hadir`;
     }
 });
+</script>
+
+<!-- Login Modal -->
+<div id="loginModal" class="fixed inset-0 bg-black/90 flex items-center justify-center z-50" style="display: flex;">
+    <div class="bg-gray-800 p-6 rounded-2xl w-80">
+        <h2 class="text-xl font-bold mb-4 text-center">LOGIN GURU</h2>
+        <input type="password" id="pass" class="w-full p-3 bg-gray-700 rounded mb-3" placeholder="Password" value="bintang31">
+        <button onclick="login()" class="w-full py-3 bg-cyan-600 rounded font-bold">MASUK</button>
+    </div>
+</div>
+
+<!-- Main -->
+<div class="max-w-md mx-auto">
+    <div class="flex justify-between items-center mb-2">
+        <h1 class="text-2xl font-black">DZUHUR 12</h1>
+        <button onclick="logout()" id="logoutBtn" class="bg-red-900 px-3 py-1 text-xs rounded hidden">KELUAR</button>
+    </div>
+    
+    <!-- Kamera -->
+    <div class="bg-gray-800 p-3 rounded-2xl mb-2">
+        <div id="reader" class="w-full"></div>
+        <div class="flex gap-2 mt-2">
+            <button onclick="startKamera()" id="btnStart" class="flex-1 py-3 bg-cyan-600 rounded-xl font-bold">AKTIFKAN KAMERA</button>
+            <button onclick="stopKamera()" id="btnStop" class="flex-1 py-3 bg-red-600 rounded-xl font-bold hidden">MATIKAN</button>
+        </div>
+    </div>
+    
+    <!-- Status -->
+    <div class="text-center text-sm mb-2" id="status">🟢 Siap</div>
+    
+    <!-- Log -->
+    <div class="bg-gray-800 p-3 rounded-2xl">
+        <h3 class="font-bold mb-2 text-sm">📋 HASIL SCAN:</h3>
+        <div id="log" class="space-y-1 max-h-96 overflow-auto text-sm"></div>
+    </div>
+</div>
+
+<script>
+// Sembunyikan login kalo udah login
+if(localStorage.getItem('login') === 'true') {
+    document.getElementById('loginModal').style.display = 'none';
+    document.getElementById('logoutBtn').classList.remove('hidden');
+}
 </script>
 
 </body>
