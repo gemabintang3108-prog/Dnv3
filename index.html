@@ -279,71 +279,82 @@
         document.getElementById('btnStop').classList.add('hidden');
     };
     
-    // ========== PROSES QR ==========
-    async function prosesQR(text) {
-        try {
-            console.log("📄 QR:", text);
+    // ========== PROSES QR DENGAN CEK DUPLIKAT ==========
+async function prosesQR(text) {
+    try {
+        console.log("📄 QR:", text);
+        
+        let nama = "", kelas = "", absen = "", jk = "L", agama = "Islam";
+        
+        // Format foto: "ADAM ATRIA PUTRA\nX-1 - L - Islam - ABSEN 1"
+        if(text.includes('\n')) {
+            const lines = text.split('\n');
+            nama = lines[0].trim();
+            const line2 = lines[1].replace(/[–—]/g, '-');
+            const parts = line2.split('-').map(p => p.trim());
             
-            let nama = "", kelas = "", absen = "", jk = "L", agama = "Islam";
-            
-            // Format foto: "ADAM ATRIA PUTRA\nX-1 - L - Islam - ABSEN 1"
-            if(text.includes('\n')) {
-                const lines = text.split('\n');
-                nama = lines[0].trim();
-                const line2 = lines[1].replace(/[–—]/g, '-');
-                const parts = line2.split('-').map(p => p.trim());
-                
-                for(let p of parts) {
-                    if(p.includes('X-') || p.includes('XI-') || p.includes('XII-')) kelas = p;
-                    if(p.includes('ABSEN')) absen = p.replace('ABSEN', '').trim();
-                    if(p === 'L' || p === 'P') jk = p;
-                    if(p.includes('Islam')) agama = 'Islam';
-                    if(p.includes('Kristen')) agama = 'Kristen';
-                }
+            for(let p of parts) {
+                if(p.includes('X-') || p.includes('XI-') || p.includes('XII-')) kelas = p;
+                if(p.includes('ABSEN')) absen = p.replace('ABSEN', '').trim();
+                if(p === 'L' || p === 'P') jk = p;
+                if(p.includes('Islam')) agama = 'Islam';
+                if(p.includes('Kristen')) agama = 'Kristen';
             }
-            
-            // Format pipe
-            if(!kelas && text.includes('|')) {
-                const parts = text.split('|');
-                if(parts.length >= 1) nama = parts[0];
-                for(let p of parts) {
-                    if(p.includes('X-') || p.includes('XI-') || p.includes('XII-')) kelas = p;
-                    if(p.match(/^[0-9]+$/)) absen = p;
-                }
-            }
-            
-            if(!nama || !kelas || !absen) throw "QR tidak valid";
-            if(agama !== mode) throw `Mode harus ${mode}`;
-            
-            // Ambil data siswa
-            const siswaRef = db.ref('siswa/' + kelas + '/' + absen);
-            const snap = await siswaRef.once('value');
-            let totalHadir = snap.exists() ? (snap.val().totalHadir || 0) : 0;
-            totalHadir++;
-            
-            await siswaRef.set({
-                nama, kelas, absen, jk, agama,
-                totalHadir,
-                lastUpdate: Date.now()
-            });
-            
-            const today = new Date().toLocaleDateString('id-ID').replace(/\//g, '-');
-            const jam = new Date().toLocaleTimeString('id-ID');
-            const status = mode === 'Islam' ? 'DZUHUR' : 'IBADAH';
-            
-            await db.ref('presensi/' + today + '/' + kelas + '_' + absen).set({
-                nama, kelas, absen, jk, agama, jam, status,
-                totalHadir,
-                timestamp: Date.now()
-            });
-            
-            feedback('✅', nama, `Hadir ke-${totalHadir}`, 'bg-green-600');
-            
-        } catch(e) {
-            feedback('❌', 'GAGAL', e, 'bg-red-700');
         }
-        setTimeout(() => scanner?.resume(), 2000);
+        
+        // Format pipe
+        if(!kelas && text.includes('|')) {
+            const parts = text.split('|');
+            if(parts.length >= 1) nama = parts[0];
+            for(let p of parts) {
+                if(p.includes('X-') || p.includes('XI-') || p.includes('XII-')) kelas = p;
+                if(p.match(/^[0-9]+$/)) absen = p;
+            }
+        }
+        
+        if(!nama || !kelas || !absen) throw "QR tidak valid";
+        if(agama !== mode) throw `Mode harus ${mode}`;
+        
+        // ========== CEK DUPLIKAT HARI INI ==========
+        const today = new Date().toLocaleDateString('id-ID').replace(/\//g, '-');
+        const presensiRef = db.ref('presensi/' + today + '/' + kelas + '_' + absen);
+        const presensiSnap = await presensiRef.once('value');
+        
+        if(presensiSnap.exists()) {
+            // Sudah absen hari ini
+            const data = presensiSnap.val();
+            throw `Sudah absen jam ${data.jam}`;
+        }
+        
+        // ========== AMBIL DATA SISWA ==========
+        const siswaRef = db.ref('siswa/' + kelas + '/' + absen);
+        const siswaSnap = await siswaRef.once('value');
+        let totalHadir = siswaSnap.exists() ? (siswaSnap.val().totalHadir || 0) : 0;
+        totalHadir++;
+        
+        // Update total hadir siswa
+        await siswaRef.update({
+            totalHadir: totalHadir,
+            lastUpdate: Date.now()
+        });
+        
+        // Simpan presensi hari ini
+        const jam = new Date().toLocaleTimeString('id-ID');
+        const status = mode === 'Islam' ? 'DZUHUR' : 'IBADAH';
+        
+        await presensiRef.set({
+            nama, kelas, absen, jk, agama, jam, status,
+            totalHadir,
+            timestamp: Date.now()
+        });
+        
+        feedback('✅', nama, `Hadir ke-${totalHadir}`, 'bg-green-600');
+        
+    } catch(e) {
+        feedback('❌', 'GAGAL', e, 'bg-red-700');
     }
+    setTimeout(() => scanner?.resume(), 2000);
+}
     
     function feedback(icon, name, msg, bg) {
         const fb = document.getElementById('feedback');
