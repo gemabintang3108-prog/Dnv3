@@ -1,706 +1,809 @@
-<!DOCTYPE html>  <html lang="id">  
-<head>  
-    <meta charset="UTF-8">  
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">  
-    <title>Dzuhur 12 - Final</title>  <!-- Firebase -->  
-<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>  
-<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>  
-  
-<!-- Scanner -->  
-<script src="https://unpkg.com/html5-qrcode"></script>  
-  
-<!-- Tailwind -->  
-<script src="https://cdn.tailwindcss.com"></script>  
-<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;800&display=swap" rel="stylesheet">  
-  
-<!-- Excel & Zip -->  
-<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>  
-<script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>  
-  
-<style>  
-    body { font-family: 'Plus Jakarta Sans', sans-serif; background: #0d1117; color: #c9d1d9; }  
-    .glass { background: rgba(22, 27, 34, 0.8); backdrop-filter: blur(10px); border: 1px solid #30363d; }  
-    .active-tab { background: #0891b2; color: white; }  
-    .active-mode-islam { background: #15803d; color: white; }  
-    .active-mode-kristen { background: #1d4ed8; color: white; }  
-    #reader { border: none !important; border-radius: 1.5rem; }  
-</style>
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>Dzuhur 12 - Premium Attendance</title>
+    
+    <!-- Firebase -->
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
+    <script src="https://unpkg.com/html5-qrcode"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;800;900&display=swap" rel="stylesheet">
+    
+    <style>
+        * { font-family: 'Plus Jakarta Sans', sans-serif; }
+        
+        body {
+            background: linear-gradient(135deg, #0a0f1e 0%, #0d1525 50%, #0a0f1e 100%);
+            min-height: 100vh;
+        }
+        
+        /* Glass morphism premium */
+        .glass-premium {
+            background: rgba(15, 23, 42, 0.7);
+            backdrop-filter: blur(16px);
+            border: 1px solid rgba(34, 211, 238, 0.15);
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+            transition: all 0.3s ease;
+        }
+        
+        .glass-premium:hover {
+            border-color: rgba(34, 211, 238, 0.4);
+            box-shadow: 0 8px 32px rgba(34, 211, 238, 0.15);
+        }
+        
+        /* Animations */
+        @keyframes pulse-glow {
+            0%, 100% { box-shadow: 0 0 5px rgba(34, 211, 238, 0.5); }
+            50% { box-shadow: 0 0 20px rgba(34, 211, 238, 0.8); }
+        }
+        
+        @keyframes slideIn {
+            from { transform: translateX(100%); opacity: 0; }
+            to { transform: translateX(0); opacity: 1; }
+        }
+        
+        @keyframes bounce {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+        }
+        
+        .active-tab {
+            background: linear-gradient(135deg, #0891b2, #06b6d4);
+            color: white;
+            box-shadow: 0 4px 12px rgba(6, 182, 212, 0.4);
+        }
+        
+        .active-mode-islam {
+            background: linear-gradient(135deg, #15803d, #16a34a);
+            color: white;
+            box-shadow: 0 4px 12px rgba(34, 197, 94, 0.4);
+        }
+        
+        .active-mode-kristen {
+            background: linear-gradient(135deg, #1d4ed8, #3b82f6);
+            color: white;
+            box-shadow: 0 4px 12px rgba(59, 130, 246, 0.4);
+        }
+        
+        #reader {
+            border: none !important;
+            border-radius: 2rem !important;
+            overflow: hidden;
+        }
+        
+        #reader video {
+            border-radius: 2rem;
+        }
+        
+        .toast-notif {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            z-index: 9999;
+            animation: slideIn 0.3s ease;
+        }
+        
+        .loading-spinner {
+            width: 50px;
+            height: 50px;
+            border: 4px solid rgba(34, 211, 238, 0.2);
+            border-top: 4px solid #06b6d4;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        ::-webkit-scrollbar {
+            width: 6px;
+        }
+        
+        ::-webkit-scrollbar-track {
+            background: #1e293b;
+            border-radius: 10px;
+        }
+        
+        ::-webkit-scrollbar-thumb {
+            background: linear-gradient(135deg, #0891b2, #06b6d4);
+            border-radius: 10px;
+        }
+        
+        .stat-card {
+            background: rgba(6, 182, 212, 0.1);
+            border: 1px solid rgba(6, 182, 212, 0.3);
+            border-radius: 1.5rem;
+            padding: 1rem;
+            text-align: center;
+        }
+    </style>
+</head>
+<body class="pb-10">
 
-</head>  
-<body class="pb-10">  <!-- Firebase Config -->  <script>  
-    const firebaseConfig = {  
-        apiKey: "AIzaSyBQwKb5BgWywX3bx3gKjNJsugJ1sUBr4X4",  
-        authDomain: "absen-dzuhur.firebaseapp.com",  
-        databaseURL: "https://absen-dzuhur-default-rtdb.asia-southeast1.firebasedatabase.app",  
-        projectId: "absen-dzuhur",  
-        storageBucket: "absen-dzuhur.firebasestorage.app",  
-        messagingSenderId: "254784143918",  
-        appId: "1:254784143918:web:5d9769d58fced6a0b015bf"  
-    };  
-      
-    firebase.initializeApp(firebaseConfig);  
-    const db = firebase.database();  
-</script>  <!-- Loading -->  <div id="loading" class="fixed inset-0 bg-black/80 z-[100] flex items-center justify-center hidden">  
-    <div class="w-12 h-12 border-4 border-cyan-500 border-t-transparent rounded-full animate-spin"></div>  
-</div>  <!-- Login Modal -->  <div id="modalLogin" class="fixed inset-0 bg-black/95 z-[999] flex items-center justify-center p-4">  
-    <div class="glass w-full max-w-sm p-10 rounded-[3rem] text-center">  
-        <h2 class="text-2xl font-bold text-white mb-2">LOGIN GURU</h2>  
-        <input type="password" id="password" placeholder="Password" class="w-full bg-gray-900 border border-gray-700 p-4 rounded-2xl text-white text-center mb-4">  
-        <button onclick="login()" class="w-full py-4 bg-cyan-600 text-white font-bold rounded-2xl">MASUK</button>  
-    </div>  
-</div>  <!-- Header -->  <header class="py-8 text-center relative">  
-    <h1 class="text-4xl font-extrabold bg-gradient-to-b from-white to-gray-500 bg-clip-text text-transparent">DZUHUR 12</h1>  
-    <p class="text-[9px] text-cyan-500 uppercase tracking-[0.3em]">DUAL DOWNLOAD</p>  
-    <button id="btnLogout" onclick="logout()" class="hidden absolute top-4 right-4 bg-red-900/30 text-red-500 px-3 py-1.5 rounded-xl text-[8px]">KELUAR</button>  
-</header>  <!-- Tab Nav -->  <div class="flex justify-center mb-8 px-4">  
-    <div class="glass p-1.5 rounded-2xl flex gap-2 w-full max-w-[320px]">  
-        <button onclick="switchTab('admin')" id="btnAdmin" class="flex-1 py-3.5 rounded-xl font-bold active-tab text-xs">ADMIN</button>  
-        <button onclick="switchTab('scan')" id="btnScan" class="flex-1 py-3.5 rounded-xl font-bold text-gray-400 text-xs">SCAN</button>  
-    </div>  
-</div>  <main class="max-w-2xl mx-auto px-4">  
-    <!-- ADMIN TAB -->  
-    <section id="tabAdmin" class="space-y-6">  
-        <div class="glass p-8 rounded-[2.5rem]">  
-            <h2 class="text-sm font-black mb-6 text-white uppercase">Tambah Siswa</h2>  
-            <div class="grid gap-4">  
-                <input type="text" id="nama" placeholder="Nama Lengkap" class="w-full bg-gray-900 border border-gray-800 p-4 rounded-2xl text-white">  
-                <div class="flex gap-4">  
-                    <select id="kelas" class="w-1/2 bg-gray-900 border border-gray-800 p-4 rounded-2xl text-white"></select>  
-                    <input type="number" id="absen" placeholder="No. Absen" class="w-1/2 bg-gray-900 border border-gray-800 p-4 rounded-2xl text-white">  
-                </div>  
-                <div class="flex gap-4">  
-                    <select id="jk" class="w-1/2 bg-gray-900 border border-gray-800 p-4 rounded-2xl text-white">  
-                        <option value="L">LAKI</option>  
-                        <option value="P">PEREMPUAN</option>  
-                    </select>  
-                    <select id="agama" class="w-1/2 bg-gray-900 border border-gray-800 p-4 rounded-2xl text-white">  
-                        <option value="Islam">ISLAM</option>  
-                        <option value="Kristen">KRISTEN</option>  
-                    </select>  
-                </div>  
-                <button onclick="buatQR()" class="bg-blue-600 py-4 rounded-2xl font-black text-xs uppercase">BUAT QR</button>  
-            </div>  
-        </div>  
-        <div id="qrArea" class="flex flex-col items-center"></div>  
-    </section>  <!-- SCAN TAB -->  
-<section id="tabScan" class="hidden space-y-6">  
-    <!-- Mode -->  
-    <div class="glass p-2 rounded-[2rem] flex gap-2">  
-        <button onclick="setMode('Islam')" id="modeIslam" class="flex-1 py-4 rounded-[1.5rem] font-black text-[10px] uppercase border border-gray-800 active-mode-islam">☪️ ISLAM</button>  
-        <button onclick="setMode('Kristen')" id="modeKristen" class="flex-1 py-4 rounded-[1.5rem] font-black text-[10px] uppercase border border-gray-800">✝️ KRISTEN</button>  
-    </div>  
+<!-- Loading Overlay -->
+<div id="loading" class="fixed inset-0 bg-black/90 z-[200] flex items-center justify-center hidden">
+    <div class="text-center">
+        <div class="loading-spinner mx-auto mb-4"></div>
+        <p class="text-cyan-400 text-sm font-bold">PROSES...</p>
+    </div>
+</div>
 
-    <!-- Kamera -->  
-    <div class="flex gap-3">  
-        <button onclick="startCam()" id="btnStart" class="flex-1 py-5 bg-cyan-600 text-white font-black rounded-[2rem] text-[10px] uppercase">AKTIFKAN KAMERA</button>  
-        <button onclick="stopCam()" id="btnStop" class="hidden flex-1 py-5 bg-red-600 text-white font-black rounded-[2rem] text-[10px] uppercase">MATIKAN</button>  
-    </div>  
+<!-- Login Modal -->
+<div id="modalLogin" class="fixed inset-0 bg-black/95 z-[999] flex items-center justify-center p-4">
+    <div class="glass-premium w-full max-w-sm p-10 rounded-[3rem] text-center transform transition-all">
+        <div class="text-6xl mb-4">🔐</div>
+        <h2 class="text-3xl font-black bg-gradient-to-r from-cyan-400 to-blue-400 bg-clip-text text-transparent mb-2">DZUHUR 12</h2>
+        <p class="text-gray-400 text-xs mb-6">ATTENDANCE SYSTEM</p>
+        <input type="password" id="password" placeholder="PASSWORD" class="w-full bg-gray-900/50 border border-cyan-500/30 p-4 rounded-2xl text-white text-center mb-4 focus:outline-none focus:border-cyan-400 transition">
+        <button onclick="login()" class="w-full py-4 bg-gradient-to-r from-cyan-600 to-cyan-500 text-white font-bold rounded-2xl hover:shadow-lg hover:shadow-cyan-500/30 transition">➤ MASUK</button>
+    </div>
+</div>
 
-    <!-- Scanner -->  
-    <div class="glass p-5 rounded-[3rem] relative min-h-[300px]">  
-        <div id="reader"></div>  
-        <div id="feedback" class="absolute inset-0 flex items-center justify-center rounded-[3rem] hidden">  
-            <div id="fbBox" class="text-center text-white p-10 rounded-[3rem] shadow-2xl">  
-                <div id="fbIcon" class="text-6xl mb-3"></div>  
-                <p id="fbNama" class="text-2xl font-black uppercase mb-1"></p>  
-                <p id="fbMsg" class="text-[10px] opacity-80 font-bold uppercase"></p>  
-            </div>  
-        </div>  
-    </div>  
+<!-- Main Content -->
+<div class="relative z-10">
+    <!-- Header -->
+    <header class="py-8 text-center relative">
+        <div class="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-40 h-40 bg-cyan-500/20 rounded-full blur-3xl"></div>
+        <h1 class="text-5xl font-black bg-gradient-to-r from-cyan-400 via-blue-500 to-purple-500 bg-clip-text text-transparent">DZUHUR 12</h1>
+        <p class="text-[10px] text-cyan-400 uppercase tracking-[0.3em] mt-2 font-bold">PREMIUM SYSTEM</p>
+        <button id="btnLogout" onclick="logout()" class="hidden absolute top-4 right-4 bg-red-500/20 backdrop-blur text-red-400 px-4 py-2 rounded-xl text-xs font-bold hover:bg-red-500/30 transition">🚪 KELUAR</button>
+    </header>
 
-    <!-- Dua Tombol Download -->  
-    <div class="glass p-6 rounded-[2.5rem]">  
-        <div class="flex justify-between text-xs mb-4 px-2">  
-            <span class="text-green-400 font-bold">🟢 ONLINE</span>  
-            <span class="text-cyan-400 font-bold" id="totalHadir">0 HADIR</span>  
-        </div>  
-          
-        <div class="grid grid-cols-3 gap-2 mb-4">  
-<button onclick="downloadHarian()" class="py-4 bg-blue-600 text-white font-black rounded-2xl text-[8px] uppercase">HARIAN</button>  
-<button onclick="downloadRekap()" class="py-4 bg-purple-600 text-white font-black rounded-2xl text-[8px] uppercase">REKAP</button>  
-<button onclick="cekDataSiswa()" class="py-4 bg-gray-600 text-white font-black rounded-2xl text-[8px] uppercase">DEBUG</button>
+    <!-- Tab Navigation -->
+    <div class="flex justify-center mb-8 px-4">
+        <div class="glass-premium p-1.5 rounded-2xl flex gap-2 w-full max-w-[340px]">
+            <button onclick="switchTab('admin')" id="btnAdmin" class="flex-1 py-3.5 rounded-xl font-bold transition-all text-xs active-tab">👑 ADMIN</button>
+            <button onclick="switchTab('scan')" id="btnScan" class="flex-1 py-3.5 rounded-xl font-bold transition-all text-xs text-gray-400">📷 SCAN</button>
+            <button onclick="switchTab('dashboard')" id="btnDashboard" class="flex-1 py-3.5 rounded-xl font-bold transition-all text-xs text-gray-400">📊 DASHBOARD</button>
+        </div>
+    </div>
 
-</div>  <div id="logPresensi" class="space-y-3 max-h-[400px] overflow-y-auto"></div>  
-    </div>  
-</section>
+    <main class="max-w-2xl mx-auto px-4">
+        <!-- ADMIN TAB -->
+        <section id="tabAdmin" class="space-y-6">
+            <div class="glass-premium p-8 rounded-[2.5rem]">
+                <h2 class="text-sm font-black mb-6 text-cyan-400 uppercase flex items-center gap-2">📝 TAMBAH SISWA</h2>
+                <div class="grid gap-4">
+                    <input type="text" id="nama" placeholder="Nama Lengkap" class="w-full bg-gray-900/50 border border-gray-700 p-4 rounded-2xl text-white focus:border-cyan-500 focus:outline-none transition">
+                    <div class="flex gap-4">
+                        <select id="kelas" class="w-1/2 bg-gray-900/50 border border-gray-700 p-4 rounded-2xl text-white focus:border-cyan-500 focus:outline-none"></select>
+                        <input type="number" id="absen" placeholder="No. Absen" class="w-1/2 bg-gray-900/50 border border-gray-700 p-4 rounded-2xl text-white focus:border-cyan-500 focus:outline-none">
+                    </div>
+                    <div class="flex gap-4">
+                        <select id="jk" class="w-1/2 bg-gray-900/50 border border-gray-700 p-4 rounded-2xl text-white">
+                            <option value="L">👨 LAKI-LAKI</option>
+                            <option value="P">👩 PEREMPUAN</option>
+                        </select>
+                        <select id="agama" class="w-1/2 bg-gray-900/50 border border-gray-700 p-4 rounded-2xl text-white">
+                            <option value="Islam">☪️ ISLAM</option>
+                            <option value="Kristen">✝️ KRISTEN</option>
+                        </select>
+                    </div>
+                    <button onclick="buatQR()" class="bg-gradient-to-r from-blue-600 to-blue-500 py-4 rounded-2xl font-black text-xs uppercase hover:shadow-lg hover:shadow-blue-500/30 transition transform hover:scale-[1.02]">🔨 BUAT QR CODE</button>
+                </div>
+            </div>
+            <div id="qrArea" class="flex flex-col items-center"></div>
+        </section>
 
-</main>  <script>  
-    const PASSWORD = "bintang31";  
-    const KELAS_LIST = ["X-1","X-2","X-3","X-4","X-5","X-6","XI-1","XI-2","XI-3","XI-4","XI-5","XI-6","XII-1","XII-2","XII-3","XII-4","XII-5","XII-6"];  
-      
-    let isLogin = false;  
-    let mode = 'Islam';  
-    let scanner = null;  
-      
-    // Init  
-    window.onload = function() {  
-        const select = document.getElementById('kelas');  
-        KELAS_LIST.forEach(k => select.innerHTML += `<option value="${k}">${k}</option>`);  
-          
-        if(localStorage.getItem('login') === 'true') {  
-            isLogin = true;  
-            document.getElementById('modalLogin').classList.add('hidden');  
-            document.getElementById('btnLogout').classList.remove('hidden');  
-            listenPresensi();  
-        }  
-    };  
-      
-    // Login  
-    window.login = function() {  
-        if(document.getElementById('password').value === PASSWORD) {  
-            isLogin = true;  
-            localStorage.setItem('login', 'true');  
-            document.getElementById('modalLogin').classList.add('hidden');  
-            document.getElementById('btnLogout').classList.remove('hidden');  
-            switchTab('scan');  
-            listenPresensi();  
-        }  
-    };  
-      
-    window.logout = function() {  
-        isLogin = false;  
-        localStorage.removeItem('login');  
-        location.reload();  
-    };  
-      
-    window.switchTab = function(tab) {  
-        if(tab === 'scan' && !isLogin) {  
-            document.getElementById('modalLogin').classList.remove('hidden');  
-            return;  
-        }  
-        document.getElementById('tabAdmin').classList.toggle('hidden', tab !== 'admin');  
-        document.getElementById('tabScan').classList.toggle('hidden', tab !== 'scan');  
-        document.getElementById('btnAdmin').classList.toggle('active-tab', tab === 'admin');  
-        document.getElementById('btnScan').classList.toggle('active-tab', tab === 'scan');  
-        if(tab !== 'scan') stopCam();  
-    };  
-      
-    window.setMode = function(m) {  
-        mode = m;  
-        document.getElementById('modeIslam').classList.toggle('active-mode-islam', m === 'Islam');  
-        document.getElementById('modeKristen').classList.toggle('active-mode-kristen', m === 'Kristen');  
-    };  
-      
-    // Listen realtime  
-    function listenPresensi() {  
-        const today = new Date().toLocaleDateString('id-ID').replace(/\//g, '-');  
-        db.ref('presensi/' + today).on('value', (snap) => {  
-            const data = snap.val() || {};  
-            const entries = Object.values(data);  
-            document.getElementById('totalHadir').innerText = entries.length + ' HADIR';  
-              
-            if(entries.length === 0) {  
-                document.getElementById('logPresensi').innerHTML = '<p class="text-center text-gray-600 py-10">Belum ada presensi</p>';  
-                return;  
-            }  
-              
-            entries.sort((a,b) => (b.timestamp||0) - (a.timestamp||0));  
-            let html = '';  
-            entries.slice(0,30).forEach(e => {  
-                html += `<div class="glass p-4 rounded-2xl flex justify-between items-center border-l-4 border-cyan-500 mb-2">  
-                    <div><b class="text-white uppercase text-xs">${e.nama}</b>  
-                    <div class="text-[8px] text-gray-500">${e.kelas} • ${e.status} • ${e.jam}</div></div>  
-                    <div class="bg-gray-900 px-3 py-1 rounded-lg text-cyan-400 font-black text-[10px]">#${e.totalHadir}</div>  
-                </div>`;  
-            });  
-            document.getElementById('logPresensi').innerHTML = html;  
-        });  
-    }  
-      
-    // ========== ADMIN ==========  
-    window.buatQR = async function() {  
-        const nama = document.getElementById('nama').value.trim();  
-        const kelas = document.getElementById('kelas').value;  
-        const absen = document.getElementById('absen').value.trim();  
-        const jk = document.getElementById('jk').value;  
-        const agama = document.getElementById('agama').value;  
-          
-        if(!nama || !absen) return alert("Lengkapi data!");  
-          
-        await db.ref('siswa/' + kelas + '/' + absen).set({  
-            nama: nama.toUpperCase(),  
-            kelas, absen, jk, agama,  
-            totalHadir: 0,  
-            terdaftar: Date.now()  
-        });  
-          
-        const area = document.getElementById('qrArea');  
-        area.innerHTML = `<div id="qrCard" class="p-8 bg-white rounded-[2.5rem] flex flex-col items-center mt-6">  
-            <div id="qrImg" class="mb-4"></div>  
-            <b class="text-black uppercase text-xl">${nama}</b>  
-            <p class="text-gray-500 font-bold uppercase text-[9px]">${kelas} • ${jk} • ${agama} • ABSEN ${absen}</p>  
-        </div>`;  
-          
-        new QRCode(document.getElementById("qrImg"), {  
-            text: `${nama.toUpperCase()}\n${kelas} - ${jk} - ${agama} - ABSEN ${absen}`,  
-            width: 200, height: 200  
-        });  
-    };  
-      
-    // ========== SCANNER ==========  
-    window.startCam = function() {  
-        document.getElementById('btnStart').classList.add('hidden');  
-        document.getElementById('btnStop').classList.remove('hidden');  
-          
-        scanner = new Html5Qrcode("reader");  
-        scanner.start(  
-            { facingMode: "environment" },  
-            { fps: 10, qrbox: 250 },  
-            (text) => { scanner.pause(); prosesQR(text); },  
-            () => {}  
-        );  
-    };  
-      
-    window.stopCam = function() {  
-        if(scanner?.isScanning) scanner.stop();  
-        document.getElementById('btnStart').classList.remove('hidden');  
-        document.getElementById('btnStop').classList.add('hidden');  
-    };  
-      
-    // ========== PROSES QR - SUPER LENGKAP ==========  
-async function prosesQR(text) {  
-    try {  
-        console.log("📄 QR MENTAH:", text);  
-          
-        // Bersihin teks dari karakter aneh  
-        let cleanText = text.replace(/[–—|{}]/g, '-').trim();  
-        cleanText = cleanText.replace(/\s+/g, ' ').trim();  
-          
-        console.log("🧹 CLEAN TEXT:", cleanText);  
-          
-        let nama = "", kelas = "", absen = "", jk = "L", agama = "Islam";  
-          
-        // ========== FORMAT 1: ADA NEWLINE (FOTO LU) ==========  
-        if(text.includes('\n')) {  
-            const lines = text.split('\n').filter(l => l.trim() !== '');  
-            console.log("📄 LINES:", lines);  
-              
-            if(lines.length >= 1) nama = lines[0].trim();  
-              
-            if(lines.length >= 2) {  
-                const line2 = lines[1].replace(/[–—]/g, '-');  
-                const parts = line2.split('-').map(p => p.trim());  
-                  
-                for(let p of parts) {  
-                    if(p.includes('X-') || p.includes('XI-') || p.includes('XII-')) kelas = p;  
-                    if(p.includes('ABSEN')) absen = p.replace('ABSEN', '').trim();  
-                    if(p === 'L' || p === 'P') jk = p;  
-                    if(p.includes('Islam')) agama = 'Islam';  
-                    if(p.includes('Kristen')) agama = 'Kristen';  
-                }  
-            }  
-        }  
-          
-        // ========== FORMAT 2: PIPE SEPARATOR ==========  
-        if(!kelas && text.includes('|')) {  
-            const parts = text.split('|');  
-            console.log("📄 PIPE PARTS:", parts);  
-              
-            if(parts.length >= 1) nama = parts[0];  
-            if(parts.length >= 2) {  
-                // Cek apakah ini kelas atau nomor  
-                if(parts[1].includes('X-') || parts[1].includes('XI-') || parts[1].includes('XII-')) {  
-                    kelas = parts[1];  
-                }  
-            }  
-            if(parts.length >= 3) {  
-                // Cek apakah ini nomor absen  
-                if(parts[2].match(/^[0-9]+$/)) {  
-                    absen = parts[2];  
-                }  
-            }  
-            if(parts.length >= 4) {  
-                if(parts[3] === 'L' || parts[3] === 'P') jk = parts[3];  
-            }  
-            if(text.includes('Islam')) agama = 'Islam';  
-            if(text.includes('Kristen')) agama = 'Kristen';  
-        }  
-          
-        // ========== FORMAT 3: STRIP (-) BIASA ==========  
-        if(!kelas && cleanText.includes('-')) {  
-            const parts = cleanText.split('-').map(p => p.trim());  
-            console.log("📄 STRIP PARTS:", parts);  
-              
-            // Ambil nama dari awal sampai ketemu kelas  
-            for(let i = 0; i < parts.length; i++) {  
-                if(parts[i].includes('X-') || parts[i].includes('XI-') || parts[i].includes('XII-')) {  
-                    kelas = parts[i];  
-                    // Nama adalah gabungan sebelum index i  
-                    nama = parts.slice(0, i).join(' ').trim();  
-                    break;  
-                }  
-            }  
-              
-            // Cari absen  
-            for(let p of parts) {  
-                if(p.includes('ABSEN')) {  
-                    absen = p.replace('ABSEN', '').trim();  
-                } else if(p.match(/^[0-9]+$/) && !absen) {  
-                    absen = p;  
-                }  
-            }  
-              
-            // Cari JK  
-            for(let p of parts) {  
-                if(p === 'L' || p === 'P') jk = p;  
-            }  
-              
-            // Cari agama  
-            for(let p of parts) {  
-                if(p.includes('Islam')) agama = 'Islam';  
-                if(p.includes('Kristen')) agama = 'Kristen';  
-            }  
-        }  
-          
-        // ========== FORMAT 4: SPASI BIASA ==========  
-        if(!kelas) {  
-            const words = cleanText.split(' ');  
-            console.log("📄 WORDS:", words);  
-              
-            // Cari kelas  
-            for(let w of words) {  
-                if(w.includes('X-') || w.includes('XI-') || w.includes('XII-')) {  
-                    kelas = w;  
-                    break;  
-                }  
-            }  
-              
-            // Cari nomor absen  
-            for(let w of words) {  
-                if(w.match(/^[0-9]+$/)) {  
-                    absen = w;  
-                    break;  
-                }  
-            }  
-              
-            // Ambil 3 kata pertama sebagai nama  
-            if(!nama) {  
-                nama = words.slice(0, 3).join(' ');  
-            }  
-        }  
-          
-        // ========== FALLBACK TERAKHIR ==========  
-        if(!nama) {  
-            // Ambil dari awal teks sampai ketemu angka atau kelas  
-            const match = cleanText.match(/^([A-Za-z\s]+)/);  
-            if(match) nama = match[1].trim();  
-            else nama = "SISWA";  
-        }  
-          
-        if(!kelas) kelas = "X-1";  
-        if(!absen) {  
-            // Cari angka terakhir  
-            const angka = cleanText.match(/\b(\d+)\b/);  
-            if(angka) absen = angka[1];  
-            else absen = "1";  
-        }  
-          
-        console.log("✅ HASIL PARSING:", {nama, kelas, absen, jk, agama});  
-          
-        // Validasi  
-        if(!nama || !kelas || !absen) throw "QR tidak valid";  
-        if(agama !== mode) throw `Mode harus ${mode}`;  
-          
-        // ========== CEK DUPLIKAT ==========  
-        const today = new Date().toLocaleDateString('id-ID').replace(/\//g, '-');  
-        const presensiRef = db.ref('presensi/' + today + '/' + kelas + '_' + absen);  
-        const presensiSnap = await presensiRef.once('value');  
-          
-        if(presensiSnap.exists()) {  
-            const data = presensiSnap.val();  
-            throw `Sudah absen jam ${data.jam}`;  
-        }  
-          
-        // ========== AMBIL ATAU BUAT DATA SISWA ==========  
-        const siswaRef = db.ref('siswa/' + kelas + '/' + absen);  
-        const siswaSnap = await siswaRef.once('value');  
-          
-        let totalHadir = 0;  
-        let dataSiswa = {};  
-          
-        if(siswaSnap.exists()) {  
-            dataSiswa = siswaSnap.val();  
-            totalHadir = dataSiswa.totalHadir || 0;  
-              
-            // Update dengan data dari QR (kalau kosong)  
-            if(!dataSiswa.nama) dataSiswa.nama = nama;  
-            if(!dataSiswa.jk) dataSiswa.jk = jk;  
-            if(!dataSiswa.agama) dataSiswa.agama = agama;  
-        } else {  
-            dataSiswa = {  
-                nama: nama,  
-                kelas: kelas,  
-                absen: absen,  
-                jk: jk,  
-                agama: agama,  
-                totalHadir: 0  
-            };  
-        }  
-          
-        totalHadir++;  
-        dataSiswa.totalHadir = totalHadir;  
-        dataSiswa.lastUpdate = Date.now();  
-          
-        // Simpan data siswa LENGKAP  
-        await siswaRef.set(dataSiswa);  
-          
-        // Simpan presensi  
-        const jam = new Date().toLocaleTimeString('id-ID');  
-        const status = mode === 'Islam' ? 'DZUHUR' : 'IBADAH';  
-          
-        await presensiRef.set({  
-            nama: dataSiswa.nama,  
-            kelas: dataSiswa.kelas,  
-            absen: dataSiswa.absen,  
-            jk: dataSiswa.jk,  
-            agama: dataSiswa.agama,  
-            jam: jam,  
-            status: status,  
-            totalHadir: totalHadir,  
-            timestamp: Date.now()  
-        });  
-          
-        feedback('✅', nama, `Hadir ke-${totalHadir}`, 'bg-green-600');  
-          
-    } catch(e) {  
-        console.error("❌ ERROR:", e);  
-        feedback('❌', 'GAGAL', e.toString(), 'bg-red-700');  
-    }  
-    setTimeout(() => scanner?.resume(), 2000);  
-}  
-      
-    function feedback(icon, name, msg, bg) {  
-        const fb = document.getElementById('feedback');  
-        document.getElementById('fbIcon').innerText = icon;  
-        document.getElementById('fbNama').innerText = name;  
-        document.getElementById('fbMsg').innerText = msg;  
-        document.getElementById('fbBox').className = `text-center text-white p-10 rounded-[3rem] shadow-2xl ${bg}`;  
-        fb.classList.remove('hidden');  
-        setTimeout(() => fb.classList.add('hidden'), 2000);  
-    }  
-      
-    // ========== DOWNLOAD HARIAN (PER KELAS) ==========  
-    window.downloadHarian = async function() {  
-        document.getElementById('loading').classList.remove('hidden');  
-          
-        const today = new Date().toLocaleDateString('id-ID').replace(/\//g, '-');  
-        const zip = new JSZip();  
-          
-        // Ambil data presensi hari ini  
-        const presensiSnap = await db.ref('presensi/' + today).once('value');  
-        const presensi = presensiSnap.val() || {};  
-          
-        // Kelompokkan per kelas  
-        const perKelas = {};  
-        Object.values(presensi).forEach(p => {  
-            if(!perKelas[p.kelas]) perKelas[p.kelas] = [];  
-            perKelas[p.kelas].push(p);  
-        });  
-          
-        // Buat file Excel per kelas  
-        for(let kelas in perKelas) {  
-            const siswa = perKelas[kelas].sort((a,b) => parseInt(a.absen) - parseInt(b.absen));  
-            const rows = [['NO', 'NAMA', 'KETERANGAN', 'JAM']];  
-              
-            // Buat daftar semua nomor absen di kelas ini  
-            const semuaAbsen = {};  
-            siswa.forEach(s => semuaAbsen[s.absen] = s);  
-              
-            // Ambil semua siswa dari database untuk kelas ini  
-            const siswaSnap = await db.ref('siswa/' + kelas).once('value');  
-            const dataSiswa = siswaSnap.val() || {};  
-              
-            // Urutkan berdasarkan nomor absen  
-            const daftarAbsen = Object.keys(dataSiswa).map(Number).sort((a,b) => a - b);  
-              
-            daftarAbsen.forEach(no => {  
-                const s = semuaAbsen[no];  
-                if(s) {  
-                    // Hadir  
-                    rows.push([no, s.nama, s.status, s.jam]);  
-                } else {  
-                    // Tidak hadir (ALPA)  
-                    const siswaData = dataSiswa[no];  
-                    if(siswaData) {  
-                        rows.push([no, siswaData.nama, 'A', '-']);  
-                    }  
-                }  
-            });  
-              
-            const ws = XLSX.utils.aoa_to_sheet(rows);  
-            const wb = XLSX.utils.book_new();  
-            XLSX.utils.book_append_sheet(wb, ws, 'Presensi');  
-            zip.file(`PRESENSI_${kelas}_${today}.xlsx`, XLSX.write(wb, { type: 'array' }));  
-        }  
-          
-        // Download  
-        const content = await zip.generateAsync({ type: 'blob' });  
-        const link = document.createElement('a');  
-        link.href = URL.createObjectURL(content);  
-        link.download = `HARIAN_${today}.zip`;  
-        link.click();  
-          
-        document.getElementById('loading').classList.add('hidden');  
-    };  
-  
-    // ========== DOWNLOAD REKAP (PER KELAS) - FIXED VERSION ==========  
-window.downloadRekap = async function() {  
-    document.getElementById('loading').classList.remove('hidden');  
-      
-    const zip = new JSZip();  
-      
-    try {  
-        // Ambil data semua siswa  
-        const siswaSnap = await db.ref('siswa').once('value');  
-        const semuaSiswa = siswaSnap.val() || {};  
-          
-        console.log("🔥 DATA SISWA MENTAH:", JSON.stringify(semuaSiswa, null, 2));  
-          
-        // Buat file Excel per kelas  
-        for(let kelas in semuaSiswa) {  
-            console.log(`📚 KELAS ${kelas}:`, semuaSiswa[kelas]);  
-              
-            const siswa = [];  
-              
-            // Loop setiap absen di kelas ini  
-            for(let absen in semuaSiswa[kelas]) {  
-                const data = semuaSiswa[kelas][absen];  
-                  
-                console.log(`   👤 ABSEN ${absen}:`, data);  
-                  
-                // PASTIKAN DATA DIAMBIL DENGAN STRUKTUR YANG TEPAT  
-                // Data harusnya disimpan dengan struktur: { nama, jk, agama, totalHadir }  
-                  
-                let namaSiswa = "TANPA NAMA";  
-                if(data.nama) namaSiswa = data.nama;  
-                else if(data.Nama) namaSiswa = data.Nama;  
-                else if(data.NAMA) namaSiswa = data.NAMA;  
-                  
-                let jkSiswa = "-";  
-                if(data.jk) jkSiswa = data.jk;  
-                else if(data.JK) jkSiswa = data.JK;  
-                else if(data.jenis_kelamin) jkSiswa = data.jenis_kelamin;  
-                else if(data.JenisKelamin) jkSiswa = data.JenisKelamin;  
-                  
-                let agamaSiswa = "-";  
-                if(data.agama) agamaSiswa = data.agama;  
-                else if(data.Agama) agamaSiswa = data.Agama;  
-                  
-                let totalHadirSiswa = 0;  
-                if(data.totalHadir !== undefined && data.totalHadir !== null) {  
-                    totalHadirSiswa = data.totalHadir;  
-                } else if(data.TotalHadir) {  
-                    totalHadirSiswa = data.TotalHadir;  
-                } else if(data.hadir) {  
-                    totalHadirSiswa = data.hadir;  
-                }  
-                  
-                // Tambahkan juga kelas dari data jika ada  
-                let kelasSiswa = kelas;  
-                if(data.kelas) kelasSiswa = data.kelas;  
-                  
-                siswa.push({  
-                    absen: parseInt(absen),  
-                    nama: namaSiswa,  
-                    jk: jkSiswa,  
-                    agama: agamaSiswa,  
-                    totalHadir: totalHadirSiswa,  
-                    kelas: kelasSiswa  
-                });  
-            }  
-              
-            // Urutkan berdasarkan nomor absen  
-            siswa.sort((a,b) => a.absen - b.absen);  
-              
-            console.log(`📊 SISWA TERPROSES ${kelas}:`, siswa);  
-              
-            // Buat rows Excel dengan format yang lebih jelas  
-            const rows = [  
-                ['NO. ABSEN', 'NAMA LENGKAP', 'JENIS KELAMIN', 'AGAMA', 'TOTAL HADIR', 'KELAS']  
-            ];  
-              
-            siswa.forEach(s => {  
-                rows.push([  
-                    s.absen,   
-                    s.nama,   
-                    s.jk === 'L' ? 'LAKI-LAKI' : (s.jk === 'P' ? 'PEREMPUAN' : s.jk),  
-                    s.agama,  
-                    s.totalHadir,  
-                    s.kelas  
-                ]);  
-            });  
-              
-            console.log(`📋 ROWS ${kelas}:`, rows);  
-              
-            // Buat file Excel  
-            const ws = XLSX.utils.aoa_to_sheet(rows);  
-              
-            // Atur lebar kolom  
-            ws['!cols'] = [  
-                { wch: 10 }, // NO  
-                { wch: 30 }, // NAMA  
-                { wch: 15 }, // JK  
-                { wch: 15 }, // AGAMA  
-                { wch: 15 }, // TOTAL HADIR  
-                { wch: 10 }  // KELAS  
-            ];  
-              
-            const wb = XLSX.utils.book_new();  
-            XLSX.utils.book_append_sheet(wb, ws, 'Rekap');  
-              
-            // Simpan ke ZIP  
-            const fileName = `REKAP_${kelas}.xlsx`;  
-            zip.file(fileName, XLSX.write(wb, { type: 'array' }));  
-        }  
-          
-        // Download ZIP  
-        const content = await zip.generateAsync({ type: 'blob' });  
-        const link = document.createElement('a');  
-        link.href = URL.createObjectURL(content);  
-        link.download = `REKAP_ALL_KELAS_${new Date().toLocaleDateString('id-ID').replace(/\//g, '-')}.zip`;  
-        link.click();  
-          
-        alert("Download rekap berhasil!");  
-          
-    } catch(error) {  
-        console.error("🔥 ERROR REKAP:", error);  
-        alert("Gagal download rekap: " + error.message);  
-    }  
-      
-    document.getElementById('loading').classList.add('hidden');  
-};  
-  
-// ========== FUNGSI CEK DATA SISWA (DEBUG) ==========  
-window.cekDataSiswa = async function() {  
-    try {  
-        const snap = await db.ref('siswa').once('value');  
-        const data = snap.val();  
-          
-        console.log("📦 SEMUA DATA SISWA:", data);  
-          
-        // Tampilkan dalam format yang lebih mudah dibaca  
-        let pesan = "DATA SISWA:\n\n";  
-          
-        if(!data) {  
-            pesan = "TIDAK ADA DATA SISWA!";  
-        } else {  
-            for(let kelas in data) {  
-                pesan += `📚 ${kelas}:\n`;  
-                for(let absen in data[kelas]) {  
-                    const siswa = data[kelas][absen];  
-                    pesan += `   ${absen}. ${siswa.nama || '?'} | ${siswa.jk || '?'} | ${siswa.agama || '?'} | Hadir: ${siswa.totalHadir || 0}\n`;  
-                }  
-                pesan += "\n";  
-            }  
-        }  
-          
-        alert(pesan);  
-          
-    } catch(e) {  
-        console.error("Error cek data:", e);  
-        alert("Gagal cek data: " + e.message);  
-    }  
-};  
-                  
-</script>  <!-- Library -->  <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>  </body>  
+        <!-- SCAN TAB -->
+        <section id="tabScan" class="hidden space-y-6">
+            <!-- Mode Selection -->
+            <div class="glass-premium p-2 rounded-[2rem] flex gap-2">
+                <button onclick="setMode('Islam')" id="modeIslam" class="flex-1 py-4 rounded-[1.5rem] font-black text-[10px] uppercase transition-all active-mode-islam">☪️ ISLAM</button>
+                <button onclick="setMode('Kristen')" id="modeKristen" class="flex-1 py-4 rounded-[1.5rem] font-black text-[10px] uppercase transition-all">✝️ KRISTEN</button>
+            </div>
+
+            <!-- Stats Ringkas -->
+            <div class="grid grid-cols-3 gap-3">
+                <div class="stat-card">
+                    <div class="text-2xl font-black text-cyan-400" id="statHadir">0</div>
+                    <div class="text-[8px] uppercase text-gray-400">Hadir</div>
+                </div>
+                <div class="stat-card">
+                    <div class="text-2xl font-black text-yellow-400" id="statSiswa">0</div>
+                    <div class="text-[8px] uppercase text-gray-400">Total Siswa</div>
+                </div>
+                <div class="stat-card">
+                    <div class="text-2xl font-black text-green-400" id="statPersen">0%</div>
+                    <div class="text-[8px] uppercase text-gray-400">Kehadiran</div>
+                </div>
+            </div>
+
+            <!-- Camera Controls -->
+            <div class="flex gap-3">
+                <button onclick="startCam()" id="btnStart" class="flex-1 py-5 bg-gradient-to-r from-cyan-600 to-cyan-500 text-white font-black rounded-[2rem] text-[10px] uppercase hover:shadow-lg hover:shadow-cyan-500/30 transition transform hover:scale-[1.02]">📷 AKTIFKAN KAMERA</button>
+                <button onclick="stopCam()" id="btnStop" class="hidden flex-1 py-5 bg-gradient-to-r from-red-600 to-red-500 text-white font-black rounded-[2rem] text-[10px] uppercase transition transform hover:scale-[1.02]">⏹️ MATIKAN</button>
+            </div>
+
+            <!-- Scanner Container -->
+            <div class="glass-premium p-5 rounded-[3rem] relative min-h-[350px]">
+                <div id="reader"></div>
+                <div id="feedback" class="absolute inset-0 flex items-center justify-center rounded-[3rem] hidden bg-black/80 backdrop-blur">
+                    <div id="fbBox" class="text-center text-white p-10 rounded-[3rem] shadow-2xl">
+                        <div id="fbIcon" class="text-6xl mb-3"></div>
+                        <p id="fbNama" class="text-2xl font-black uppercase mb-1"></p>
+                        <p id="fbMsg" class="text-[10px] opacity-80 font-bold uppercase"></p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Download Section -->
+            <div class="glass-premium p-6 rounded-[2.5rem]">
+                <div class="flex justify-between items-center mb-6 px-2">
+                    <div class="flex items-center gap-2">
+                        <div class="w-2 h-2 bg-green-400 rounded-full animate-pulse"></div>
+                        <span class="text-green-400 font-bold text-xs">ONLINE</span>
+                    </div>
+                    <span class="text-cyan-400 font-black text-lg" id="totalHadir">0 HADIR</span>
+                </div>
+                
+                <div class="grid grid-cols-2 gap-3 mb-6">
+                    <button onclick="downloadHarian()" class="py-4 bg-gradient-to-r from-blue-600 to-blue-500 text-white font-black rounded-2xl text-[10px] uppercase hover:shadow-lg transition transform hover:scale-[1.02]">📊 DOWNLOAD HARIAN</button>
+                    <button onclick="downloadRekap()" class="py-4 bg-gradient-to-r from-purple-600 to-purple-500 text-white font-black rounded-2xl text-[10px] uppercase hover:shadow-lg transition transform hover:scale-[1.02]">📈 DOWNLOAD REKAP</button>
+                </div>
+
+                <!-- Live Presensi Log -->
+                <div id="logPresensi" class="space-y-3 max-h-[400px] overflow-y-auto"></div>
+            </div>
+        </section>
+
+        <!-- DASHBOARD TAB -->
+        <section id="tabDashboard" class="hidden space-y-6">
+            <div class="glass-premium p-8 rounded-[2.5rem]">
+                <h2 class="text-lg font-black mb-6 text-cyan-400 uppercase flex items-center gap-2">📊 STATISTIK</h2>
+                
+                <div class="space-y-4">
+                    <div class="flex justify-between items-center p-4 bg-gray-900/50 rounded-2xl">
+                        <span class="font-bold">Total Siswa Terdaftar</span>
+                        <span class="text-2xl font-black text-cyan-400" id="dashTotalSiswa">0</span>
+                    </div>
+                    <div class="flex justify-between items-center p-4 bg-gray-900/50 rounded-2xl">
+                        <span class="font-bold">Total Kehadiran Hari Ini</span>
+                        <span class="text-2xl font-black text-green-400" id="dashHadirHari">0</span>
+                    </div>
+                    <div class="flex justify-between items-center p-4 bg-gray-900/50 rounded-2xl">
+                        <span class="font-bold">Persentase Kehadiran</span>
+                        <span class="text-2xl font-black text-yellow-400" id="dashPersen">0%</span>
+                    </div>
+                    <div class="flex justify-between items-center p-4 bg-gray-900/50 rounded-2xl">
+                        <span class="font-bold">Mode Aktif</span>
+                        <span class="text-lg font-black text-cyan-400" id="dashMode">ISLAM</span>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="glass-premium p-8 rounded-[2.5rem]">
+                <h2 class="text-lg font-black mb-6 text-cyan-400 uppercase flex items-center gap-2">🏆 TOP 5 SISWA RAJIN</h2>
+                <div id="topSiswa" class="space-y-3"></div>
+            </div>
+        </section>
+    </main>
+</div>
+
+<script>
+    // Firebase Config
+    const firebaseConfig = {
+        apiKey: "AIzaSyBQwKb5BgWywX3bx3gKjNJsugJ1sUBr4X4",
+        authDomain: "absen-dzuhur.firebaseapp.com",
+        databaseURL: "https://absen-dzuhur-default-rtdb.asia-southeast1.firebasedatabase.app",
+        projectId: "absen-dzuhur",
+        storageBucket: "absen-dzuhur.firebasestorage.app",
+        messagingSenderId: "254784143918",
+        appId: "1:254784143918:web:5d9769d58fced6a0b015bf"
+    };
+    
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.database();
+    
+    // Global Variables
+    const PASSWORD = "bintang31";
+    const KELAS_LIST = ["X-1","X-2","X-3","X-4","X-5","X-6","XI-1","XI-2","XI-3","XI-4","XI-5","XI-6","XII-1","XII-2","XII-3","XII-4","XII-5","XII-6"];
+    
+    let isLogin = false;
+    let mode = 'Islam';
+    let scanner = null;
+    
+    // Audio untuk feedback
+    const audioSuccess = new Audio('data:audio/wav;base64,U3RlYWx0aCB8IFN1Y2Nlc3MgU291bmQ=');
+    const audioError = new Audio('data:audio/wav;base64,RXJyb3IgU291bmQ=');
+    
+    // Fallback beep menggunakan Web Audio API
+    function playBeep(type) {
+        try {
+            const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+            const oscillator = audioCtx.createOscillator();
+            const gainNode = audioCtx.createGain();
+            
+            oscillator.connect(gainNode);
+            gainNode.connect(audioCtx.destination);
+            
+            oscillator.type = 'sine';
+            oscillator.frequency.value = type === 'success' ? 880 : 440;
+            gainNode.gain.value = 0.3;
+            
+            oscillator.start();
+            gainNode.gain.exponentialRampToValueAtTime(0.00001, audioCtx.currentTime + 0.5);
+            oscillator.stop(audioCtx.currentTime + 0.5);
+        } catch(e) {
+            console.log('Audio not supported');
+        }
+    }
+    
+    // Toast notification
+    function showToast(message, type = 'success') {
+        const toast = document.createElement('div');
+        toast.className = `toast-notif glass-premium px-5 py-3 rounded-2xl ${type === 'success' ? 'text-green-400 border-green-500/30' : 'text-red-400 border-red-500/30'}`;
+        toast.innerHTML = `<div class="flex items-center gap-3"><span>${type === 'success' ? '✅' : '❌'}</span><span class="text-sm font-bold">${message}</span></div>`;
+        document.body.appendChild(toast);
+        setTimeout(() => toast.remove(), 3000);
+    }
+    
+    // Initialize
+    window.onload = function() {
+        const select = document.getElementById('kelas');
+        KELAS_LIST.forEach(k => select.innerHTML += `<option value="${k}">${k}</option>`);
+        
+        if(localStorage.getItem('login') === 'true') {
+            isLogin = true;
+            document.getElementById('modalLogin').classList.add('hidden');
+            document.getElementById('btnLogout').classList.remove('hidden');
+            listenPresensi();
+            updateDashboard();
+        }
+    };
+    
+    // Login
+    window.login = function() {
+        if(document.getElementById('password').value === PASSWORD) {
+            isLogin = true;
+            localStorage.setItem('login', 'true');
+            document.getElementById('modalLogin').classList.add('hidden');
+            document.getElementById('btnLogout').classList.remove('hidden');
+            switchTab('scan');
+            listenPresensi();
+            updateDashboard();
+            showToast('Login berhasil!', 'success');
+            playBeep('success');
+        } else {
+            showToast('Password salah!', 'error');
+            playBeep('error');
+        }
+    };
+    
+    window.logout = function() {
+        isLogin = false;
+        localStorage.removeItem('login');
+        location.reload();
+    };
+    
+    window.switchTab = function(tab) {
+        if(tab === 'scan' && !isLogin) {
+            document.getElementById('modalLogin').classList.remove('hidden');
+            return;
+        }
+        document.getElementById('tabAdmin').classList.toggle('hidden', tab !== 'admin');
+        document.getElementById('tabScan').classList.toggle('hidden', tab !== 'scan');
+        document.getElementById('tabDashboard').classList.toggle('hidden', tab !== 'dashboard');
+        
+        document.getElementById('btnAdmin').classList.toggle('active-tab', tab === 'admin');
+        document.getElementById('btnScan').classList.toggle('active-tab', tab === 'scan');
+        document.getElementById('btnDashboard').classList.toggle('active-tab', tab === 'dashboard');
+        
+        if(tab !== 'scan') stopCam();
+        if(tab === 'dashboard') updateDashboard();
+    };
+    
+    window.setMode = function(m) {
+        mode = m;
+        document.getElementById('modeIslam').classList.toggle('active-mode-islam', m === 'Islam');
+        document.getElementById('modeKristen').classList.toggle('active-mode-kristen', m === 'Kristen');
+        document.getElementById('dashMode').innerText = m;
+        showToast(`Mode: ${m}`, 'success');
+        playBeep('success');
+    };
+    
+    // Update Dashboard
+    async function updateDashboard() {
+        // Total siswa
+        const siswaSnap = await db.ref('siswa').once('value');
+        const semuaSiswa = siswaSnap.val() || {};
+        let totalSiswa = 0;
+        let semuaData = [];
+        
+        for(let kelas in semuaSiswa) {
+            for(let absen in semuaSiswa[kelas]) {
+                totalSiswa++;
+                semuaData.push(semuaSiswa[kelas][absen]);
+            }
+        }
+        document.getElementById('dashTotalSiswa').innerText = totalSiswa;
+        document.getElementById('statSiswa').innerText = totalSiswa;
+        
+        // Top 5 siswa rajin
+        const sorted = semuaData.sort((a,b) => (b.totalHadir || 0) - (a.totalHadir || 0)).slice(0,5);
+        let topHtml = '';
+        sorted.forEach((s, i) => {
+            topHtml += `<div class="flex justify-between items-center p-3 bg-gray-900/50 rounded-xl">
+                <div class="flex items-center gap-3">
+                    <span class="text-2xl">${i === 0 ? '🥇' : i === 1 ? '🥈' : i === 2 ? '🥉' : '📌'}</span>
+                    <span class="font-bold text-sm">${s.nama || '??'}</span>
+                </div>
+                <span class="text-cyan-400 font-black">${s.totalHadir || 0} x</span>
+            </div>`;
+        });
+        document.getElementById('topSiswa').innerHTML = topHtml || '<p class="text-center text-gray-500">Belum ada data</p>';
+    }
+    
+    // Real-time listener
+    function listenPresensi() {
+        const today = new Date().toLocaleDateString('id-ID').replace(/\//g, '-');
+        db.ref('presensi/' + today).on('value', async (snap) => {
+            const data = snap.val() || {};
+            const entries = Object.values(data);
+            const totalHadir = entries.length;
+            
+            document.getElementById('totalHadir').innerText = totalHadir + ' HADIR';
+            document.getElementById('statHadir').innerText = totalHadir;
+            document.getElementById('dashHadirHari').innerText = totalHadir;
+            
+            // Hitung persentase
+            const siswaSnap = await db.ref('siswa').once('value');
+            let totalSiswa = 0;
+            for(let kelas in siswaSnap.val() || {}) {
+                totalSiswa += Object.keys(siswaSnap.val()[kelas] || {}).length;
+            }
+            const persen = totalSiswa > 0 ? Math.round((totalHadir / totalSiswa) * 100) : 0;
+            document.getElementById('statPersen').innerText = persen + '%';
+            document.getElementById('dashPersen').innerText = persen + '%';
+            
+            if(entries.length === 0) {
+                document.getElementById('logPresensi').innerHTML = '<div class="text-center text-gray-500 py-10">✨ Belum ada presensi hari ini</div>';
+                return;
+            }
+            
+            entries.sort((a,b) => (b.timestamp||0) - (a.timestamp||0));
+            let html = '';
+            entries.slice(0,30).forEach(e => {
+                html += `<div class="glass-premium p-4 rounded-2xl flex justify-between items-center border-l-4 border-cyan-500 transition hover:scale-[1.01]">
+                    <div>
+                        <b class="text-white uppercase text-sm">${e.nama}</b>
+                        <div class="text-[9px] text-gray-400 mt-1">${e.kelas} • ${e.status} • ${e.jam}</div>
+                    </div>
+                    <div class="bg-gradient-to-r from-cyan-500/20 to-blue-500/20 px-3 py-2 rounded-xl text-cyan-400 font-black text-xs">#${e.totalHadir}</div>
+                </div>`;
+            });
+            document.getElementById('logPresensi').innerHTML = html;
+        });
+    }
+    
+    // ADMIN: Buat QR
+    window.buatQR = async function() {
+        const nama = document.getElementById('nama').value.trim();
+        const kelas = document.getElementById('kelas').value;
+        const absen = document.getElementById('absen').value.trim();
+        const jk = document.getElementById('jk').value;
+        const agama = document.getElementById('agama').value;
+        
+        if(!nama || !absen) {
+            showToast('Lengkapi semua data!', 'error');
+            playBeep('error');
+            return;
+        }
+        
+        document.getElementById('loading').classList.remove('hidden');
+        
+        await db.ref('siswa/' + kelas + '/' + absen).set({
+            nama: nama.toUpperCase(),
+            kelas, absen, jk, agama,
+            totalHadir: 0,
+            terdaftar: Date.now()
+        });
+        
+        const area = document.getElementById('qrArea');
+        area.innerHTML = `<div id="qrCard" class="glass-premium p-8 rounded-[2.5rem] flex flex-col items-center mt-6 transform transition hover:scale-[1.02]">
+            <div id="qrImg" class="mb-4 bg-white p-4 rounded-2xl"></div>
+            <b class="text-white uppercase text-xl">${nama}</b>
+            <p class="text-cyan-400 font-bold uppercase text-[9px] mt-2">${kelas} • ${jk === 'L' ? 'LAKI' : 'PEREMPUAN'} • ${agama} • ABSEN ${absen}</p>
+        </div>`;
+        
+        new QRCode(document.getElementById("qrImg"), {
+            text: `${nama.toUpperCase()}\n${kelas} - ${jk} - ${agama} - ABSEN ${absen}`,
+            width: 200, height: 200
+        });
+        
+        document.getElementById('loading').classList.add('hidden');
+        showToast('QR Code berhasil dibuat!', 'success');
+        playBeep('success');
+    };
+    
+    // Scanner
+    window.startCam = function() {
+        document.getElementById('btnStart').classList.add('hidden');
+        document.getElementById('btnStop').classList.remove('hidden');
+        
+        scanner = new Html5Qrcode("reader");
+        scanner.start(
+            { facingMode: "environment" },
+            { fps: 10, qrbox: 250 },
+            (text) => { scanner.pause(); prosesQR(text); },
+            () => {}
+        );
+        showToast('Kamera aktif', 'success');
+    };
+    
+    window.stopCam = function() {
+        if(scanner?.isScanning) scanner.stop();
+        document.getElementById('btnStart').classList.remove('hidden');
+        document.getElementById('btnStop').classList.add('hidden');
+        showToast('Kamera dimatikan', 'success');
+    };
+    
+    // Proses QR
+    async function prosesQR(text) {
+        document.getElementById('loading').classList.remove('hidden');
+        
+        try {
+            let cleanText = text.replace(/[–—|{}]/g, '-').trim();
+            cleanText = cleanText.replace(/\s+/g, ' ').trim();
+            
+            let nama = "", kelas = "", absen = "", jk = "L", agama = "Islam";
+            
+            // Parse QR
+            if(text.includes('\n')) {
+                const lines = text.split('\n').filter(l => l.trim() !== '');
+                if(lines.length >= 1) nama = lines[0].trim();
+                if(lines.length >= 2) {
+                    const parts = lines[1].split('-').map(p => p.trim());
+                    for(let p of parts) {
+                        if(p.includes('X-') || p.includes('XI-') || p.includes('XII-')) kelas = p;
+                        if(p.includes('ABSEN')) absen = p.replace('ABSEN', '').trim();
+                        if(p === 'L' || p === 'P') jk = p;
+                        if(p.includes('Islam')) agama = 'Islam';
+                        if(p.includes('Kristen')) agama = 'Kristen';
+                    }
+                }
+            }
+            
+            if(!kelas && cleanText.includes('-')) {
+                const parts = cleanText.split('-').map(p => p.trim());
+                for(let i = 0; i < parts.length; i++) {
+                    if(parts[i].includes('X-') || parts[i].includes('XI-') || parts[i].includes('XII-')) {
+                        kelas = parts[i];
+                        nama = parts.slice(0, i).join(' ').trim();
+                        break;
+                    }
+                }
+                for(let p of parts) {
+                    if(p.includes('ABSEN')) absen = p.replace('ABSEN', '').trim();
+                    else if(p.match(/^[0-9]+$/) && !absen) absen = p;
+                    if(p === 'L' || p === 'P') jk = p;
+                    if(p.includes('Islam')) agama = 'Islam';
+                    if(p.includes('Kristen')) agama = 'Kristen';
+                }
+            }
+            
+            if(!kelas) {
+                const words = cleanText.split(' ');
+                for(let w of words) {
+                    if(w.includes('X-') || w.includes('XI-') || w.includes('XII-')) kelas = w;
+                }
+                for(let w of words) {
+                    if(w.match(/^[0-9]+$/)) absen = w;
+                }
+                if(!nama) nama = words.slice(0, 3).join(' ');
+            }
+            
+            if(!nama) nama = "SISWA";
+            if(!kelas) kelas = "X-1";
+            if(!absen) {
+                const angka = cleanText.match(/\b(\d+)\b/);
+                if(angka) absen = angka[1];
+                else absen = "1";
+            }
+            
+            if(agama !== mode) throw `Mode harus ${mode}`;
+            
+            const today = new Date().toLocaleDateString('id-ID').replace(/\//g, '-');
+            const presensiRef = db.ref('presensi/' + today + '/' + kelas + '_' + absen);
+            const presensiSnap = await presensiRef.once('value');
+            
+            if(presensiSnap.exists()) {
+                const data = presensiSnap.val();
+                throw `Sudah absen jam ${data.jam}`;
+            }
+            
+            const siswaRef = db.ref('siswa/' + kelas + '/' + absen);
+            const siswaSnap = await siswaRef.once('value');
+            
+            let totalHadir = 0;
+            let dataSiswa = {};
+            
+            if(siswaSnap.exists()) {
+                dataSiswa = siswaSnap.val();
+                totalHadir = dataSiswa.totalHadir || 0;
+                if(!dataSiswa.nama) dataSiswa.nama = nama;
+                if(!dataSiswa.jk) dataSiswa.jk = jk;
+                if(!dataSiswa.agama) dataSiswa.agama = agama;
+            } else {
+                dataSiswa = { nama, kelas, absen, jk, agama, totalHadir: 0 };
+            }
+            
+            totalHadir++;
+            dataSiswa.totalHadir = totalHadir;
+            dataSiswa.lastUpdate = Date.now();
+            
+            await siswaRef.set(dataSiswa);
+            
+            const jam = new Date().toLocaleTimeString('id-ID');
+            const status = mode === 'Islam' ? 'DZUHUR' : 'IBADAH';
+            
+            await presensiRef.set({
+                nama: dataSiswa.nama,
+                kelas: dataSiswa.kelas,
+                absen: dataSiswa.absen,
+                jk: dataSiswa.jk,
+                agama: dataSiswa.agama,
+                jam: jam,
+                status: status,
+                totalHadir: totalHadir,
+                timestamp: Date.now()
+            });
+            
+            feedback('✅', nama, `Hadir ke-${totalHadir}`, 'bg-gradient-to-r from-green-600 to-green-500');
+            showToast(`${nama} - Hadir!`, 'success');
+            playBeep('success');
+            updateDashboard();
+            
+        } catch(e) {
+            feedback('❌', 'GAGAL', e.toString(), 'bg-gradient-to-r from-red-600 to-red-500');
+            showToast(e.toString(), 'error');
+            playBeep('error');
+        }
+        
+        document.getElementById('loading').classList.add('hidden');
+        setTimeout(() => scanner?.resume(), 2000);
+    }
+    
+    function feedback(icon, name, msg, bg) {
+        const fb = document.getElementById('feedback');
+        document.getElementById('fbIcon').innerText = icon;
+        document.getElementById('fbNama').innerText = name;
+        document.getElementById('fbMsg').innerText = msg;
+        document.getElementById('fbBox').className = `text-center text-white p-10 rounded-[3rem] shadow-2xl ${bg}`;
+        fb.classList.remove('hidden');
+        setTimeout(() => fb.classList.add('hidden'), 2000);
+    }
+    
+    // Download Harian
+    window.downloadHarian = async function() {
+        document.getElementById('loading').classList.remove('hidden');
+        
+        const today = new Date().toLocaleDateString('id-ID').replace(/\//g, '-');
+        const zip = new JSZip();
+        const presensiSnap = await db.ref('presensi/' + today).once('value');
+        const presensi = presensiSnap.val() || {};
+        
+        const perKelas = {};
+        Object.values(presensi).forEach(p => {
+            if(!perKelas[p.kelas]) perKelas[p.kelas] = [];
+            perKelas[p.kelas].push(p);
+        });
+        
+        for(let kelas in perKelas) {
+            const siswa = perKelas[kelas].sort((a,b) => parseInt(a.absen) - parseInt(b.absen));
+            const rows = [['NO', 'NAMA', 'KETERANGAN', 'JAM']];
+            const semuaAbsen = {};
+            siswa.forEach(s => semuaAbsen[s.absen] = s);
+            
+            const siswaSnap = await db.ref('siswa/' + kelas).once('value');
+            const dataSiswa = siswaSnap.val() || {};
+            const daftarAbsen = Object.keys(dataSiswa).map(Number).sort((a,b) => a - b);
+            
+            daftarAbsen.forEach(no => {
+                const s = semuaAbsen[no];
+                if(s) rows.push([no, s.nama, s.status, s.jam]);
+                else if(dataSiswa[no]) rows.push([no, dataSiswa[no].nama, 'ALPA', '-']);
+            });
+            
+            const ws = XLSX.utils.aoa_to_sheet(rows);
+            const wb = XLSX.utils.book_new();
+            XLSX.utils.book_append_sheet(wb, ws, 'Presensi');
+            zip.file(`PRESENSI_${kelas}_${today}.xlsx`, XLSX.write(wb, { type: 'array' }));
+        }
+        
+        const content = await zip.generateAsync({ type: 'blob' });
+        const link = document.createElement('a');
+        link.href = URL.createObjectURL(content);
+        link.download = `HARIAN_${today}.zip`;
+        link.click();
+        
+        document.getElementById('loading').classList.add('hidden');
+        showToast('Download Harian selesai!', 'success');
+        playBeep('success');
+    };
+    
+    // Download Rekap
+    window.downloadRekap = async function() {
+        document.getElementById('loading').classList.remove('hidden');
+        
+        const zip = new JSZip();
+        
+        try {
+            const siswaSnap = await db.ref('siswa').once('value');
+            const semuaSiswa = siswaSnap.val() || {};
+            
+            for(let kelas in semuaSiswa) {
+                const siswa = [];
+                for(let absen in semuaSiswa[kelas]) {
+                    const data = semuaSiswa[kelas][absen];
+                    siswa.push({
+                        absen: parseInt(absen),
+                        nama: data.nama || 'TANPA NAMA',
+                        jk: data.jk || '-',
+                        agama: data.agama || '-',
+                        totalHadir: data.totalHadir || 0,
+                        kelas: data.kelas || kelas
+                    });
+                }
+                siswa.sort((a,b) => a.absen - b.absen);
+                
+                const rows = [['NO. ABSEN', 'NAMA LENGKAP', 'JENIS KELAMIN', 'AGAMA', 'TOTAL HADIR', 'KELAS']];
+                siswa.forEach(s => {
+                    rows.push([s.absen, s.nama, s.jk === 'L' ? 'LAKI-LAKI' : (s.jk === 'P' ? 'PEREMPUAN' : s.jk), s.agama, s.totalHadir, s.kelas]);
+                });
+                
+                const ws = XLSX.utils.aoa_to_sheet(rows);
+                ws['!cols'] = [{ wch: 10 }, { wch: 30 }, { wch: 15 }, { wch: 15 }, { wch: 15 }, { wch: 10 }];
+                const wb = XLSX.utils.book_new();
+                XLSX.utils.book_append_sheet(wb, ws, 'Rekap');
+                zip.file(`REKAP_${kelas}.xlsx`, XLSX.write(wb, { type: 'array' }));
+            }
+            
+            const content = await zip.generateAsync({ type: 'blob' });
+            const link = document.createElement('a');
+            link.href = URL.createObjectURL(content);
+            link.download = `REKAP_ALL_KELAS_${new Date().toLocaleDateString('id-ID').replace(/\//g, '-')}.zip`;
+            link.click();
+            
+            showToast('Download Rekap selesai!', 'success');
+            playBeep('success');
+        } catch(error) {
+            showToast('Gagal download: ' + error.message, 'error');
+            playBeep('error');
+        }
+        
+        document.getElementById('loading').classList.add('hidden');
+    };
+    
+    window.cekDataSiswa = async function() {
+        try {
+            const snap = await db.ref('siswa').once('value');
+            const data = snap.val();
+            let pesan = "DATA SISWA:\n\n";
+            if(!data) pesan = "TIDAK ADA DATA!";
+            else {
+                for(let kelas in data) {
+                    pesan += `📚 ${kelas}:\n`;
+                    for(let absen in data[kelas]) {
+                        const s = data[kelas][absen];
+                        pesan += `   ${absen}. ${s.nama || '?'} | ${s.jk || '?'} | ${s.agama || '?'} | Hadir: ${s.totalHadir || 0}\n`;
+                    }
+                    pesan += "\n";
+                }
+            }
+            alert(pesan);
+        } catch(e) {
+            alert("Error: " + e.message);
+        }
+    };
+</script>
+</body>
 </html>
