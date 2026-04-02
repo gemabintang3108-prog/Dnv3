@@ -1,733 +1,723 @@
-<!DOCTYPE html>
-<html lang="id">
+<!DOCTYPE html><html lang="id">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Dzuhur 12 - Final</title>
-    
-    <!-- Firebase -->
-    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
-    
-    <!-- Scanner -->
-    <script src="https://unpkg.com/html5-qrcode"></script>
-    
-    <!-- Tailwind -->
-    <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;800&display=swap" rel="stylesheet">
-    
-    <!-- Excel & Zip -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
-    
-    <style>
-        body { font-family: 'Plus Jakarta Sans', sans-serif; background: #0d1117; color: #c9d1d9; }
-        .glass { background: rgba(22, 27, 34, 0.8); backdrop-filter: blur(10px); border: 1px solid #30363d; }
-        .active-tab { background: #0891b2; color: white; }
-        .active-mode-islam { background: #15803d; color: white; }
-        .active-mode-kristen { background: #1d4ed8; color: white; }
-        #reader { border: none !important; border-radius: 1.5rem; }
-    </style>
-</head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Dzuhur 12</title>
+  <meta name="description" content="Sistem presensi Dzuhur 12 dengan QR scanner, rekap harian, dan download Excel." />  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>  <script src="https://unpkg.com/html5-qrcode"></script>  <script src="https://cdn.tailwindcss.com"></script>  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>  <style>
+    :root {
+      --bg: #07111f;
+      --panel: rgba(14, 23, 39, 0.82);
+      --panel-2: rgba(17, 25, 40, 0.72);
+      --line: rgba(148, 163, 184, 0.14);
+      --text: #e5eef8;
+      --muted: #8aa0bd;
+      --cyan: #06b6d4;
+      --green: #16a34a;
+      --blue: #2563eb;
+      --red: #dc2626;
+      --purple: #7c3aed;
+      --shadow: 0 20px 60px rgba(0, 0, 0, 0.35);
+    }
+
+    * { box-sizing: border-box; }
+    html { scroll-behavior: smooth; }
+    body {
+      font-family: 'Plus Jakarta Sans', sans-serif;
+      background:
+        radial-gradient(circle at top, rgba(6, 182, 212, 0.12), transparent 35%),
+        radial-gradient(circle at bottom right, rgba(124, 58, 237, 0.14), transparent 28%),
+        linear-gradient(180deg, #030712 0%, #07111f 100%);
+      color: var(--text);
+      min-height: 100vh;
+    }
+
+    .glass {
+      background: var(--panel);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      border: 1px solid var(--line);
+      box-shadow: var(--shadow);
+    }
+
+    .soft-card {
+      background: linear-gradient(180deg, rgba(18, 29, 48, 0.94), rgba(10, 17, 30, 0.9));
+      border: 1px solid rgba(148, 163, 184, 0.12);
+      box-shadow: var(--shadow);
+    }
+
+    .chip {
+      border: 1px solid rgba(148, 163, 184, 0.15);
+      background: rgba(15, 23, 42, 0.65);
+    }
+
+    .btn {
+      transition: 0.22s ease;
+      transform: translateY(0);
+    }
+    .btn:hover { transform: translateY(-1px); filter: brightness(1.06); }
+    .btn:active { transform: translateY(0); }
+
+    .active-tab {
+      background: linear-gradient(135deg, #0891b2, #2563eb);
+      color: white;
+      box-shadow: 0 8px 20px rgba(8, 145, 178, 0.35);
+    }
+
+    .active-mode-islam {
+      background: linear-gradient(135deg, #15803d, #22c55e);
+      color: white;
+      border-color: transparent !important;
+    }
+
+    .active-mode-kristen {
+      background: linear-gradient(135deg, #1d4ed8, #3b82f6);
+      color: white;
+      border-color: transparent !important;
+    }
+
+    input, select {
+      outline: none;
+    }
+
+    input:focus, select:focus {
+      border-color: rgba(6, 182, 212, 0.6) !important;
+      box-shadow: 0 0 0 4px rgba(6, 182, 212, 0.08);
+    }
+
+    #reader {
+      border: none !important;
+      border-radius: 1.75rem;
+      overflow: hidden;
+    }
+
+    #reader video {
+      border-radius: 1.25rem;
+    }
+
+    .status-dot {
+      width: 10px;
+      height: 10px;
+      border-radius: 999px;
+      display: inline-block;
+      box-shadow: 0 0 20px currentColor;
+    }
+
+    .hide-source-note {
+      color: var(--muted);
+      font-size: 12px;
+    }
+  </style></head>
 <body class="pb-10">
-
-<!-- Firebase Config -->
-<script>
+  <script>
     const firebaseConfig = {
-        apiKey: "AIzaSyBQwKb5BgWywX3bx3gKjNJsugJ1sUBr4X4",
-        authDomain: "absen-dzuhur.firebaseapp.com",
-        databaseURL: "https://absen-dzuhur-default-rtdb.asia-southeast1.firebasedatabase.app",
-        projectId: "absen-dzuhur",
-        storageBucket: "absen-dzuhur.firebasestorage.app",
-        messagingSenderId: "254784143918",
-        appId: "1:254784143918:web:5d9769d58fced6a0b015bf"
-    };
-    
-    firebase.initializeApp(firebaseConfig);
-    const db = firebase.database();
-</script>
+      apiKey: "AIzaSyBQwKb5BgWywX3bx3gKjNJsugJ1sUBr4X4",
+      authDomain: "absen-dzuhur.firebaseapp.com",
+      databaseURL: "https://absen-dzuhur-default-rtdb.asia-southeast1.firebasedatabase.app",
+      projectId: "absen-dzuhur",
+      storageBucket: "absen-dzuhur.firebasestorage.app",
+      messagingSenderId: "254784143918",
+      appId: "1:254784143918:web:5d9769d58fced6a0b015bf"
+    };firebase.initializeApp(firebaseConfig);
+const db = firebase.database();
 
-<!-- Loading -->
-<div id="loading" class="fixed inset-0 bg-black/80 z-[100] flex items-center justify-center hidden">
-    <div class="w-12 h-12 border-4 border-cyan-500 border-t-transparent rounded-full animate-spin"></div>
-</div>
-
-<!-- Login Modal -->
-<div id="modalLogin" class="fixed inset-0 bg-black/95 z-[999] flex items-center justify-center p-4">
-    <div class="glass w-full max-w-sm p-10 rounded-[3rem] text-center">
-        <h2 class="text-2xl font-bold text-white mb-2">LOGIN GURU</h2>
-        <input type="password" id="password" placeholder="Password" class="w-full bg-gray-900 border border-gray-700 p-4 rounded-2xl text-white text-center mb-4">
-        <button onclick="login()" class="w-full py-4 bg-cyan-600 text-white font-bold rounded-2xl">MASUK</button>
+  </script>  <div id="loading" class="fixed inset-0 bg-black/70 backdrop-blur-sm z-[100] flex items-center justify-center hidden">
+    <div class="flex flex-col items-center gap-4">
+      <div class="w-14 h-14 border-4 border-cyan-400 border-t-transparent rounded-full animate-spin"></div>
+      <p class="text-sm tracking-[0.25em] uppercase text-cyan-300">Memproses...</p>
     </div>
-</div>
-
-<!-- Header -->
-<header class="py-8 text-center relative">
-    <h1 class="text-4xl font-extrabold bg-gradient-to-b from-white to-gray-500 bg-clip-text text-transparent">DZUHUR 12</h1>
-    <p class="text-[9px] text-cyan-500 uppercase tracking-[0.3em]">DUAL DOWNLOAD</p>
-    <button id="btnLogout" onclick="logout()" class="hidden absolute top-4 right-4 bg-red-900/30 text-red-500 px-3 py-1.5 rounded-xl text-[8px]">KELUAR</button>
-</header>
-
-<!-- Tab Nav -->
-<div class="flex justify-center mb-8 px-4">
-    <div class="glass p-1.5 rounded-2xl flex gap-2 w-full max-w-[320px]">
-        <button onclick="switchTab('admin')" id="btnAdmin" class="flex-1 py-3.5 rounded-xl font-bold active-tab text-xs">ADMIN</button>
-        <button onclick="switchTab('scan')" id="btnScan" class="flex-1 py-3.5 rounded-xl font-bold text-gray-400 text-xs">SCAN</button>
+  </div>  <div id="modalLogin" class="fixed inset-0 bg-black/85 backdrop-blur-md z-[999] flex items-center justify-center p-4">
+    <div class="glass w-full max-w-sm p-8 rounded-[2rem] text-center">
+      <div class="mx-auto mb-5 w-16 h-16 rounded-2xl bg-cyan-500/15 flex items-center justify-center text-2xl">🔐</div>
+      <h2 class="text-2xl font-extrabold text-white mb-2">Login Guru</h2>
+      <p class="text-sm text-slate-400 mb-6">Masuk untuk membuka mode scan dan rekap presensi.</p>
+      <input type="password" id="password" placeholder="Masukkan password" class="w-full bg-slate-950/70 border border-slate-700 p-4 rounded-2xl text-white text-center mb-4">
+      <button onclick="login()" class="btn w-full py-4 bg-gradient-to-r from-cyan-600 to-blue-600 text-white font-bold rounded-2xl">Masuk</button>
     </div>
+  </div>  <div class="max-w-6xl mx-auto px-4 pt-6">
+    <header class="relative overflow-hidden rounded-[2rem] glass p-6 md:p-8 mb-6">
+      <div class="absolute inset-0 bg-gradient-to-r from-cyan-500/10 via-transparent to-purple-500/10 pointer-events-none"></div>
+      <div class="relative flex flex-col md:flex-row md:items-center md:justify-between gap-6">
+        <div>
+          <div class="inline-flex items-center gap-2 chip rounded-full px-3 py-1 text-[11px] uppercase tracking-[0.25em] text-cyan-300 mb-4">
+            <span class="status-dot text-cyan-400 bg-cyan-400"></span>
+            Sistem Presensi QR
+          </div>
+          <h1 class="text-3xl md:text-5xl font-extrabold bg-gradient-to-b from-white to-slate-400 bg-clip-text text-transparent">Dzuhur 12</h1>
+          <p class="mt-3 text-sm md:text-base text-slate-400 max-w-2xl">Admin siswa, scan QR, log realtime, dan export rekap harian dalam tampilan yang lebih rapi dan modern.</p>
+        </div>
+        <div class="flex items-center gap-3">
+          <div class="chip rounded-2xl px-4 py-3 text-right">
+            <p class="text-[10px] uppercase tracking-[0.25em] text-slate-500">Status</p>
+            <p id="headerStatus" class="text-sm font-bold text-emerald-400">Belum login</p>
+          </div>
+          <button id="btnLogout" onclick="logout()" class="hidden btn bg-red-900/30 text-red-300 border border-red-500/20 px-4 py-3 rounded-2xl text-sm font-bold">Keluar</button>
+        </div>
+      </div>
+    </header><div class="flex justify-center mb-6">
+  <div class="glass p-1.5 rounded-2xl flex gap-2 w-full max-w-[360px]">
+    <button onclick="switchTab('admin')" id="btnAdmin" class="btn flex-1 py-3.5 rounded-xl font-bold active-tab text-sm">Admin</button>
+    <button onclick="switchTab('scan')" id="btnScan" class="btn flex-1 py-3.5 rounded-xl font-bold text-slate-400 text-sm">Scan</button>
+  </div>
 </div>
 
-<main class="max-w-2xl mx-auto px-4">
-    <!-- ADMIN TAB -->
-    <section id="tabAdmin" class="space-y-6">
-        <div class="glass p-8 rounded-[2.5rem]">
-            <h2 class="text-sm font-black mb-6 text-white uppercase">Tambah Siswa</h2>
-            <div class="grid gap-4">
-                <input type="text" id="nama" placeholder="Nama Lengkap" class="w-full bg-gray-900 border border-gray-800 p-4 rounded-2xl text-white">
-                <div class="flex gap-4">
-                    <select id="kelas" class="w-1/2 bg-gray-900 border border-gray-800 p-4 rounded-2xl text-white"></select>
-                    <input type="number" id="absen" placeholder="No. Absen" class="w-1/2 bg-gray-900 border border-gray-800 p-4 rounded-2xl text-white">
-                </div>
-                <div class="flex gap-4">
-                    <select id="jk" class="w-1/2 bg-gray-900 border border-gray-800 p-4 rounded-2xl text-white">
-                        <option value="L">LAKI</option>
-                        <option value="P">PEREMPUAN</option>
-                    </select>
-                    <select id="agama" class="w-1/2 bg-gray-900 border border-gray-800 p-4 rounded-2xl text-white">
-                        <option value="Islam">ISLAM</option>
-                        <option value="Kristen">KRISTEN</option>
-                    </select>
-                </div>
-                <button onclick="buatQR()" class="bg-blue-600 py-4 rounded-2xl font-black text-xs uppercase">BUAT QR</button>
+<main class="grid xl:grid-cols-[1.05fr_1.4fr] gap-6 items-start">
+  <section id="tabAdmin" class="space-y-6">
+    <div class="soft-card p-6 md:p-8 rounded-[2rem]">
+      <div class="flex items-center justify-between gap-4 mb-6">
+        <div>
+          <h2 class="text-lg font-extrabold text-white">Tambah Siswa</h2>
+          <p class="text-sm text-slate-400">Buat data siswa dan QR dengan format yang lebih konsisten.</p>
+        </div>
+        <div class="chip px-3 py-2 rounded-xl text-[11px] uppercase text-slate-400">Admin Panel</div>
+      </div>
+
+      <div class="grid gap-4">
+        <input type="text" id="nama" placeholder="Nama lengkap" class="w-full bg-slate-950/70 border border-slate-800 p-4 rounded-2xl text-white">
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <select id="kelas" class="w-full bg-slate-950/70 border border-slate-800 p-4 rounded-2xl text-white"></select>
+          <input type="number" id="absen" placeholder="No. absen" class="w-full bg-slate-950/70 border border-slate-800 p-4 rounded-2xl text-white">
+        </div>
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <select id="jk" class="w-full bg-slate-950/70 border border-slate-800 p-4 rounded-2xl text-white">
+            <option value="L">Laki-laki</option>
+            <option value="P">Perempuan</option>
+          </select>
+          <select id="agama" class="w-full bg-slate-950/70 border border-slate-800 p-4 rounded-2xl text-white">
+            <option value="Islam">Islam</option>
+            <option value="Kristen">Kristen</option>
+          </select>
+        </div>
+        <button onclick="buatQR()" class="btn bg-gradient-to-r from-blue-600 to-cyan-600 py-4 rounded-2xl font-black text-sm uppercase">Buat QR Siswa</button>
+      </div>
+    </div>
+
+    <div id="qrArea" class="soft-card rounded-[2rem] p-6 min-h-[220px] flex items-center justify-center text-slate-500 text-sm">
+      QR siswa akan muncul di sini.
+    </div>
+  </section>
+
+  <section id="tabScan" class="hidden space-y-6">
+    <div class="soft-card p-5 rounded-[2rem]">
+      <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+        <div>
+          <h2 class="text-lg font-extrabold text-white">Mode Presensi</h2>
+          <p class="text-sm text-slate-400">Pilih mode sebelum mulai scan QR siswa.</p>
+        </div>
+        <div class="glass p-2 rounded-[1.5rem] flex gap-2 w-full md:w-auto">
+          <button onclick="setMode('Islam')" id="modeIslam" class="btn flex-1 md:min-w-[140px] py-3 rounded-[1rem] font-black text-xs uppercase border border-slate-700 active-mode-islam">☪️ Islam</button>
+          <button onclick="setMode('Kristen')" id="modeKristen" class="btn flex-1 md:min-w-[140px] py-3 rounded-[1rem] font-black text-xs uppercase border border-slate-700">✝️ Kristen</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="grid lg:grid-cols-[1.15fr_0.85fr] gap-6">
+      <div class="soft-card p-5 md:p-6 rounded-[2rem]">
+        <div class="flex items-center justify-between gap-3 mb-4">
+          <div>
+            <h3 class="text-base font-extrabold text-white">Scanner Kamera</h3>
+            <p class="text-sm text-slate-400">Arahkan QR ke kamera belakang.</p>
+          </div>
+          <div class="chip rounded-xl px-3 py-2 text-xs text-cyan-300">Live Scan</div>
+        </div>
+
+        <div class="flex gap-3 mb-4">
+          <button onclick="startCam()" id="btnStart" class="btn flex-1 py-4 bg-gradient-to-r from-cyan-600 to-blue-600 text-white font-black rounded-[1.25rem] text-xs uppercase">Aktifkan Kamera</button>
+          <button onclick="stopCam()" id="btnStop" class="hidden btn flex-1 py-4 bg-gradient-to-r from-red-600 to-rose-600 text-white font-black rounded-[1.25rem] text-xs uppercase">Matikan</button>
+        </div>
+
+        <div class="glass p-4 rounded-[2rem] relative min-h-[320px]">
+          <div id="reader"></div>
+          <div id="feedback" class="absolute inset-0 flex items-center justify-center rounded-[2rem] hidden">
+            <div id="fbBox" class="text-center text-white p-8 rounded-[2rem] shadow-2xl min-w-[240px]">
+              <div id="fbIcon" class="text-6xl mb-3"></div>
+              <p id="fbNama" class="text-2xl font-black uppercase mb-1"></p>
+              <p id="fbMsg" class="text-xs opacity-90 font-bold uppercase tracking-wide"></p>
             </div>
+          </div>
         </div>
-        <div id="qrArea" class="flex flex-col items-center"></div>
-    </section>
+      </div>
 
-    <!-- SCAN TAB -->
-    <section id="tabScan" class="hidden space-y-6">
-        <!-- Mode -->
-        <div class="glass p-2 rounded-[2rem] flex gap-2">
-            <button onclick="setMode('Islam')" id="modeIslam" class="flex-1 py-4 rounded-[1.5rem] font-black text-[10px] uppercase border border-gray-800 active-mode-islam">☪️ ISLAM</button>
-            <button onclick="setMode('Kristen')" id="modeKristen" class="flex-1 py-4 rounded-[1.5rem] font-black text-[10px] uppercase border border-gray-800">✝️ KRISTEN</button>
-        </div>
-
-        <!-- Kamera -->
-        <div class="flex gap-3">
-            <button onclick="startCam()" id="btnStart" class="flex-1 py-5 bg-cyan-600 text-white font-black rounded-[2rem] text-[10px] uppercase">AKTIFKAN KAMERA</button>
-            <button onclick="stopCam()" id="btnStop" class="hidden flex-1 py-5 bg-red-600 text-white font-black rounded-[2rem] text-[10px] uppercase">MATIKAN</button>
-        </div>
-
-        <!-- Scanner -->
-        <div class="glass p-5 rounded-[3rem] relative min-h-[300px]">
-            <div id="reader"></div>
-            <div id="feedback" class="absolute inset-0 flex items-center justify-center rounded-[3rem] hidden">
-                <div id="fbBox" class="text-center text-white p-10 rounded-[3rem] shadow-2xl">
-                    <div id="fbIcon" class="text-6xl mb-3"></div>
-                    <p id="fbNama" class="text-2xl font-black uppercase mb-1"></p>
-                    <p id="fbMsg" class="text-[10px] opacity-80 font-bold uppercase"></p>
-                </div>
+      <div class="space-y-6">
+        <div class="soft-card p-5 rounded-[2rem]">
+          <div class="flex items-center justify-between mb-5">
+            <div>
+              <p class="text-sm text-slate-400">Hadir hari ini</p>
+              <h3 id="totalHadir" class="text-3xl font-extrabold text-cyan-400">0</h3>
             </div>
+            <div class="chip rounded-2xl px-4 py-3 text-right">
+              <p class="text-[10px] uppercase tracking-[0.25em] text-slate-500">Mode</p>
+              <p id="modeLabel" class="text-sm font-bold text-white">Islam</p>
+            </div>
+          </div>
+
+          <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+            <button onclick="downloadHarian()" class="btn py-4 bg-gradient-to-r from-blue-600 to-sky-600 text-white font-black rounded-2xl text-xs uppercase">Harian</button>
+            <button onclick="downloadRekap()" class="btn py-4 bg-gradient-to-r from-purple-600 to-fuchsia-600 text-white font-black rounded-2xl text-xs uppercase">Rekap</button>
+            <button onclick="cekDataSiswa()" class="btn py-4 bg-slate-700 text-white font-black rounded-2xl text-xs uppercase">Debug</button>
+          </div>
         </div>
 
-        <!-- Dua Tombol Download -->
-        <div class="glass p-6 rounded-[2.5rem]">
-            <div class="flex justify-between text-xs mb-4 px-2">
-                <span class="text-green-400 font-bold">🟢 ONLINE</span>
-                <span class="text-cyan-400 font-bold" id="totalHadir">0 HADIR</span>
+        <div class="soft-card p-5 rounded-[2rem]">
+          <div class="flex items-center justify-between mb-4">
+            <div>
+              <h3 class="text-base font-extrabold text-white">Log Presensi</h3>
+              <p class="text-sm text-slate-400">30 scan terbaru akan tampil di bawah.</p>
             </div>
-            
-            <div class="grid grid-cols-3 gap-2 mb-4">
-    <button onclick="downloadHarian()" class="py-4 bg-blue-600 text-white font-black rounded-2xl text-[8px] uppercase">HARIAN</button>
-    <button onclick="downloadRekap()" class="py-4 bg-purple-600 text-white font-black rounded-2xl text-[8px] uppercase">REKAP</button>
-    <button onclick="cekDataSiswa()" class="py-4 bg-gray-600 text-white font-black rounded-2xl text-[8px] uppercase">DEBUG</button>
-</div>
-            
-            <div id="logPresensi" class="space-y-3 max-h-[400px] overflow-y-auto"></div>
+            <div class="chip rounded-xl px-3 py-2 text-xs text-emerald-300">Realtime</div>
+          </div>
+          <div id="logPresensi" class="space-y-3 max-h-[500px] overflow-y-auto pr-1"></div>
         </div>
-    </section>
+      </div>
+    </div>
+  </section>
 </main>
 
-<script>
+  </div>  <script>
     const PASSWORD = "bintang31";
     const KELAS_LIST = ["X-1","X-2","X-3","X-4","X-5","X-6","XI-1","XI-2","XI-3","XI-4","XI-5","XI-6","XII-1","XII-2","XII-3","XII-4","XII-5","XII-6"];
-    
+
     let isLogin = false;
     let mode = 'Islam';
     let scanner = null;
-    
-    // Init
+
     window.onload = function() {
-        const select = document.getElementById('kelas');
-        KELAS_LIST.forEach(k => select.innerHTML += `<option value="${k}">${k}</option>`);
-        
-        if(localStorage.getItem('login') === 'true') {
-            isLogin = true;
-            document.getElementById('modalLogin').classList.add('hidden');
-            document.getElementById('btnLogout').classList.remove('hidden');
-            listenPresensi();
-        }
+      const select = document.getElementById('kelas');
+      KELAS_LIST.forEach(k => {
+        select.innerHTML += `<option value="${k}">${k}</option>`;
+      });
+
+      if(localStorage.getItem('login') === 'true') {
+        isLogin = true;
+        document.getElementById('modalLogin').classList.add('hidden');
+        document.getElementById('btnLogout').classList.remove('hidden');
+        document.getElementById('headerStatus').innerText = 'Sudah login';
+        switchTab('scan');
+        listenPresensi();
+      }
     };
-    
-    // Login
+
     window.login = function() {
-        if(document.getElementById('password').value === PASSWORD) {
-            isLogin = true;
-            localStorage.setItem('login', 'true');
-            document.getElementById('modalLogin').classList.add('hidden');
-            document.getElementById('btnLogout').classList.remove('hidden');
-            switchTab('scan');
-            listenPresensi();
-        }
+      if(document.getElementById('password').value === PASSWORD) {
+        isLogin = true;
+        localStorage.setItem('login', 'true');
+        document.getElementById('modalLogin').classList.add('hidden');
+        document.getElementById('btnLogout').classList.remove('hidden');
+        document.getElementById('headerStatus').innerText = 'Sudah login';
+        switchTab('scan');
+        listenPresensi();
+        return;
+      }
+      alert('Password salah');
     };
-    
+
     window.logout = function() {
-        isLogin = false;
-        localStorage.removeItem('login');
-        location.reload();
+      isLogin = false;
+      localStorage.removeItem('login');
+      location.reload();
     };
-    
+
     window.switchTab = function(tab) {
-        if(tab === 'scan' && !isLogin) {
-            document.getElementById('modalLogin').classList.remove('hidden');
-            return;
-        }
-        document.getElementById('tabAdmin').classList.toggle('hidden', tab !== 'admin');
-        document.getElementById('tabScan').classList.toggle('hidden', tab !== 'scan');
-        document.getElementById('btnAdmin').classList.toggle('active-tab', tab === 'admin');
-        document.getElementById('btnScan').classList.toggle('active-tab', tab === 'scan');
-        if(tab !== 'scan') stopCam();
+      if(tab === 'scan' && !isLogin) {
+        document.getElementById('modalLogin').classList.remove('hidden');
+        return;
+      }
+
+      document.getElementById('tabAdmin').classList.toggle('hidden', tab !== 'admin');
+      document.getElementById('tabScan').classList.toggle('hidden', tab !== 'scan');
+
+      document.getElementById('btnAdmin').classList.toggle('active-tab', tab === 'admin');
+      document.getElementById('btnScan').classList.toggle('active-tab', tab === 'scan');
+      document.getElementById('btnAdmin').classList.toggle('text-slate-400', tab !== 'admin');
+      document.getElementById('btnScan').classList.toggle('text-slate-400', tab !== 'scan');
+
+      if(tab !== 'scan') stopCam();
     };
-    
+
     window.setMode = function(m) {
-        mode = m;
-        document.getElementById('modeIslam').classList.toggle('active-mode-islam', m === 'Islam');
-        document.getElementById('modeKristen').classList.toggle('active-mode-kristen', m === 'Kristen');
+      mode = m;
+      document.getElementById('modeLabel').innerText = m;
+      document.getElementById('modeIslam').classList.toggle('active-mode-islam', m === 'Islam');
+      document.getElementById('modeKristen').classList.toggle('active-mode-kristen', m === 'Kristen');
     };
-    
-    // Listen realtime
-    function listenPresensi() {
-        const today = new Date().toLocaleDateString('id-ID').replace(/\//g, '-');
-        db.ref('presensi/' + today).on('value', (snap) => {
-            const data = snap.val() || {};
-            const entries = Object.values(data);
-            document.getElementById('totalHadir').innerText = entries.length + ' HADIR';
-            
-            if(entries.length === 0) {
-                document.getElementById('logPresensi').innerHTML = '<p class="text-center text-gray-600 py-10">Belum ada presensi</p>';
-                return;
-            }
-            
-            entries.sort((a,b) => (b.timestamp||0) - (a.timestamp||0));
-            let html = '';
-            entries.slice(0,30).forEach(e => {
-                html += `<div class="glass p-4 rounded-2xl flex justify-between items-center border-l-4 border-cyan-500 mb-2">
-                    <div><b class="text-white uppercase text-xs">${e.nama}</b>
-                    <div class="text-[8px] text-gray-500">${e.kelas} • ${e.status} • ${e.jam}</div></div>
-                    <div class="bg-gray-900 px-3 py-1 rounded-lg text-cyan-400 font-black text-[10px]">#${e.totalHadir}</div>
-                </div>`;
-            });
-            document.getElementById('logPresensi').innerHTML = html;
-        });
+
+    function getTodayKey() {
+      return new Date().toLocaleDateString('id-ID').replace(/\//g, '-');
     }
-    
-    // ========== ADMIN ==========
+
+    function listenPresensi() {
+      const today = getTodayKey();
+      db.ref('presensi/' + today).on('value', (snap) => {
+        const data = snap.val() || {};
+        const entries = Object.values(data);
+        document.getElementById('totalHadir').innerText = entries.length;
+
+        if(entries.length === 0) {
+          document.getElementById('logPresensi').innerHTML = '<div class="text-center text-slate-500 py-10">Belum ada presensi hari ini.</div>';
+          return;
+        }
+
+        entries.sort((a,b) => (b.timestamp||0) - (a.timestamp||0));
+        let html = '';
+        entries.slice(0, 30).forEach((e, index) => {
+          html += `
+            <div class="glass p-4 rounded-2xl flex items-center justify-between gap-4 border border-slate-800">
+              <div class="min-w-0">
+                <div class="flex items-center gap-2 mb-1">
+                  <span class="text-[10px] px-2 py-1 rounded-full bg-cyan-500/15 text-cyan-300">#${index + 1}</span>
+                  <b class="text-white uppercase text-sm truncate">${e.nama}</b>
+                </div>
+                <div class="text-[11px] text-slate-400">${e.kelas} • ${e.status} • ${e.jam}</div>
+              </div>
+              <div class="chip px-3 py-2 rounded-xl text-center shrink-0">
+                <div class="text-[10px] text-slate-500 uppercase">Total</div>
+                <div class="text-cyan-300 font-black text-sm">${e.totalHadir || 0}</div>
+              </div>
+            </div>`;
+        });
+        document.getElementById('logPresensi').innerHTML = html;
+      });
+    }
+
     window.buatQR = async function() {
-        const nama = document.getElementById('nama').value.trim();
-        const kelas = document.getElementById('kelas').value;
-        const absen = document.getElementById('absen').value.trim();
-        const jk = document.getElementById('jk').value;
-        const agama = document.getElementById('agama').value;
-        
-        if(!nama || !absen) return alert("Lengkapi data!");
-        
-        await db.ref('siswa/' + kelas + '/' + absen).set({
-            nama: nama.toUpperCase(),
-            kelas, absen, jk, agama,
-            totalHadir: 0,
-            terdaftar: Date.now()
-        });
-        
-        const area = document.getElementById('qrArea');
-        area.innerHTML = `<div id="qrCard" class="p-8 bg-white rounded-[2.5rem] flex flex-col items-center mt-6">
-            <div id="qrImg" class="mb-4"></div>
-            <b class="text-black uppercase text-xl">${nama}</b>
-            <p class="text-gray-500 font-bold uppercase text-[9px]">${kelas} • ${jk} • ${agama} • ABSEN ${absen}</p>
+      const nama = document.getElementById('nama').value.trim();
+      const kelas = document.getElementById('kelas').value;
+      const absen = document.getElementById('absen').value.trim();
+      const jk = document.getElementById('jk').value;
+      const agama = document.getElementById('agama').value;
+
+      if(!nama || !absen) {
+        alert('Lengkapi data dulu');
+        return;
+      }
+
+      const payload = `${nama.toUpperCase()}\n${kelas} - ${jk} - ${agama} - ABSEN ${absen}`;
+
+      await db.ref('siswa/' + kelas + '/' + absen).set({
+        nama: nama.toUpperCase(),
+        kelas,
+        absen,
+        jk,
+        agama,
+        totalHadir: 0,
+        terdaftar: Date.now()
+      });
+
+      const area = document.getElementById('qrArea');
+      area.innerHTML = `
+        <div id="qrCard" class="w-full max-w-md bg-white rounded-[2rem] p-8 flex flex-col items-center text-center">
+          <div class="w-16 h-16 rounded-2xl bg-slate-900 text-white flex items-center justify-center text-2xl mb-4">🎫</div>
+          <div id="qrImg" class="mb-5"></div>
+          <b class="text-black uppercase text-xl">${nama}</b>
+          <p class="text-slate-500 font-bold uppercase text-[11px] mt-2">${kelas} • ${jk} • ${agama} • ABSEN ${absen}</p>
+          <p class="text-slate-400 text-xs mt-3">QR siap dipakai untuk scan presensi</p>
         </div>`;
-        
-        new QRCode(document.getElementById("qrImg"), {
-            text: `${nama.toUpperCase()}\n${kelas} - ${jk} - ${agama} - ABSEN ${absen}`,
-            width: 200, height: 200
-        });
+
+      new QRCode(document.getElementById('qrImg'), {
+        text: payload,
+        width: 220,
+        height: 220
+      });
     };
-    
-    // ========== SCANNER ==========
+
     window.startCam = function() {
-        document.getElementById('btnStart').classList.add('hidden');
-        document.getElementById('btnStop').classList.remove('hidden');
-        
-        scanner = new Html5Qrcode("reader");
-        scanner.start(
-            { facingMode: "environment" },
-            { fps: 10, qrbox: 250 },
-            (text) => { scanner.pause(); prosesQR(text); },
-            () => {}
-        );
+      document.getElementById('btnStart').classList.add('hidden');
+      document.getElementById('btnStop').classList.remove('hidden');
+
+      scanner = new Html5Qrcode('reader');
+      scanner.start(
+        { facingMode: 'environment' },
+        { fps: 10, qrbox: 250 },
+        (text) => { scanner.pause(); prosesQR(text); },
+        () => {}
+      );
     };
-    
-    window.stopCam = function() {
-        if(scanner?.isScanning) scanner.stop();
-        document.getElementById('btnStart').classList.remove('hidden');
-        document.getElementById('btnStop').classList.add('hidden');
+
+    window.stopCam = async function() {
+      try {
+        if(scanner) await scanner.stop();
+      } catch (e) {}
+      document.getElementById('btnStart').classList.remove('hidden');
+      document.getElementById('btnStop').classList.add('hidden');
     };
-    
-    // ========== PROSES QR - SUPER LENGKAP ==========
-async function prosesQR(text) {
-    try {
-        console.log("📄 QR MENTAH:", text);
-        
-        // Bersihin teks dari karakter aneh
-        let cleanText = text.replace(/[–—|\[\]{}]/g, '-').trim();
+
+    async function prosesQR(text) {
+      try {
+        let cleanText = text.replace(/[–—|{}]/g, '-').trim();
         cleanText = cleanText.replace(/\s+/g, ' ').trim();
-        
-        console.log("🧹 CLEAN TEXT:", cleanText);
-        
-        let nama = "", kelas = "", absen = "", jk = "L", agama = "Islam";
-        
-        // ========== FORMAT 1: ADA NEWLINE (FOTO LU) ==========
+
+        let nama = '', kelas = '', absen = '', jk = 'L', agama = 'Islam';
+
         if(text.includes('\n')) {
-            const lines = text.split('\n').filter(l => l.trim() !== '');
-            console.log("📄 LINES:", lines);
-            
-            if(lines.length >= 1) nama = lines[0].trim();
-            
-            if(lines.length >= 2) {
-                const line2 = lines[1].replace(/[–—]/g, '-');
-                const parts = line2.split('-').map(p => p.trim());
-                
-                for(let p of parts) {
-                    if(p.includes('X-') || p.includes('XI-') || p.includes('XII-')) kelas = p;
-                    if(p.includes('ABSEN')) absen = p.replace('ABSEN', '').trim();
-                    if(p === 'L' || p === 'P') jk = p;
-                    if(p.includes('Islam')) agama = 'Islam';
-                    if(p.includes('Kristen')) agama = 'Kristen';
-                }
+          const lines = text.split('\n').filter(l => l.trim() !== '');
+          if(lines.length >= 1) nama = lines[0].trim();
+
+          if(lines.length >= 2) {
+            const parts = lines[1].replace(/[–—]/g, '-').split('-').map(p => p.trim());
+            for(let p of parts) {
+              if(p.includes('X-') || p.includes('XI-') || p.includes('XII-')) kelas = p;
+              if(p.includes('ABSEN')) absen = p.replace('ABSEN', '').trim();
+              if(p === 'L' || p === 'P') jk = p;
+              if(p.includes('Islam')) agama = 'Islam';
+              if(p.includes('Kristen')) agama = 'Kristen';
             }
+          }
         }
-        
-        // ========== FORMAT 2: PIPE SEPARATOR ==========
+
         if(!kelas && text.includes('|')) {
-            const parts = text.split('|');
-            console.log("📄 PIPE PARTS:", parts);
-            
-            if(parts.length >= 1) nama = parts[0];
-            if(parts.length >= 2) {
-                // Cek apakah ini kelas atau nomor
-                if(parts[1].includes('X-') || parts[1].includes('XI-') || parts[1].includes('XII-')) {
-                    kelas = parts[1];
-                }
-            }
-            if(parts.length >= 3) {
-                // Cek apakah ini nomor absen
-                if(parts[2].match(/^[0-9]+$/)) {
-                    absen = parts[2];
-                }
-            }
-            if(parts.length >= 4) {
-                if(parts[3] === 'L' || parts[3] === 'P') jk = parts[3];
-            }
-            if(text.includes('Islam')) agama = 'Islam';
-            if(text.includes('Kristen')) agama = 'Kristen';
+          const parts = text.split('|');
+          if(parts.length >= 1) nama = parts[0].trim();
+          if(parts.length >= 2 && /XII?-|X-/.test(parts[1])) kelas = parts[1].trim();
+          if(parts.length >= 3 && parts[2].trim().match(/^\d+$/)) absen = parts[2].trim();
+          if(parts.length >= 4 && (parts[3].trim() === 'L' || parts[3].trim() === 'P')) jk = parts[3].trim();
+          if(text.includes('Islam')) agama = 'Islam';
+          if(text.includes('Kristen')) agama = 'Kristen';
         }
-        
-        // ========== FORMAT 3: STRIP (-) BIASA ==========
+
         if(!kelas && cleanText.includes('-')) {
-            const parts = cleanText.split('-').map(p => p.trim());
-            console.log("📄 STRIP PARTS:", parts);
-            
-            // Ambil nama dari awal sampai ketemu kelas
-            for(let i = 0; i < parts.length; i++) {
-                if(parts[i].includes('X-') || parts[i].includes('XI-') || parts[i].includes('XII-')) {
-                    kelas = parts[i];
-                    // Nama adalah gabungan sebelum index i
-                    nama = parts.slice(0, i).join(' ').trim();
-                    break;
-                }
+          const parts = cleanText.split('-').map(p => p.trim());
+          for(let i = 0; i < parts.length; i++) {
+            if(parts[i].includes('X-') || parts[i].includes('XI-') || parts[i].includes('XII-')) {
+              kelas = parts[i];
+              nama = parts.slice(0, i).join(' ').trim();
+              break;
             }
-            
-            // Cari absen
-            for(let p of parts) {
-                if(p.includes('ABSEN')) {
-                    absen = p.replace('ABSEN', '').trim();
-                } else if(p.match(/^[0-9]+$/) && !absen) {
-                    absen = p;
-                }
-            }
-            
-            // Cari JK
-            for(let p of parts) {
-                if(p === 'L' || p === 'P') jk = p;
-            }
-            
-            // Cari agama
-            for(let p of parts) {
-                if(p.includes('Islam')) agama = 'Islam';
-                if(p.includes('Kristen')) agama = 'Kristen';
-            }
+          }
+          for(let p of parts) {
+            if(p.includes('ABSEN')) absen = p.replace('ABSEN', '').trim();
+            else if(p.match(/^\d+$/) && !absen) absen = p;
+            if(p === 'L' || p === 'P') jk = p;
+            if(p.includes('Islam')) agama = 'Islam';
+            if(p.includes('Kristen')) agama = 'Kristen';
+          }
         }
-        
-        // ========== FORMAT 4: SPASI BIASA ==========
+
         if(!kelas) {
-            const words = cleanText.split(' ');
-            console.log("📄 WORDS:", words);
-            
-            // Cari kelas
-            for(let w of words) {
-                if(w.includes('X-') || w.includes('XI-') || w.includes('XII-')) {
-                    kelas = w;
-                    break;
-                }
+          const words = cleanText.split(' ');
+          for(let w of words) {
+            if(w.includes('X-') || w.includes('XI-') || w.includes('XII-')) {
+              kelas = w;
+              break;
             }
-            
-            // Cari nomor absen
-            for(let w of words) {
-                if(w.match(/^[0-9]+$/)) {
-                    absen = w;
-                    break;
-                }
+          }
+          for(let w of words) {
+            if(w.match(/^\d+$/)) {
+              absen = w;
+              break;
             }
-            
-            // Ambil 3 kata pertama sebagai nama
-            if(!nama) {
-                nama = words.slice(0, 3).join(' ');
-            }
+          }
+          if(!nama) nama = words.slice(0, 3).join(' ');
         }
-        
-        // ========== FALLBACK TERAKHIR ==========
+
         if(!nama) {
-            // Ambil dari awal teks sampai ketemu angka atau kelas
-            const match = cleanText.match(/^([A-Za-z\s]+)/);
-            if(match) nama = match[1].trim();
-            else nama = "SISWA";
+          const match = cleanText.match(/^([A-Za-z\s]+)/);
+          nama = match ? match[1].trim() : 'SISWA';
         }
-        
-        if(!kelas) kelas = "X-1";
+        if(!kelas) kelas = 'X-1';
         if(!absen) {
-            // Cari angka terakhir
-            const angka = cleanText.match(/\b(\d+)\b/);
-            if(angka) absen = angka[1];
-            else absen = "1";
+          const angka = cleanText.match(/\b(\d+)\b/);
+          absen = angka ? angka[1] : '1';
         }
-        
-        console.log("✅ HASIL PARSING:", {nama, kelas, absen, jk, agama});
-        
-        // Validasi
-        if(!nama || !kelas || !absen) throw "QR tidak valid";
+
+        if(!nama || !kelas || !absen) throw 'QR tidak valid';
         if(agama !== mode) throw `Mode harus ${mode}`;
-        
-        // ========== CEK DUPLIKAT ==========
-        const today = new Date().toLocaleDateString('id-ID').replace(/\//g, '-');
+
+        const today = getTodayKey();
         const presensiRef = db.ref('presensi/' + today + '/' + kelas + '_' + absen);
         const presensiSnap = await presensiRef.once('value');
-        
+
         if(presensiSnap.exists()) {
-            const data = presensiSnap.val();
-            throw `Sudah absen jam ${data.jam}`;
+          const data = presensiSnap.val();
+          throw `Sudah absen jam ${data.jam}`;
         }
-        
-        // ========== AMBIL ATAU BUAT DATA SISWA ==========
+
         const siswaRef = db.ref('siswa/' + kelas + '/' + absen);
         const siswaSnap = await siswaRef.once('value');
-        
+
         let totalHadir = 0;
         let dataSiswa = {};
-        
+
         if(siswaSnap.exists()) {
-            dataSiswa = siswaSnap.val();
-            totalHadir = dataSiswa.totalHadir || 0;
-            
-            // Update dengan data dari QR (kalau kosong)
-            if(!dataSiswa.nama) dataSiswa.nama = nama;
-            if(!dataSiswa.jk) dataSiswa.jk = jk;
-            if(!dataSiswa.agama) dataSiswa.agama = agama;
+          dataSiswa = siswaSnap.val();
+          totalHadir = dataSiswa.totalHadir || 0;
+          if(!dataSiswa.nama) dataSiswa.nama = nama;
+          if(!dataSiswa.jk) dataSiswa.jk = jk;
+          if(!dataSiswa.agama) dataSiswa.agama = agama;
         } else {
-            dataSiswa = {
-                nama: nama,
-                kelas: kelas,
-                absen: absen,
-                jk: jk,
-                agama: agama,
-                totalHadir: 0
-            };
+          dataSiswa = { nama, kelas, absen, jk, agama, totalHadir: 0 };
         }
-        
+
         totalHadir++;
         dataSiswa.totalHadir = totalHadir;
         dataSiswa.lastUpdate = Date.now();
-        
-        // Simpan data siswa LENGKAP
+
         await siswaRef.set(dataSiswa);
-        
-        // Simpan presensi
+
         const jam = new Date().toLocaleTimeString('id-ID');
         const status = mode === 'Islam' ? 'DZUHUR' : 'IBADAH';
-        
+
         await presensiRef.set({
-            nama: dataSiswa.nama,
-            kelas: dataSiswa.kelas,
-            absen: dataSiswa.absen,
-            jk: dataSiswa.jk,
-            agama: dataSiswa.agama,
-            jam: jam,
-            status: status,
-            totalHadir: totalHadir,
-            timestamp: Date.now()
+          nama: dataSiswa.nama,
+          kelas: dataSiswa.kelas,
+          absen: dataSiswa.absen,
+          jk: dataSiswa.jk,
+          agama: dataSiswa.agama,
+          jam,
+          status,
+          totalHadir,
+          timestamp: Date.now()
         });
-        
-        feedback('✅', nama, `Hadir ke-${totalHadir}`, 'bg-green-600');
-        
-    } catch(e) {
-        console.error("❌ ERROR:", e);
-        feedback('❌', 'GAGAL', e.toString(), 'bg-red-700');
+
+        feedback('✅', nama, `Hadir ke-${totalHadir}`, 'bg-emerald-600');
+      } catch (e) {
+        feedback('❌', 'Gagal', e.toString(), 'bg-rose-600');
+      }
+      setTimeout(() => scanner?.resume(), 1800);
     }
-    setTimeout(() => scanner?.resume(), 2000);
-}
-    
+
     function feedback(icon, name, msg, bg) {
-        const fb = document.getElementById('feedback');
-        document.getElementById('fbIcon').innerText = icon;
-        document.getElementById('fbNama').innerText = name;
-        document.getElementById('fbMsg').innerText = msg;
-        document.getElementById('fbBox').className = `text-center text-white p-10 rounded-[3rem] shadow-2xl ${bg}`;
-        fb.classList.remove('hidden');
-        setTimeout(() => fb.classList.add('hidden'), 2000);
+      const fb = document.getElementById('feedback');
+      document.getElementById('fbIcon').innerText = icon;
+      document.getElementById('fbNama').innerText = name;
+      document.getElementById('fbMsg').innerText = msg;
+      document.getElementById('fbBox').className = `text-center text-white p-8 rounded-[2rem] shadow-2xl min-w-[240px] ${bg}`;
+      fb.classList.remove('hidden');
+      setTimeout(() => fb.classList.add('hidden'), 1800);
     }
-    
-    // ========== DOWNLOAD HARIAN (PER KELAS) ==========
+
     window.downloadHarian = async function() {
-        document.getElementById('loading').classList.remove('hidden');
-        
-        const today = new Date().toLocaleDateString('id-ID').replace(/\//g, '-');
-        const zip = new JSZip();
-        
-        // Ambil data presensi hari ini
-        const presensiSnap = await db.ref('presensi/' + today).once('value');
-        const presensi = presensiSnap.val() || {};
-        
-        // Kelompokkan per kelas
-        const perKelas = {};
-        Object.values(presensi).forEach(p => {
-            if(!perKelas[p.kelas]) perKelas[p.kelas] = [];
-            perKelas[p.kelas].push(p);
+      document.getElementById('loading').classList.remove('hidden');
+      const today = getTodayKey();
+      const zip = new JSZip();
+
+      const presensiSnap = await db.ref('presensi/' + today).once('value');
+      const presensi = presensiSnap.val() || {};
+      const perKelas = {};
+
+      Object.values(presensi).forEach(p => {
+        if(!perKelas[p.kelas]) perKelas[p.kelas] = [];
+        perKelas[p.kelas].push(p);
+      });
+
+      for(let kelas in perKelas) {
+        const siswa = perKelas[kelas].sort((a,b) => parseInt(a.absen) - parseInt(b.absen));
+        const rows = [['NO', 'NAMA', 'KETERANGAN', 'JAM']];
+        const semuaAbsen = {};
+        siswa.forEach(s => semuaAbsen[s.absen] = s);
+
+        const siswaSnap = await db.ref('siswa/' + kelas).once('value');
+        const dataSiswa = siswaSnap.val() || {};
+        const daftarAbsen = Object.keys(dataSiswa).map(Number).sort((a,b) => a - b);
+
+        daftarAbsen.forEach(no => {
+          const s = semuaAbsen[no];
+          if(s) rows.push([no, s.nama, s.status, s.jam]);
+          else if(dataSiswa[no]) rows.push([no, dataSiswa[no].nama, 'A', '-']);
         });
-        
-        // Buat file Excel per kelas
-        for(let kelas in perKelas) {
-            const siswa = perKelas[kelas].sort((a,b) => parseInt(a.absen) - parseInt(b.absen));
-            const rows = [['NO', 'NAMA', 'KETERANGAN', 'JAM']];
-            
-            // Buat daftar semua nomor absen di kelas ini
-            const semuaAbsen = {};
-            siswa.forEach(s => semuaAbsen[s.absen] = s);
-            
-            // Ambil semua siswa dari database untuk kelas ini
-            const siswaSnap = await db.ref('siswa/' + kelas).once('value');
-            const dataSiswa = siswaSnap.val() || {};
-            
-            // Urutkan berdasarkan nomor absen
-            const daftarAbsen = Object.keys(dataSiswa).map(Number).sort((a,b) => a - b);
-            
-            daftarAbsen.forEach(no => {
-                const s = semuaAbsen[no];
-                if(s) {
-                    // Hadir
-                    rows.push([no, s.nama, s.status, s.jam]);
-                } else {
-                    // Tidak hadir (ALPA)
-                    const siswaData = dataSiswa[no];
-                    if(siswaData) {
-                        rows.push([no, siswaData.nama, 'A', '-']);
-                    }
-                }
-            });
-            
-            const ws = XLSX.utils.aoa_to_sheet(rows);
-            const wb = XLSX.utils.book_new();
-            XLSX.utils.book_append_sheet(wb, ws, 'Presensi');
-            zip.file(`PRESENSI_${kelas}_${today}.xlsx`, XLSX.write(wb, { type: 'array' }));
-        }
-        
-        // Download
-        const content = await zip.generateAsync({ type: 'blob' });
-        const link = document.createElement('a');
-        link.href = URL.createObjectURL(content);
-        link.download = `HARIAN_${today}.zip`;
-        link.click();
-        
-        document.getElementById('loading').classList.add('hidden');
+
+        const ws = XLSX.utils.aoa_to_sheet(rows);
+        ws['!cols'] = [{wch:10},{wch:28},{wch:16},{wch:14}];
+        const wb = XLSX.utils.book_new();
+        XLSX.utils.book_append_sheet(wb, ws, 'Presensi');
+        zip.file(`PRESENSI_${kelas}_${today}.xlsx`, XLSX.write(wb, { type: 'array' }));
+      }
+
+      const content = await zip.generateAsync({ type: 'blob' });
+      const link = document.createElement('a');
+      link.href = URL.createObjectURL(content);
+      link.download = `HARIAN_${today}.zip`;
+      link.click();
+      document.getElementById('loading').classList.add('hidden');
     };
 
-    // ========== DOWNLOAD REKAP (PER KELAS) - FIXED VERSION ==========
-window.downloadRekap = async function() {
-    document.getElementById('loading').classList.remove('hidden');
-    
-    const zip = new JSZip();
-    
-    try {
-        // Ambil data semua siswa
+    window.downloadRekap = async function() {
+      document.getElementById('loading').classList.remove('hidden');
+      const zip = new JSZip();
+
+      try {
         const siswaSnap = await db.ref('siswa').once('value');
         const semuaSiswa = siswaSnap.val() || {};
-        
-        console.log("🔥 DATA SISWA MENTAH:", JSON.stringify(semuaSiswa, null, 2));
-        
-        // Buat file Excel per kelas
+
         for(let kelas in semuaSiswa) {
-            console.log(`📚 KELAS ${kelas}:`, semuaSiswa[kelas]);
-            
-            const siswa = [];
-            
-            // Loop setiap absen di kelas ini
-            for(let absen in semuaSiswa[kelas]) {
-                const data = semuaSiswa[kelas][absen];
-                
-                console.log(`   👤 ABSEN ${absen}:`, data);
-                
-                // PASTIKAN DATA DIAMBIL DENGAN STRUKTUR YANG TEPAT
-                // Data harusnya disimpan dengan struktur: { nama, jk, agama, totalHadir }
-                
-                let namaSiswa = "TANPA NAMA";
-                if(data.nama) namaSiswa = data.nama;
-                else if(data.Nama) namaSiswa = data.Nama;
-                else if(data.NAMA) namaSiswa = data.NAMA;
-                
-                let jkSiswa = "-";
-                if(data.jk) jkSiswa = data.jk;
-                else if(data.JK) jkSiswa = data.JK;
-                else if(data.jenis_kelamin) jkSiswa = data.jenis_kelamin;
-                else if(data.JenisKelamin) jkSiswa = data.JenisKelamin;
-                
-                let agamaSiswa = "-";
-                if(data.agama) agamaSiswa = data.agama;
-                else if(data.Agama) agamaSiswa = data.Agama;
-                
-                let totalHadirSiswa = 0;
-                if(data.totalHadir !== undefined && data.totalHadir !== null) {
-                    totalHadirSiswa = data.totalHadir;
-                } else if(data.TotalHadir) {
-                    totalHadirSiswa = data.TotalHadir;
-                } else if(data.hadir) {
-                    totalHadirSiswa = data.hadir;
-                }
-                
-                // Tambahkan juga kelas dari data jika ada
-                let kelasSiswa = kelas;
-                if(data.kelas) kelasSiswa = data.kelas;
-                
-                siswa.push({
-                    absen: parseInt(absen),
-                    nama: namaSiswa,
-                    jk: jkSiswa,
-                    agama: agamaSiswa,
-                    totalHadir: totalHadirSiswa,
-                    kelas: kelasSiswa
-                });
-            }
-            
-            // Urutkan berdasarkan nomor absen
-            siswa.sort((a,b) => a.absen - b.absen);
-            
-            console.log(`📊 SISWA TERPROSES ${kelas}:`, siswa);
-            
-            // Buat rows Excel dengan format yang lebih jelas
-            const rows = [
-                ['NO. ABSEN', 'NAMA LENGKAP', 'JENIS KELAMIN', 'AGAMA', 'TOTAL HADIR', 'KELAS']
-            ];
-            
-            siswa.forEach(s => {
-                rows.push([
-                    s.absen, 
-                    s.nama, 
-                    s.jk === 'L' ? 'LAKI-LAKI' : (s.jk === 'P' ? 'PEREMPUAN' : s.jk),
-                    s.agama,
-                    s.totalHadir,
-                    s.kelas
-                ]);
+          const siswa = [];
+          for(let absen in semuaSiswa[kelas]) {
+            const data = semuaSiswa[kelas][absen];
+            siswa.push({
+              absen: parseInt(absen),
+              nama: data.nama || data.Nama || data.NAMA || 'TANPA NAMA',
+              jk: data.jk || data.JK || data.jenis_kelamin || '-',
+              agama: data.agama || data.Agama || '-',
+              totalHadir: data.totalHadir ?? data.TotalHadir ?? data.hadir ?? 0,
+              kelas: data.kelas || kelas
             });
-            
-            console.log(`📋 ROWS ${kelas}:`, rows);
-            
-            // Buat file Excel
-            const ws = XLSX.utils.aoa_to_sheet(rows);
-            
-            // Atur lebar kolom
-            ws['!cols'] = [
-                { wch: 10 }, // NO
-                { wch: 30 }, // NAMA
-                { wch: 15 }, // JK
-                { wch: 15 }, // AGAMA
-                { wch: 15 }, // TOTAL HADIR
-                { wch: 10 }  // KELAS
-            ];
-            
-            const wb = XLSX.utils.book_new();
-            XLSX.utils.book_append_sheet(wb, ws, 'Rekap');
-            
-            // Simpan ke ZIP
-            const fileName = `REKAP_${kelas}.xlsx`;
-            zip.file(fileName, XLSX.write(wb, { type: 'array' }));
+          }
+
+          siswa.sort((a,b) => a.absen - b.absen);
+          const rows = [['NO. ABSEN', 'NAMA LENGKAP', 'JENIS KELAMIN', 'AGAMA', 'TOTAL HADIR', 'KELAS']];
+          siswa.forEach(s => {
+            rows.push([
+              s.absen,
+              s.nama,
+              s.jk === 'L' ? 'LAKI-LAKI' : (s.jk === 'P' ? 'PEREMPUAN' : s.jk),
+              s.agama,
+              s.totalHadir,
+              s.kelas
+            ]);
+          });
+
+          const ws = XLSX.utils.aoa_to_sheet(rows);
+          ws['!cols'] = [{wch:10},{wch:32},{wch:16},{wch:14},{wch:14},{wch:12}];
+          const wb = XLSX.utils.book_new();
+          XLSX.utils.book_append_sheet(wb, ws, 'Rekap');
+          zip.file(`REKAP_${kelas}.xlsx`, XLSX.write(wb, { type: 'array' }));
         }
-        
-        // Download ZIP
+
         const content = await zip.generateAsync({ type: 'blob' });
         const link = document.createElement('a');
         link.href = URL.createObjectURL(content);
-        link.download = `REKAP_ALL_KELAS_${new Date().toLocaleDateString('id-ID').replace(/\//g, '-')}.zip`;
+        link.download = `REKAP_ALL_KELAS_${getTodayKey()}.zip`;
         link.click();
-        
-        alert("Download rekap berhasil!");
-        
-    } catch(error) {
-        console.error("🔥 ERROR REKAP:", error);
-        alert("Gagal download rekap: " + error.message);
-    }
-    
-    document.getElementById('loading').classList.add('hidden');
-};
+        alert('Download rekap berhasil');
+      } catch (error) {
+        alert('Gagal download rekap: ' + error.message);
+      }
 
-// ========== FUNGSI CEK DATA SISWA (DEBUG) ==========
-window.cekDataSiswa = async function() {
-    try {
+      document.getElementById('loading').classList.add('hidden');
+    };
+
+    window.cekDataSiswa = async function() {
+      try {
         const snap = await db.ref('siswa').once('value');
         const data = snap.val();
-        
-        console.log("📦 SEMUA DATA SISWA:", data);
-        
-        // Tampilkan dalam format yang lebih mudah dibaca
-        let pesan = "DATA SISWA:\n\n";
-        
-        if(!data) {
-            pesan = "TIDAK ADA DATA SISWA!";
-        } else {
-            for(let kelas in data) {
-                pesan += `📚 ${kelas}:\n`;
-                for(let absen in data[kelas]) {
-                    const siswa = data[kelas][absen];
-                    pesan += `   ${absen}. ${siswa.nama || '?'} | ${siswa.jk || '?'} | ${siswa.agama || '?'} | Hadir: ${siswa.totalHadir || 0}\n`;
-                }
-                pesan += "\n";
-            }
-        }
-        
-        alert(pesan);
-        
-    } catch(e) {
-        console.error("Error cek data:", e);
-        alert("Gagal cek data: " + e.message);
-    }
-};
-                
-</script>
+        let pesan = 'DATA SISWA:\n\n';
 
-<!-- Library -->
-<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
-</body>
+        if(!data) {
+          pesan = 'TIDAK ADA DATA SISWA!';
+        } else {
+          for(let kelas in data) {
+            pesan += `📚 ${kelas}:\n`;
+            for(let absen in data[kelas]) {
+              const siswa = data[kelas][absen];
+              pesan += `   ${absen}. ${siswa.nama || '?'} | ${siswa.jk || '?'} | ${siswa.agama || '?'} | Hadir: ${siswa.totalHadir || 0}\n`;
+            }
+            pesan += '\n';
+          }
+        }
+        alert(pesan);
+      } catch (e) {
+        alert('Gagal cek data: ' + e.message);
+      }
+    };
+
+    document.addEventListener('contextmenu', (e) => e.preventDefault());
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'F12') e.preventDefault();
+      if (e.ctrlKey && e.shiftKey && ['I','J','C'].includes(e.key.toUpperCase())) e.preventDefault();
+      if (e.ctrlKey && e.key.toUpperCase() === 'U') e.preventDefault();
+    });
+  </script></body>
 </html>
