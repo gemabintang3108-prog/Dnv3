@@ -23,18 +23,27 @@
             min-height: 100vh;
         }
         
-        /* Glass morphism premium */
+        /* Glass morphism premium - lebih terang */
         .glass-premium {
-            background: rgba(15, 23, 42, 0.7);
+            background: rgba(30, 41, 59, 0.85);
             backdrop-filter: blur(16px);
-            border: 1px solid rgba(34, 211, 238, 0.15);
+            border: 1px solid rgba(34, 211, 238, 0.3);
             box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
             transition: all 0.3s ease;
         }
         
         .glass-premium:hover {
-            border-color: rgba(34, 211, 238, 0.4);
-            box-shadow: 0 8px 32px rgba(34, 211, 238, 0.15);
+            border-color: rgba(34, 211, 238, 0.6);
+            box-shadow: 0 8px 32px rgba(34, 211, 238, 0.2);
+        }
+        
+        /* Kartu statistik lebih kontras */
+        .stat-card {
+            background: rgba(15, 23, 42, 0.9);
+            border: 1px solid rgba(34, 211, 238, 0.4);
+            border-radius: 1.5rem;
+            padding: 1rem;
+            text-align: center;
         }
         
         /* Animations */
@@ -46,11 +55,6 @@
         @keyframes slideIn {
             from { transform: translateX(100%); opacity: 0; }
             to { transform: translateX(0); opacity: 1; }
-        }
-        
-        @keyframes bounce {
-            0%, 100% { transform: scale(1); }
-            50% { transform: scale(1.05); }
         }
         
         .active-tab {
@@ -87,6 +91,11 @@
             right: 20px;
             z-index: 9999;
             animation: slideIn 0.3s ease;
+            background: rgba(30, 41, 59, 0.95);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(34, 211, 238, 0.3);
+            border-radius: 1rem;
+            padding: 0.75rem 1.5rem;
         }
         
         .loading-spinner {
@@ -117,12 +126,41 @@
             border-radius: 10px;
         }
         
-        .stat-card {
-            background: rgba(6, 182, 212, 0.1);
-            border: 1px solid rgba(6, 182, 212, 0.3);
-            border-radius: 1.5rem;
+        /* Input styling lebih jelas */
+        input, select {
+            background: rgba(15, 23, 42, 0.9) !important;
+            border: 1px solid rgba(34, 211, 238, 0.3) !important;
+            color: white !important;
+        }
+        
+        input:focus, select:focus {
+            border-color: #06b6d4 !important;
+            outline: none;
+            box-shadow: 0 0 0 2px rgba(6, 182, 212, 0.2);
+        }
+        
+        input::placeholder {
+            color: #94a3b8 !important;
+        }
+        
+        /* Tombol lebih jelas */
+        button {
+            cursor: pointer;
+        }
+        
+        /* Log presensi item lebih terang */
+        .log-item {
+            background: rgba(30, 41, 59, 0.9);
+            border-left: 4px solid #06b6d4;
+            border-radius: 1rem;
             padding: 1rem;
-            text-align: center;
+            margin-bottom: 0.75rem;
+            transition: all 0.2s ease;
+        }
+        
+        .log-item:hover {
+            transform: scale(1.01);
+            background: rgba(51, 65, 85, 0.9);
         }
     </style>
 </head>
@@ -161,8 +199,8 @@
     <div class="flex justify-center mb-8 px-4">
         <div class="glass-premium p-1.5 rounded-2xl flex gap-2 w-full max-w-[340px]">
             <button onclick="switchTab('admin')" id="btnAdmin" class="flex-1 py-3.5 rounded-xl font-bold transition-all text-xs active-tab">👑 ADMIN</button>
-            <button onclick="switchTab('scan')" id="btnScan" class="flex-1 py-3.5 rounded-xl font-bold transition-all text-xs text-gray-400">📷 SCAN</button>
-            <button onclick="switchTab('dashboard')" id="btnDashboard" class="flex-1 py-3.5 rounded-xl font-bold transition-all text-xs text-gray-400">📊 DASHBOARD</button>
+            <button onclick="switchTab('scan')" id="btnScan" class="flex-1 py-3.5 rounded-xl font-bold transition-all text-xs text-gray-300">📷 SCAN</button>
+            <button onclick="switchTab('dashboard')" id="btnDashboard" class="flex-1 py-3.5 rounded-xl font-bold transition-all text-xs text-gray-300">📊 DASHBOARD</button>
         </div>
     </div>
 
@@ -172,22 +210,22 @@
             <div class="glass-premium p-8 rounded-[2.5rem]">
                 <h2 class="text-sm font-black mb-6 text-cyan-400 uppercase flex items-center gap-2">📝 TAMBAH SISWA</h2>
                 <div class="grid gap-4">
-                    <input type="text" id="nama" placeholder="Nama Lengkap" class="w-full bg-gray-900/50 border border-gray-700 p-4 rounded-2xl text-white focus:border-cyan-500 focus:outline-none transition">
+                    <input type="text" id="nama" placeholder="Nama Lengkap" class="w-full p-4 rounded-2xl text-white">
                     <div class="flex gap-4">
-                        <select id="kelas" class="w-1/2 bg-gray-900/50 border border-gray-700 p-4 rounded-2xl text-white focus:border-cyan-500 focus:outline-none"></select>
-                        <input type="number" id="absen" placeholder="No. Absen" class="w-1/2 bg-gray-900/50 border border-gray-700 p-4 rounded-2xl text-white focus:border-cyan-500 focus:outline-none">
+                        <select id="kelas" class="w-1/2 p-4 rounded-2xl text-white"></select>
+                        <input type="number" id="absen" placeholder="No. Absen" class="w-1/2 p-4 rounded-2xl text-white">
                     </div>
                     <div class="flex gap-4">
-                        <select id="jk" class="w-1/2 bg-gray-900/50 border border-gray-700 p-4 rounded-2xl text-white">
+                        <select id="jk" class="w-1/2 p-4 rounded-2xl text-white">
                             <option value="L">👨 LAKI-LAKI</option>
                             <option value="P">👩 PEREMPUAN</option>
                         </select>
-                        <select id="agama" class="w-1/2 bg-gray-900/50 border border-gray-700 p-4 rounded-2xl text-white">
+                        <select id="agama" class="w-1/2 p-4 rounded-2xl text-white">
                             <option value="Islam">☪️ ISLAM</option>
                             <option value="Kristen">✝️ KRISTEN</option>
                         </select>
                     </div>
-                    <button onclick="buatQR()" class="bg-gradient-to-r from-blue-600 to-blue-500 py-4 rounded-2xl font-black text-xs uppercase hover:shadow-lg hover:shadow-blue-500/30 transition transform hover:scale-[1.02]">🔨 BUAT QR CODE</button>
+                    <button onclick="buatQR()" class="bg-gradient-to-r from-blue-600 to-blue-500 py-4 rounded-2xl font-black text-xs uppercase hover:shadow-lg hover:shadow-blue-500/30 transition transform hover:scale-[1.02] text-white">🔨 BUAT QR CODE</button>
                 </div>
             </div>
             <div id="qrArea" class="flex flex-col items-center"></div>
@@ -205,15 +243,15 @@
             <div class="grid grid-cols-3 gap-3">
                 <div class="stat-card">
                     <div class="text-2xl font-black text-cyan-400" id="statHadir">0</div>
-                    <div class="text-[8px] uppercase text-gray-400">Hadir</div>
+                    <div class="text-[8px] uppercase text-gray-300 font-semibold">Hadir</div>
                 </div>
                 <div class="stat-card">
                     <div class="text-2xl font-black text-yellow-400" id="statSiswa">0</div>
-                    <div class="text-[8px] uppercase text-gray-400">Total Siswa</div>
+                    <div class="text-[8px] uppercase text-gray-300 font-semibold">Total Siswa</div>
                 </div>
                 <div class="stat-card">
                     <div class="text-2xl font-black text-green-400" id="statPersen">0%</div>
-                    <div class="text-[8px] uppercase text-gray-400">Kehadiran</div>
+                    <div class="text-[8px] uppercase text-gray-300 font-semibold">Kehadiran</div>
                 </div>
             </div>
 
@@ -261,20 +299,20 @@
                 <h2 class="text-lg font-black mb-6 text-cyan-400 uppercase flex items-center gap-2">📊 STATISTIK</h2>
                 
                 <div class="space-y-4">
-                    <div class="flex justify-between items-center p-4 bg-gray-900/50 rounded-2xl">
-                        <span class="font-bold">Total Siswa Terdaftar</span>
+                    <div class="flex justify-between items-center p-4 bg-gray-800/80 rounded-2xl">
+                        <span class="font-bold text-white">Total Siswa Terdaftar</span>
                         <span class="text-2xl font-black text-cyan-400" id="dashTotalSiswa">0</span>
                     </div>
-                    <div class="flex justify-between items-center p-4 bg-gray-900/50 rounded-2xl">
-                        <span class="font-bold">Total Kehadiran Hari Ini</span>
+                    <div class="flex justify-between items-center p-4 bg-gray-800/80 rounded-2xl">
+                        <span class="font-bold text-white">Total Kehadiran Hari Ini</span>
                         <span class="text-2xl font-black text-green-400" id="dashHadirHari">0</span>
                     </div>
-                    <div class="flex justify-between items-center p-4 bg-gray-900/50 rounded-2xl">
-                        <span class="font-bold">Persentase Kehadiran</span>
+                    <div class="flex justify-between items-center p-4 bg-gray-800/80 rounded-2xl">
+                        <span class="font-bold text-white">Persentase Kehadiran</span>
                         <span class="text-2xl font-black text-yellow-400" id="dashPersen">0%</span>
                     </div>
-                    <div class="flex justify-between items-center p-4 bg-gray-900/50 rounded-2xl">
-                        <span class="font-bold">Mode Aktif</span>
+                    <div class="flex justify-between items-center p-4 bg-gray-800/80 rounded-2xl">
+                        <span class="font-bold text-white">Mode Aktif</span>
                         <span class="text-lg font-black text-cyan-400" id="dashMode">ISLAM</span>
                     </div>
                 </div>
@@ -311,11 +349,7 @@
     let mode = 'Islam';
     let scanner = null;
     
-    // Audio untuk feedback
-    const audioSuccess = new Audio('data:audio/wav;base64,U3RlYWx0aCB8IFN1Y2Nlc3MgU291bmQ=');
-    const audioError = new Audio('data:audio/wav;base64,RXJyb3IgU291bmQ=');
-    
-    // Fallback beep menggunakan Web Audio API
+    // Audio feedback
     function playBeep(type) {
         try {
             const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
@@ -340,7 +374,7 @@
     // Toast notification
     function showToast(message, type = 'success') {
         const toast = document.createElement('div');
-        toast.className = `toast-notif glass-premium px-5 py-3 rounded-2xl ${type === 'success' ? 'text-green-400 border-green-500/30' : 'text-red-400 border-red-500/30'}`;
+        toast.className = `toast-notif ${type === 'success' ? 'text-green-400 border-green-500/30' : 'text-red-400 border-red-500/30'}`;
         toast.innerHTML = `<div class="flex items-center gap-3"><span>${type === 'success' ? '✅' : '❌'}</span><span class="text-sm font-bold">${message}</span></div>`;
         document.body.appendChild(toast);
         setTimeout(() => toast.remove(), 3000);
@@ -412,7 +446,6 @@
     
     // Update Dashboard
     async function updateDashboard() {
-        // Total siswa
         const siswaSnap = await db.ref('siswa').once('value');
         const semuaSiswa = siswaSnap.val() || {};
         let totalSiswa = 0;
@@ -427,19 +460,18 @@
         document.getElementById('dashTotalSiswa').innerText = totalSiswa;
         document.getElementById('statSiswa').innerText = totalSiswa;
         
-        // Top 5 siswa rajin
         const sorted = semuaData.sort((a,b) => (b.totalHadir || 0) - (a.totalHadir || 0)).slice(0,5);
         let topHtml = '';
         sorted.forEach((s, i) => {
-            topHtml += `<div class="flex justify-between items-center p-3 bg-gray-900/50 rounded-xl">
+            topHtml += `<div class="flex justify-between items-center p-3 bg-gray-800/80 rounded-xl">
                 <div class="flex items-center gap-3">
                     <span class="text-2xl">${i === 0 ? '🥇' : i === 1 ? '🥈' : i === 2 ? '🥉' : '📌'}</span>
-                    <span class="font-bold text-sm">${s.nama || '??'}</span>
+                    <span class="font-bold text-sm text-white">${s.nama || '??'}</span>
                 </div>
                 <span class="text-cyan-400 font-black">${s.totalHadir || 0} x</span>
             </div>`;
         });
-        document.getElementById('topSiswa').innerHTML = topHtml || '<p class="text-center text-gray-500">Belum ada data</p>';
+        document.getElementById('topSiswa').innerHTML = topHtml || '<p class="text-center text-gray-400">Belum ada data</p>';
     }
     
     // Real-time listener
@@ -454,7 +486,6 @@
             document.getElementById('statHadir').innerText = totalHadir;
             document.getElementById('dashHadirHari').innerText = totalHadir;
             
-            // Hitung persentase
             const siswaSnap = await db.ref('siswa').once('value');
             let totalSiswa = 0;
             for(let kelas in siswaSnap.val() || {}) {
@@ -465,19 +496,21 @@
             document.getElementById('dashPersen').innerText = persen + '%';
             
             if(entries.length === 0) {
-                document.getElementById('logPresensi').innerHTML = '<div class="text-center text-gray-500 py-10">✨ Belum ada presensi hari ini</div>';
+                document.getElementById('logPresensi').innerHTML = '<div class="text-center text-gray-400 py-10">✨ Belum ada presensi hari ini</div>';
                 return;
             }
             
             entries.sort((a,b) => (b.timestamp||0) - (a.timestamp||0));
             let html = '';
             entries.slice(0,30).forEach(e => {
-                html += `<div class="glass-premium p-4 rounded-2xl flex justify-between items-center border-l-4 border-cyan-500 transition hover:scale-[1.01]">
-                    <div>
-                        <b class="text-white uppercase text-sm">${e.nama}</b>
-                        <div class="text-[9px] text-gray-400 mt-1">${e.kelas} • ${e.status} • ${e.jam}</div>
+                html += `<div class="log-item">
+                    <div class="flex justify-between items-center">
+                        <div>
+                            <b class="text-white uppercase text-sm">${e.nama}</b>
+                            <div class="text-[9px] text-gray-300 mt-1">${e.kelas} • ${e.status} • ${e.jam}</div>
+                        </div>
+                        <div class="bg-gradient-to-r from-cyan-500/20 to-blue-500/20 px-3 py-2 rounded-xl text-cyan-400 font-black text-xs">#${e.totalHadir}</div>
                     </div>
-                    <div class="bg-gradient-to-r from-cyan-500/20 to-blue-500/20 px-3 py-2 rounded-xl text-cyan-400 font-black text-xs">#${e.totalHadir}</div>
                 </div>`;
             });
             document.getElementById('logPresensi').innerHTML = html;
@@ -508,7 +541,7 @@
         });
         
         const area = document.getElementById('qrArea');
-        area.innerHTML = `<div id="qrCard" class="glass-premium p-8 rounded-[2.5rem] flex flex-col items-center mt-6 transform transition hover:scale-[1.02]">
+        area.innerHTML = `<div class="glass-premium p-8 rounded-[2.5rem] flex flex-col items-center mt-6 transform transition hover:scale-[1.02]">
             <div id="qrImg" class="mb-4 bg-white p-4 rounded-2xl"></div>
             <b class="text-white uppercase text-xl">${nama}</b>
             <p class="text-cyan-400 font-bold uppercase text-[9px] mt-2">${kelas} • ${jk === 'L' ? 'LAKI' : 'PEREMPUAN'} • ${agama} • ABSEN ${absen}</p>
@@ -556,7 +589,6 @@
             
             let nama = "", kelas = "", absen = "", jk = "L", agama = "Islam";
             
-            // Parse QR
             if(text.includes('\n')) {
                 const lines = text.split('\n').filter(l => l.trim() !== '');
                 if(lines.length >= 1) nama = lines[0].trim();
