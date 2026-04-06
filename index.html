@@ -44,6 +44,11 @@
             text-align: center;
         }
         
+        @keyframes pulse-glow {
+            0%, 100% { box-shadow: 0 0 5px rgba(34, 211, 238, 0.5); }
+            50% { box-shadow: 0 0 20px rgba(34, 211, 238, 0.8); }
+        }
+        
         @keyframes slideIn {
             from { transform: translateX(100%); opacity: 0; }
             to { transform: translateX(0); opacity: 1; }
@@ -104,19 +109,9 @@
             100% { transform: rotate(360deg); }
         }
         
-        ::-webkit-scrollbar {
-            width: 6px;
-        }
-        
-        ::-webkit-scrollbar-track {
-            background: #1e293b;
-            border-radius: 10px;
-        }
-        
-        ::-webkit-scrollbar-thumb {
-            background: linear-gradient(135deg, #0891b2, #06b6d4);
-            border-radius: 10px;
-        }
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-track { background: #1e293b; border-radius: 10px; }
+        ::-webkit-scrollbar-thumb { background: linear-gradient(135deg, #0891b2, #06b6d4); border-radius: 10px; }
         
         input, select {
             background: rgba(15, 23, 42, 0.9) !important;
@@ -130,9 +125,8 @@
             box-shadow: 0 0 0 2px rgba(6, 182, 212, 0.2);
         }
         
-        input::placeholder {
-            color: #94a3b8 !important;
-        }
+        input::placeholder { color: #94a3b8 !important; }
+        button { cursor: pointer; }
         
         .log-item {
             background: rgba(30, 41, 59, 0.9);
@@ -179,7 +173,6 @@
         <button id="btnLogout" onclick="logout()" class="hidden absolute top-4 right-4 bg-red-500/20 backdrop-blur text-red-400 px-4 py-2 rounded-xl text-xs font-bold hover:bg-red-500/30 transition">🚪 KELUAR</button>
     </header>
 
-    <!-- Tab Navigation -->
     <div class="flex justify-center mb-8 px-4">
         <div class="glass-premium p-1.5 rounded-2xl flex gap-2 w-full max-w-[340px]">
             <button onclick="switchTab('admin')" id="btnAdmin" class="flex-1 py-3.5 rounded-xl font-bold transition-all text-xs active-tab">👑 ADMIN</button>
@@ -275,7 +268,6 @@
         <section id="tabDashboard" class="hidden space-y-6">
             <div class="glass-premium p-8 rounded-[2.5rem]">
                 <h2 class="text-lg font-black mb-6 text-cyan-400 uppercase flex items-center gap-2">📊 STATISTIK</h2>
-                
                 <div class="space-y-4">
                     <div class="flex justify-between items-center p-4 bg-gray-800/80 rounded-2xl">
                         <span class="font-bold text-white">Total Siswa Terdaftar</span>
@@ -305,7 +297,6 @@
 </div>
 
 <script>
-    // Firebase Config
     const firebaseConfig = {
         apiKey: "AIzaSyBQwKb5BgWywX3bx3gKjNJsugJ1sUBr4X4",
         authDomain: "absen-dzuhur.firebaseapp.com",
@@ -319,9 +310,9 @@
     firebase.initializeApp(firebaseConfig);
     const db = firebase.database();
     
-    // Global Variables
     const PASSWORD = "bintang31";
     const KELAS_LIST = ["X-1","X-2","X-3","X-4","X-5","X-6","XI-1","XI-2","XI-3","XI-4","XI-5","XI-6","XII-1","XII-2","XII-3","XII-4","XII-5","XII-6"];
+    const NAMA_HARI = ['Minggu','Senin','Selasa','Rabu','Kamis','Jumat','Sabtu'];
     
     let isLogin = false;
     let mode = 'Islam';
@@ -340,9 +331,7 @@
             oscillator.start();
             gainNode.gain.exponentialRampToValueAtTime(0.00001, audioCtx.currentTime + 0.5);
             oscillator.stop(audioCtx.currentTime + 0.5);
-        } catch(e) {
-            console.log('Audio not supported');
-        }
+        } catch(e) {}
     }
     
     function showToast(message, type = 'success') {
@@ -353,40 +342,9 @@
         setTimeout(() => toast.remove(), 3000);
     }
     
-    // AUTO RESET REKAP MINGGUAN SETIAP SENIN 00:00
-    function checkAndResetMingguan() {
-        const now = new Date();
-        const hari = now.getDay(); // 0 Minggu, 1 Senin
-        const jam = now.getHours();
-        const menit = now.getMinutes();
-        
-        if(hari === 1 && jam === 0 && menit === 0) {
-            const mingguID = getMingguID();
-            db.ref('rekapMingguan/' + mingguID).remove();
-            showToast('🔄 Data rekap mingguan telah direset!', 'success');
-        }
-    }
-    
-    function getMingguID() {
-        const now = new Date();
-        const hari = now.getDay();
-        const seninTerakhir = new Date(now);
-        if(hari === 0) {
-            seninTerakhir.setDate(now.getDate() - 6);
-        } else if(hari === 1) {
-            // keep
-        } else {
-            seninTerakhir.setDate(now.getDate() - (hari - 1));
-        }
-        seninTerakhir.setHours(0,0,0,0);
-        return 'minggu_' + seninTerakhir.toISOString().split('T')[0];
-    }
-    
-    // Initialize
     window.onload = function() {
         const select = document.getElementById('kelas');
         KELAS_LIST.forEach(k => select.innerHTML += `<option value="${k}">${k}</option>`);
-        
         if(localStorage.getItem('login') === 'true') {
             isLogin = true;
             document.getElementById('modalLogin').classList.add('hidden');
@@ -394,8 +352,6 @@
             listenPresensi();
             updateDashboard();
         }
-        
-        setInterval(checkAndResetMingguan, 60000);
     };
     
     window.login = function() {
@@ -429,11 +385,9 @@
         document.getElementById('tabAdmin').classList.toggle('hidden', tab !== 'admin');
         document.getElementById('tabScan').classList.toggle('hidden', tab !== 'scan');
         document.getElementById('tabDashboard').classList.toggle('hidden', tab !== 'dashboard');
-        
         document.getElementById('btnAdmin').classList.toggle('active-tab', tab === 'admin');
         document.getElementById('btnScan').classList.toggle('active-tab', tab === 'scan');
         document.getElementById('btnDashboard').classList.toggle('active-tab', tab === 'dashboard');
-        
         if(tab !== 'scan') stopCam();
         if(tab === 'dashboard') updateDashboard();
     };
@@ -452,7 +406,6 @@
         const semuaSiswa = siswaSnap.val() || {};
         let totalSiswa = 0;
         let semuaData = [];
-        
         for(let kelas in semuaSiswa) {
             for(let absen in semuaSiswa[kelas]) {
                 totalSiswa++;
@@ -461,7 +414,6 @@
         }
         document.getElementById('dashTotalSiswa').innerText = totalSiswa;
         document.getElementById('statSiswa').innerText = totalSiswa;
-        
         const sorted = semuaData.sort((a,b) => (b.totalHadir || 0) - (a.totalHadir || 0)).slice(0,5);
         let topHtml = '';
         sorted.forEach((s, i) => {
@@ -482,11 +434,9 @@
             const data = snap.val() || {};
             const entries = Object.values(data);
             const totalHadir = entries.length;
-            
             document.getElementById('totalHadir').innerText = totalHadir + ' HADIR';
             document.getElementById('statHadir').innerText = totalHadir;
             document.getElementById('dashHadirHari').innerText = totalHadir;
-            
             const siswaSnap = await db.ref('siswa').once('value');
             let totalSiswa = 0;
             for(let kelas in siswaSnap.val() || {}) {
@@ -495,12 +445,10 @@
             const persen = totalSiswa > 0 ? Math.round((totalHadir / totalSiswa) * 100) : 0;
             document.getElementById('statPersen').innerText = persen + '%';
             document.getElementById('dashPersen').innerText = persen + '%';
-            
             if(entries.length === 0) {
                 document.getElementById('logPresensi').innerHTML = '<div class="text-center text-gray-400 py-10">✨ Belum ada presensi hari ini</div>';
                 return;
             }
-            
             entries.sort((a,b) => (b.timestamp||0) - (a.timestamp||0));
             let html = '';
             entries.slice(0,30).forEach(e => {
@@ -524,34 +472,21 @@
         const absen = document.getElementById('absen').value.trim();
         const jk = document.getElementById('jk').value;
         const agama = document.getElementById('agama').value;
-        
-        if(!nama || !absen) {
-            showToast('Lengkapi semua data!', 'error');
-            playBeep('error');
-            return;
-        }
-        
+        if(!nama || !absen) { showToast('Lengkapi semua data!', 'error'); playBeep('error'); return; }
         document.getElementById('loading').classList.remove('hidden');
-        
         await db.ref('siswa/' + kelas + '/' + absen).set({
-            nama: nama.toUpperCase(),
-            kelas, absen, jk, agama,
-            totalHadir: 0,
-            terdaftar: Date.now()
+            nama: nama.toUpperCase(), kelas, absen, jk, agama, totalHadir: 0, terdaftar: Date.now()
         });
-        
         const area = document.getElementById('qrArea');
         area.innerHTML = `<div class="glass-premium p-8 rounded-[2.5rem] flex flex-col items-center mt-6 transform transition hover:scale-[1.02]">
             <div id="qrImg" class="mb-4 bg-white p-4 rounded-2xl"></div>
             <b class="text-white uppercase text-xl">${nama}</b>
             <p class="text-cyan-400 font-bold uppercase text-[9px] mt-2">${kelas} • ${jk === 'L' ? 'LAKI' : 'PEREMPUAN'} • ${agama} • ABSEN ${absen}</p>
         </div>`;
-        
         new QRCode(document.getElementById("qrImg"), {
             text: `${nama.toUpperCase()}\n${kelas} - ${jk} - ${agama} - ABSEN ${absen}`,
             width: 200, height: 200
         });
-        
         document.getElementById('loading').classList.add('hidden');
         showToast('QR Code berhasil dibuat!', 'success');
         playBeep('success');
@@ -560,7 +495,6 @@
     window.startCam = function() {
         document.getElementById('btnStart').classList.add('hidden');
         document.getElementById('btnStop').classList.remove('hidden');
-        
         scanner = new Html5Qrcode("reader");
         scanner.start(
             { facingMode: "environment" },
@@ -580,13 +514,10 @@
     
     async function prosesQR(text) {
         document.getElementById('loading').classList.remove('hidden');
-        
         try {
-            let cleanText = text.replace(/[–—|{}]/g, '-').trim();
+            let cleanText = text.replace(/[–—|{}]/g, '-').trim();
             cleanText = cleanText.replace(/\s+/g, ' ').trim();
-            
             let nama = "", kelas = "", absen = "", jk = "L", agama = "Islam";
-            
             if(text.includes('\n')) {
                 const lines = text.split('\n').filter(l => l.trim() !== '');
                 if(lines.length >= 1) nama = lines[0].trim();
@@ -601,14 +532,11 @@
                     }
                 }
             }
-            
             if(!kelas && cleanText.includes('-')) {
                 const parts = cleanText.split('-').map(p => p.trim());
                 for(let i = 0; i < parts.length; i++) {
                     if(parts[i].includes('X-') || parts[i].includes('XI-') || parts[i].includes('XII-')) {
-                        kelas = parts[i];
-                        nama = parts.slice(0, i).join(' ').trim();
-                        break;
+                        kelas = parts[i]; nama = parts.slice(0, i).join(' ').trim(); break;
                     }
                 }
                 for(let p of parts) {
@@ -619,43 +547,24 @@
                     if(p.includes('Kristen')) agama = 'Kristen';
                 }
             }
-            
             if(!kelas) {
                 const words = cleanText.split(' ');
-                for(let w of words) {
-                    if(w.includes('X-') || w.includes('XI-') || w.includes('XII-')) kelas = w;
-                }
-                for(let w of words) {
-                    if(w.match(/^[0-9]+$/)) absen = w;
-                }
+                for(let w of words) { if(w.includes('X-') || w.includes('XI-') || w.includes('XII-')) kelas = w; }
+                for(let w of words) { if(w.match(/^[0-9]+$/)) absen = w; }
                 if(!nama) nama = words.slice(0, 3).join(' ');
             }
-            
             if(!nama) nama = "SISWA";
             if(!kelas) kelas = "X-1";
-            if(!absen) {
-                const angka = cleanText.match(/\b(\d+)\b/);
-                if(angka) absen = angka[1];
-                else absen = "1";
-            }
-            
+            if(!absen) { const angka = cleanText.match(/\b(\d+)\b/); absen = angka ? angka[1] : "1"; }
             if(agama !== mode) throw `Mode harus ${mode}`;
-            
             const today = new Date().toLocaleDateString('id-ID').replace(/\//g, '-');
             const presensiRef = db.ref('presensi/' + today + '/' + kelas + '_' + absen);
             const presensiSnap = await presensiRef.once('value');
-            
-            if(presensiSnap.exists()) {
-                const data = presensiSnap.val();
-                throw `Sudah absen jam ${data.jam}`;
-            }
-            
+            if(presensiSnap.exists()) { const data = presensiSnap.val(); throw `Sudah absen jam ${data.jam}`; }
             const siswaRef = db.ref('siswa/' + kelas + '/' + absen);
             const siswaSnap = await siswaRef.once('value');
-            
             let totalHadir = 0;
             let dataSiswa = {};
-            
             if(siswaSnap.exists()) {
                 dataSiswa = siswaSnap.val();
                 totalHadir = dataSiswa.totalHadir || 0;
@@ -665,53 +574,26 @@
             } else {
                 dataSiswa = { nama, kelas, absen, jk, agama, totalHadir: 0 };
             }
-            
             totalHadir++;
             dataSiswa.totalHadir = totalHadir;
             dataSiswa.lastUpdate = Date.now();
-            
             await siswaRef.set(dataSiswa);
-            
-            const jam = new Date().toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' });
+            const jam = new Date().toLocaleTimeString('id-ID');
             const status = mode === 'Islam' ? 'DZUHUR' : 'IBADAH';
-            
             await presensiRef.set({
-                nama: dataSiswa.nama,
-                kelas: dataSiswa.kelas,
-                absen: dataSiswa.absen,
-                jk: dataSiswa.jk,
-                agama: dataSiswa.agama,
-                jam: jam,
-                status: status,
-                totalHadir: totalHadir,
-                timestamp: Date.now()
+                nama: dataSiswa.nama, kelas: dataSiswa.kelas, absen: dataSiswa.absen,
+                jk: dataSiswa.jk, agama: dataSiswa.agama, jam, status,
+                totalHadir, timestamp: Date.now()
             });
-            
-            // SIMPAN KE REKAP MINGGUAN
-            const mingguID = getMingguID();
-            const hariIni = new Date().toLocaleDateString('id-ID', { weekday: 'long' });
-            const tglIni = new Date().toLocaleDateString('id-ID').replace(/\//g, '-');
-            const kolomHari = `${hariIni} (${tglIni})`;
-            
-            const rekapRef = db.ref('rekapMingguan/' + mingguID + '/' + kelas + '_' + absen);
-            await rekapRef.update({
-                [kolomHari]: jam,
-                nama: dataSiswa.nama,
-                kelas: dataSiswa.kelas,
-                absen: dataSiswa.absen
-            });
-            
             feedback('✅', nama, `Hadir ke-${totalHadir}`, 'bg-gradient-to-r from-green-600 to-green-500');
             showToast(`${nama} - Hadir!`, 'success');
             playBeep('success');
             updateDashboard();
-            
         } catch(e) {
             feedback('❌', 'GAGAL', e.toString(), 'bg-gradient-to-r from-red-600 to-red-500');
             showToast(e.toString(), 'error');
             playBeep('error');
         }
-        
         document.getElementById('loading').classList.add('hidden');
         setTimeout(() => scanner?.resume(), 2000);
     }
@@ -725,175 +607,237 @@
         fb.classList.remove('hidden');
         setTimeout(() => fb.classList.add('hidden'), 2000);
     }
-    
 
-// ==================== DOWNLOAD HARIAN (FIX sheet name) ====================
-window.downloadHarian = async function() {
-    document.getElementById('loading').classList.remove('hidden');
-    
-    try {
-        const today = new Date();
-        const tglFormatted = today.toLocaleDateString('id-ID').replace(/\//g, '-');
-        const hariNama = today.toLocaleDateString('id-ID', { weekday: 'long' });
+    // ============================================================
+    // DOWNLOAD HARIAN (UPDATED)
+    // Format: NO ABSEN | NAMA | [Senin, 7/4/2025] | STATUS
+    // Kolom tanggal berisi jam absen kalau hadir, kosong kalau alpa
+    // ============================================================
+    window.downloadHarian = async function() {
+        document.getElementById('loading').classList.remove('hidden');
         
-        const zip = new JSZip();
-        
-        const presensiSnap = await db.ref('presensi/' + tglFormatted).once('value');
-        const presensi = presensiSnap.val() || {};
-        
-        const siswaSnap = await db.ref('siswa').once('value');
-        const semuaSiswa = siswaSnap.val() || {};
-        
-        for(let kelas in semuaSiswa) {
-            const daftarSiswa = semuaSiswa[kelas];
-            const absenNumbers = Object.keys(daftarSiswa).map(Number).sort((a,b) => a - b);
-            
-            if(absenNumbers.length === 0) continue;
-            
-            const rows = [['NO. ABSEN', 'NAMA', 'JAM ABSEN', 'STATUS']];
-            let totalHadirKelas = 0;
-            
-            for(let no of absenNumbers) {
-                const siswa = daftarSiswa[no];
-                const presensiKey = kelas + '_' + no;
-                const dataPresensi = presensi[presensiKey];
-                
-                if(dataPresensi) {
-                    rows.push([no, siswa.nama, dataPresensi.jam, '✅']);
-                    totalHadirKelas++;
-                } else {
-                    rows.push([no, siswa.nama, '-', '-']);
-                }
-            }
-            
-            rows.push([]);
-            rows.push([`TOTAL HADIR: ${totalHadirKelas} ORANG`, '', '', '']);
-            
-            const ws = XLSX.utils.aoa_to_sheet(rows);
-            ws['!cols'] = [{ wch: 12 }, { wch: 35 }, { wch: 12 }, { wch: 10 }];
-            
-            const title = `${hariNama}, ${tglFormatted} - PRESENSI ${kelas}`;
-            XLSX.utils.sheet_add_aoa(ws, [[title]], { origin: 'A1' });
-            XLSX.utils.sheet_add_aoa(ws, [['']], { origin: 'A2' });
-            
-            const wb = XLSX.utils.book_new();
-            // FIX: sheet name dipotong max 31 chars
-            let sheetName = `Presensi_${kelas}`;
-            if(sheetName.length > 31) sheetName = sheetName.substring(0, 31);
-            XLSX.utils.book_append_sheet(wb, ws, sheetName);
-            
-            zip.file(`PRESENSI_${kelas}_${tglFormatted}.xlsx`, XLSX.write(wb, { type: 'array' }));
-        }
-        
-        const content = await zip.generateAsync({ type: 'blob' });
-        const link = document.createElement('a');
-        link.href = URL.createObjectURL(content);
-        link.download = `HARIAN_${tglFormatted}.zip`;
-        link.click();
-        
-        showToast('Download Harian selesai!', 'success');
-        playBeep('success');
-    } catch(e) {
-        showToast('Error: ' + e.message, 'error');
-        playBeep('error');
-        console.error(e);
-    }
-    
-    document.getElementById('loading').classList.add('hidden');
-};
+        try {
+            const now = new Date();
+            const today = now.toLocaleDateString('id-ID').replace(/\//g, '-');
+            const namaHari = NAMA_HARI[now.getDay()];
+            const tglFormatted = now.toLocaleDateString('id-ID'); // e.g. 7/4/2025
+            const headerTanggal = `${namaHari}, ${tglFormatted}`; // e.g. "Senin, 7/4/2025"
 
-// ==================== DOWNLOAD REKAP MINGGUAN (FIX sheet name) ====================
-window.downloadRekap = async function() {
-    document.getElementById('loading').classList.remove('hidden');
-    
-    try {
-        const zip = new JSZip();
-        const mingguID = getMingguID();
-        
-        const rekapSnap = await db.ref('rekapMingguan/' + mingguID).once('value');
-        const rekapData = rekapSnap.val() || {};
-        
-        const siswaSnap = await db.ref('siswa').once('value');
-        const semuaSiswa = siswaSnap.val() || {};
-        
-        let semuaKolomHari = new Set();
-        for(let key in rekapData) {
-            for(let field in rekapData[key]) {
-                if(field !== 'nama' && field !== 'kelas' && field !== 'absen') {
-                    semuaKolomHari.add(field);
-                }
-            }
-        }
-        
-        const urutanHari = ['Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat'];
-        let kolomHariTerurut = [];
-        for(let hari of urutanHari) {
-            for(let kolom of semuaKolomHari) {
-                if(kolom.startsWith(hari)) {
-                    kolomHariTerurut.push(kolom);
-                    break;
-                }
-            }
-        }
-        
-        for(let kelas in semuaSiswa) {
-            const daftarSiswa = semuaSiswa[kelas];
-            const absenNumbers = Object.keys(daftarSiswa).map(Number).sort((a,b) => a - b);
+            const zip = new JSZip();
             
-            if(absenNumbers.length === 0) continue;
+            // Ambil semua data siswa (untuk daftar lengkap per kelas)
+            const siswaSnap = await db.ref('siswa').once('value');
+            const semuaSiswa = siswaSnap.val() || {};
             
-            const headers = ['NO. ABSEN', 'NAMA', ...kolomHariTerurut, 'TOTAL HADIR'];
-            const rows = [headers];
+            // Ambil data presensi hari ini
+            const presensiSnap = await db.ref('presensi/' + today).once('value');
+            const presensiData = presensiSnap.val() || {};
             
-            for(let no of absenNumbers) {
-                const siswa = daftarSiswa[no];
-                const key = kelas + '_' + no;
-                const dataRekap = rekapData[key] || {};
+            // Kelompokkan presensi per kelas
+            const hadirPerKelas = {};
+            Object.values(presensiData).forEach(p => {
+                if(!hadirPerKelas[p.kelas]) hadirPerKelas[p.kelas] = {};
+                hadirPerKelas[p.kelas][p.absen] = p;
+            });
+            
+            for(let kelas in semuaSiswa) {
+                const dataSiswaKelas = semuaSiswa[kelas];
+                const hadirKelas = hadirPerKelas[kelas] || {};
                 
-                const row = [no, siswa.nama];
-                let totalHadir = 0;
+                // Urutkan berdasarkan no absen
+                const daftarAbsen = Object.keys(dataSiswaKelas).map(Number).sort((a,b) => a-b);
                 
-                for(let kolom of kolomHariTerurut) {
-                    const jam = dataRekap[kolom] || '-';
-                    if(jam !== '-') totalHadir++;
-                    row.push(jam);
-                }
-                row.push(totalHadir);
-                rows.push(row);
+                // Header baris pertama: judul
+                const rows = [];
+                
+                // Row header kolom
+                rows.push(['NO. ABSEN', 'NAMA', headerTanggal, 'STATUS']);
+                
+                let totalHadirKelas = 0;
+                
+                daftarAbsen.forEach(no => {
+                    const siswa = dataSiswaKelas[no];
+                    const hadir = hadirKelas[no];
+                    
+                    if(hadir) {
+                        rows.push([no, siswa.nama || hadir.nama, hadir.jam, '✅']);
+                        totalHadirKelas++;
+                    } else {
+                        rows.push([no, siswa.nama || '-', '', '']);
+                    }
+                });
+                
+                // Baris total hadir di bawah
+                rows.push([]);
+                rows.push(['', `TOTAL HADIR: ${totalHadirKelas} orang`, '', '']);
+                
+                const ws = XLSX.utils.aoa_to_sheet(rows);
+                
+                // Set lebar kolom
+                ws['!cols'] = [
+                    { wch: 12 },  // NO ABSEN
+                    { wch: 30 },  // NAMA
+                    { wch: 22 },  // TANGGAL/JAM
+                    { wch: 10 }   // STATUS
+                ];
+                
+                const wb = XLSX.utils.book_new();
+                XLSX.utils.book_append_sheet(wb, ws, 'Presensi');
+                zip.file(`HARIAN_${kelas}_${today}.xlsx`, XLSX.write(wb, { type: 'array' }));
             }
             
-            const ws = XLSX.utils.aoa_to_sheet(rows);
-            ws['!cols'] = [{ wch: 10 }, { wch: 35 }, ...kolomHariTerurut.map(() => ({ wch: 15 })), { wch: 12 }];
+            const content = await zip.generateAsync({ type: 'blob' });
+            const link = document.createElement('a');
+            link.href = URL.createObjectURL(content);
+            link.download = `HARIAN_${today}.zip`;
+            link.click();
             
-            const startDate = mingguID.replace('minggu_', '');
-            const title = `REKAP MINGGUAN ${kelas} (${startDate})`;
-            XLSX.utils.sheet_add_aoa(ws, [[title]], { origin: 'A1' });
-            XLSX.utils.sheet_add_aoa(ws, [['']], { origin: 'A2' });
+            showToast('Download Harian selesai!', 'success');
+            playBeep('success');
             
-            const wb = XLSX.utils.book_new();
-            // FIX: sheet name dipotong max 31 chars
-            let sheetName = `Rekap_${kelas}`;
-            if(sheetName.length > 31) sheetName = sheetName.substring(0, 31);
-            XLSX.utils.book_append_sheet(wb, ws, sheetName);
-            
-            zip.file(`REKAP_${kelas}_${mingguID}.xlsx`, XLSX.write(wb, { type: 'array' }));
+        } catch(error) {
+            showToast('Gagal download: ' + error.message, 'error');
+            playBeep('error');
         }
         
-        const content = await zip.generateAsync({ type: 'blob' });
-        const link = document.createElement('a');
-        link.href = URL.createObjectURL(content);
-        link.download = `REKAP_MINGGUAN_${mingguID}.zip`;
-        link.click();
+        document.getElementById('loading').classList.add('hidden');
+    };
+
+    // ============================================================
+    // DOWNLOAD REKAP MINGGUAN (UPDATED)
+    // Format: NO ABSEN | NAMA | Senin tgl | Selasa tgl | ... | Jumat tgl | TOTAL
+    // Minggu = Senin s/d Jumat minggu berjalan (reset tiap Senin)
+    // Kolom hari berisi jam absen kalau hadir, kosong kalau tidak
+    // ============================================================
+    window.downloadRekap = async function() {
+        document.getElementById('loading').classList.remove('hidden');
         
-        showToast('Download Rekap selesai!', 'success');
-        playBeep('success');
-    } catch(e) {
-        showToast('Error: ' + e.message, 'error');
-        playBeep('error');
-        console.error(e);
-    }
+        try {
+            const now = new Date();
+            const hariIni = now.getDay(); // 0=Minggu, 1=Senin, ..., 6=Sabtu
+            
+            // Hitung tanggal Senin minggu ini
+            // Jika hari ini Minggu (0), mundur 6 hari. Selain itu mundur (hariIni - 1) hari.
+            const selisihSenin = hariIni === 0 ? 6 : hariIni - 1;
+            const senin = new Date(now);
+            senin.setDate(now.getDate() - selisihSenin);
+            
+            // Buat array 5 hari kerja: Senin s/d Jumat
+            const hariKerja = [];
+            for(let i = 0; i < 5; i++) {
+                const tgl = new Date(senin);
+                tgl.setDate(senin.getDate() + i);
+                hariKerja.push(tgl);
+            }
+            
+            // Format tanggal untuk Firebase key: D-M-YYYY (format id-ID)
+            const formatTglFirebase = (d) => d.toLocaleDateString('id-ID').replace(/\//g, '-');
+            // Format tanggal untuk header: "Senin 7/4"
+            const formatTglHeader = (d) => {
+                const nm = NAMA_HARI[d.getDay()];
+                return `${nm} ${d.getDate()}/${d.getMonth()+1}`;
+            };
+            
+            // Ambil presensi semua hari kerja ini dari Firebase
+            const presensiMinggu = {};
+            for(let hariObj of hariKerja) {
+                const key = formatTglFirebase(hariObj);
+                const snap = await db.ref('presensi/' + key).once('value');
+                presensiMinggu[key] = snap.val() || {};
+            }
+            
+            // Ambil semua data siswa
+            const siswaSnap = await db.ref('siswa').once('value');
+            const semuaSiswa = siswaSnap.val() || {};
+            
+            const zip = new JSZip();
+            const tglMingguStr = formatTglFirebase(senin);
+            
+            for(let kelas in semuaSiswa) {
+                const dataSiswaKelas = semuaSiswa[kelas];
+                const daftarAbsen = Object.keys(dataSiswaKelas).map(Number).sort((a,b) => a-b);
+                
+                // Buat header: NO ABSEN | NAMA | [Senin tgl] | [Selasa tgl] | ... | [Jumat tgl] | TOTAL HADIR
+                const headerRow = ['NO. ABSEN', 'NAMA'];
+                hariKerja.forEach(h => headerRow.push(formatTglHeader(h)));
+                headerRow.push('TOTAL HADIR');
+                
+                const rows = [headerRow];
+                
+                daftarAbsen.forEach(no => {
+                    const siswa = dataSiswaKelas[no];
+                    const row = [no, siswa.nama || '-'];
+                    let totalHadirSiswa = 0;
+                    
+                    hariKerja.forEach(hariObj => {
+                        const key = formatTglFirebase(hariObj);
+                        const presensiHari = presensiMinggu[key];
+                        // Cari presensi siswa ini di hari tsb (key di Firebase: kelas_absen)
+                        const entryKey = `${kelas}_${no}`;
+                        const hadirData = presensiHari[entryKey];
+                        
+                        if(hadirData) {
+                            row.push(hadirData.jam);
+                            totalHadirSiswa++;
+                        } else {
+                            row.push('');
+                        }
+                    });
+                    
+                    row.push(totalHadirSiswa);
+                    rows.push(row);
+                });
+                
+                const ws = XLSX.utils.aoa_to_sheet(rows);
+                
+                // Set lebar kolom
+                const cols = [{ wch: 12 }, { wch: 30 }];
+                hariKerja.forEach(() => cols.push({ wch: 14 }));
+                cols.push({ wch: 14 });
+                ws['!cols'] = cols;
+                
+                const wb = XLSX.utils.book_new();
+                XLSX.utils.book_append_sheet(wb, ws, 'Rekap Mingguan');
+                zip.file(`REKAP_${kelas}_MINGGU_${tglMingguStr}.xlsx`, XLSX.write(wb, { type: 'array' }));
+            }
+            
+            const content = await zip.generateAsync({ type: 'blob' });
+            const link = document.createElement('a');
+            link.href = URL.createObjectURL(content);
+            link.download = `REKAP_MINGGUAN_${tglMingguStr}.zip`;
+            link.click();
+            
+            showToast('Download Rekap Mingguan selesai!', 'success');
+            playBeep('success');
+            
+        } catch(error) {
+            showToast('Gagal download: ' + error.message, 'error');
+            playBeep('error');
+        }
+        
+        document.getElementById('loading').classList.add('hidden');
+    };
     
-    document.getElementById('loading').classList.add('hidden');
+    window.cekDataSiswa = async function() {
+        try {
+            const snap = await db.ref('siswa').once('value');
+            const data = snap.val();
+            let pesan = "DATA SISWA:\n\n";
+            if(!data) pesan = "TIDAK ADA DATA!";
+            else {
+                for(let kelas in data) {
+                    pesan += `📚 ${kelas}:\n`;
+                    for(let absen in data[kelas]) {
+                        const s = data[kelas][absen];
+                        pesan += `   ${absen}. ${s.nama || '?'} | ${s.jk || '?'} | ${s.agama || '?'} | Hadir: ${s.totalHadir || 0}\n`;
+                    }
+                    pesan += "\n";
+                }
+            }
+            alert(pesan);
+        } catch(e) {
+            alert("Error: " + e.message);
+        }
     };
 </script>
 </body>
