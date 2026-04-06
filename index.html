@@ -800,102 +800,173 @@
         }
         
         document.getElementById('loading').classList.add('hidden');
-    };
+// ==================== DOWNLOAD HARIAN (FIX sheet name) ====================
+window.downloadHarian = async function() {
+    document.getElementById('loading').classList.remove('hidden');
     
-    // ==================== DOWNLOAD REKAP MINGGUAN (FIX - PER KELAS) ====================
-    window.downloadRekap = async function() {
-        document.getElementById('loading').classList.remove('hidden');
+    try {
+        const today = new Date();
+        const tglFormatted = today.toLocaleDateString('id-ID').replace(/\//g, '-');
+        const hariNama = today.toLocaleDateString('id-ID', { weekday: 'long' });
         
-        try {
-            const zip = new JSZip();
-            const mingguID = getMingguID();
+        const zip = new JSZip();
+        
+        const presensiSnap = await db.ref('presensi/' + tglFormatted).once('value');
+        const presensi = presensiSnap.val() || {};
+        
+        const siswaSnap = await db.ref('siswa').once('value');
+        const semuaSiswa = siswaSnap.val() || {};
+        
+        for(let kelas in semuaSiswa) {
+            const daftarSiswa = semuaSiswa[kelas];
+            const absenNumbers = Object.keys(daftarSiswa).map(Number).sort((a,b) => a - b);
             
-            // Ambil semua data rekap minggu ini
-            const rekapSnap = await db.ref('rekapMingguan/' + mingguID).once('value');
-            const rekapData = rekapSnap.val() || {};
+            if(absenNumbers.length === 0) continue;
             
-            // Ambil semua siswa
-            const siswaSnap = await db.ref('siswa').once('value');
-            const semuaSiswa = siswaSnap.val() || {};
+            const rows = [['NO. ABSEN', 'NAMA', 'JAM ABSEN', 'STATUS']];
+            let totalHadirKelas = 0;
             
-            // Kumpulkan semua kolom hari yang ada (format: "Senin (06/01)")
-            let semuaKolomHari = new Set();
-            for(let key in rekapData) {
-                for(let field in rekapData[key]) {
-                    if(field !== 'nama' && field !== 'kelas' && field !== 'absen') {
-                        semuaKolomHari.add(field);
-                    }
+            for(let no of absenNumbers) {
+                const siswa = daftarSiswa[no];
+                const presensiKey = kelas + '_' + no;
+                const dataPresensi = presensi[presensiKey];
+                
+                if(dataPresensi) {
+                    rows.push([no, siswa.nama, dataPresensi.jam, '✅']);
+                    totalHadirKelas++;
+                } else {
+                    rows.push([no, siswa.nama, '-', '-']);
                 }
             }
             
-            // Urutkan berdasarkan hari Senin-Jumat
-            const urutanHari = ['Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat'];
-            let kolomHariTerurut = [];
-            for(let hari of urutanHari) {
-                for(let kolom of semuaKolomHari) {
-                    if(kolom.startsWith(hari)) {
-                        kolomHariTerurut.push(kolom);
-                        break;
-                    }
-                }
-            }
+            rows.push([]);
+            rows.push([`TOTAL HADIR: ${totalHadirKelas} ORANG`, '', '', '']);
             
-            // Loop per kelas
-            for(let kelas in semuaSiswa) {
-                const daftarSiswa = semuaSiswa[kelas];
-                const absenNumbers = Object.keys(daftarSiswa).map(Number).sort((a,b) => a - b);
-                
-                if(absenNumbers.length === 0) continue;
-                
-                // Header Excel
-                const headers = ['NO. ABSEN', 'NAMA', ...kolomHariTerurut, 'TOTAL HADIR'];
-                const rows = [headers];
-                
-                for(let no of absenNumbers) {
-                    const siswa = daftarSiswa[no];
-                    const key = kelas + '_' + no;
-                    const dataRekap = rekapData[key] || {};
-                    
-                    const row = [no, siswa.nama];
-                    let totalHadir = 0;
-                    
-                    for(let kolom of kolomHariTerurut) {
-                        const jam = dataRekap[kolom] || '-';
-                        if(jam !== '-') totalHadir++;
-                        row.push(jam);
-                    }
-                    row.push(totalHadir);
-                    rows.push(row);
-                }
-                
-                const ws = XLSX.utils.aoa_to_sheet(rows);
-                ws['!cols'] = [{ wch: 10 }, { wch: 35 }, ...kolomHariTerurut.map(() => ({ wch: 15 })), { wch: 12 }];
-                
-                // Title
-                const startDate = mingguID.replace('minggu_', '');
-                const title = `REKAP MINGGUAN ${kelas} (${startDate} s/d ${startDate})`;
-                XLSX.utils.sheet_add_aoa(ws, [[title]], { origin: 'A1' });
-                XLSX.utils.sheet_add_aoa(ws, [['']], { origin: 'A2' });
-                
-                const wb = XLSX.utils.book_new();
-                XLSX.utils.book_append_sheet(wb, ws, `Rekap ${kelas}`);
-                zip.file(`REKAP_${kelas}_${mingguID}.xlsx`, XLSX.write(wb, { type: 'array' }));
-            }
+            const ws = XLSX.utils.aoa_to_sheet(rows);
+            ws['!cols'] = [{ wch: 12 }, { wch: 35 }, { wch: 12 }, { wch: 10 }];
             
-            const content = await zip.generateAsync({ type: 'blob' });
-            const link = document.createElement('a');
-            link.href = URL.createObjectURL(content);
-            link.download = `REKAP_MINGGUAN_${mingguID}.zip`;
-            link.click();
+            const title = `${hariNama}, ${tglFormatted} - PRESENSI ${kelas}`;
+            XLSX.utils.sheet_add_aoa(ws, [[title]], { origin: 'A1' });
+            XLSX.utils.sheet_add_aoa(ws, [['']], { origin: 'A2' });
             
-            showToast('Download Rekap selesai!', 'success');
-            playBeep('success');
-        } catch(e) {
-            showToast('Error: ' + e.message, 'error');
-            playBeep('error');
+            const wb = XLSX.utils.book_new();
+            // FIX: sheet name dipotong max 31 chars
+            let sheetName = `Presensi_${kelas}`;
+            if(sheetName.length > 31) sheetName = sheetName.substring(0, 31);
+            XLSX.utils.book_append_sheet(wb, ws, sheetName);
+            
+            zip.file(`PRESENSI_${kelas}_${tglFormatted}.xlsx`, XLSX.write(wb, { type: 'array' }));
         }
         
-        document.getElementById('loading').classList.add('hidden');
+        const content = await zip.generateAsync({ type: 'blob' });
+        const link = document.createElement('a');
+        link.href = URL.createObjectURL(content);
+        link.download = `HARIAN_${tglFormatted}.zip`;
+        link.click();
+        
+        showToast('Download Harian selesai!', 'success');
+        playBeep('success');
+    } catch(e) {
+        showToast('Error: ' + e.message, 'error');
+        playBeep('error');
+        console.error(e);
+    }
+    
+    document.getElementById('loading').classList.add('hidden');
+};
+
+// ==================== DOWNLOAD REKAP MINGGUAN (FIX sheet name) ====================
+window.downloadRekap = async function() {
+    document.getElementById('loading').classList.remove('hidden');
+    
+    try {
+        const zip = new JSZip();
+        const mingguID = getMingguID();
+        
+        const rekapSnap = await db.ref('rekapMingguan/' + mingguID).once('value');
+        const rekapData = rekapSnap.val() || {};
+        
+        const siswaSnap = await db.ref('siswa').once('value');
+        const semuaSiswa = siswaSnap.val() || {};
+        
+        let semuaKolomHari = new Set();
+        for(let key in rekapData) {
+            for(let field in rekapData[key]) {
+                if(field !== 'nama' && field !== 'kelas' && field !== 'absen') {
+                    semuaKolomHari.add(field);
+                }
+            }
+        }
+        
+        const urutanHari = ['Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat'];
+        let kolomHariTerurut = [];
+        for(let hari of urutanHari) {
+            for(let kolom of semuaKolomHari) {
+                if(kolom.startsWith(hari)) {
+                    kolomHariTerurut.push(kolom);
+                    break;
+                }
+            }
+        }
+        
+        for(let kelas in semuaSiswa) {
+            const daftarSiswa = semuaSiswa[kelas];
+            const absenNumbers = Object.keys(daftarSiswa).map(Number).sort((a,b) => a - b);
+            
+            if(absenNumbers.length === 0) continue;
+            
+            const headers = ['NO. ABSEN', 'NAMA', ...kolomHariTerurut, 'TOTAL HADIR'];
+            const rows = [headers];
+            
+            for(let no of absenNumbers) {
+                const siswa = daftarSiswa[no];
+                const key = kelas + '_' + no;
+                const dataRekap = rekapData[key] || {};
+                
+                const row = [no, siswa.nama];
+                let totalHadir = 0;
+                
+                for(let kolom of kolomHariTerurut) {
+                    const jam = dataRekap[kolom] || '-';
+                    if(jam !== '-') totalHadir++;
+                    row.push(jam);
+                }
+                row.push(totalHadir);
+                rows.push(row);
+            }
+            
+            const ws = XLSX.utils.aoa_to_sheet(rows);
+            ws['!cols'] = [{ wch: 10 }, { wch: 35 }, ...kolomHariTerurut.map(() => ({ wch: 15 })), { wch: 12 }];
+            
+            const startDate = mingguID.replace('minggu_', '');
+            const title = `REKAP MINGGUAN ${kelas} (${startDate})`;
+            XLSX.utils.sheet_add_aoa(ws, [[title]], { origin: 'A1' });
+            XLSX.utils.sheet_add_aoa(ws, [['']], { origin: 'A2' });
+            
+            const wb = XLSX.utils.book_new();
+            // FIX: sheet name dipotong max 31 chars
+            let sheetName = `Rekap_${kelas}`;
+            if(sheetName.length > 31) sheetName = sheetName.substring(0, 31);
+            XLSX.utils.book_append_sheet(wb, ws, sheetName);
+            
+            zip.file(`REKAP_${kelas}_${mingguID}.xlsx`, XLSX.write(wb, { type: 'array' }));
+        }
+        
+        const content = await zip.generateAsync({ type: 'blob' });
+        const link = document.createElement('a');
+        link.href = URL.createObjectURL(content);
+        link.download = `REKAP_MINGGUAN_${mingguID}.zip`;
+        link.click();
+        
+        showToast('Download Rekap selesai!', 'success');
+        playBeep('success');
+    } catch(e) {
+        showToast('Error: ' + e.message, 'error');
+        playBeep('error');
+        console.error(e);
+    }
+    
+    document.getElementById('loading').classList.add('hidden');
     };
 </script>
 </body>
