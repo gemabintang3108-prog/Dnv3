@@ -356,28 +356,26 @@
     // AUTO RESET REKAP MINGGUAN SETIAP SENIN 00:00
     function checkAndResetMingguan() {
         const now = new Date();
-        const hari = now.getDay(); // 0 Minggu, 1 Senin, 2 Selasa...
+        const hari = now.getDay(); // 0 Minggu, 1 Senin
         const jam = now.getHours();
         const menit = now.getMinutes();
         
-        // Cek apakah hari Senin dan jam 00:00
         if(hari === 1 && jam === 0 && menit === 0) {
-            localStorage.removeItem('mingguKe');
-            localStorage.setItem('mingguKe', Date.now());
+            const mingguID = getMingguID();
+            db.ref('rekapMingguan/' + mingguID).remove();
             showToast('🔄 Data rekap mingguan telah direset!', 'success');
         }
     }
     
-    // Ambil ID minggu berjalan (Senin ke Senin)
     function getMingguID() {
         const now = new Date();
         const hari = now.getDay();
         const seninTerakhir = new Date(now);
-        if(hari === 0) { // Minggu, mundur 6 hari ke Senin
+        if(hari === 0) {
             seninTerakhir.setDate(now.getDate() - 6);
-        } else if(hari === 1) { // Senin, pakai hari ini
+        } else if(hari === 1) {
             // keep
-        } else { // Selasa-Jumat, mundur ke Senin minggu ini
+        } else {
             seninTerakhir.setDate(now.getDate() - (hari - 1));
         }
         seninTerakhir.setHours(0,0,0,0);
@@ -397,7 +395,6 @@
             updateDashboard();
         }
         
-        // Cek reset mingguan setiap 1 menit
         setInterval(checkAndResetMingguan, 60000);
     };
     
@@ -729,177 +726,176 @@
         setTimeout(() => fb.classList.add('hidden'), 2000);
     }
     
-    // ==================== DOWNLOAD HARIAN (format baru) ====================
+    // ==================== DOWNLOAD HARIAN (FIX) ====================
     window.downloadHarian = async function() {
         document.getElementById('loading').classList.remove('hidden');
         
-        const today = new Date();
-        const tglFormatted = today.toLocaleDateString('id-ID').replace(/\//g, '-');
-        const hariNama = today.toLocaleDateString('id-ID', { weekday: 'long' });
-        
-        const zip = new JSZip();
-        const presensiSnap = await db.ref('presensi/' + tglFormatted).once('value');
-        const presensi = presensiSnap.val() || {};
-        
-        const siswaSnap = await db.ref('siswa').once('value');
-        const semuaSiswa = siswaSnap.val() || {};
-        
-        for(let kelas in semuaSiswa) {
-            const daftarSiswa = semuaSiswa[kelas];
-            const absenNumbers = Object.keys(daftarSiswa).map(Number).sort((a,b) => a - b);
+        try {
+            const today = new Date();
+            const tglFormatted = today.toLocaleDateString('id-ID').replace(/\//g, '-');
+            const hariNama = today.toLocaleDateString('id-ID', { weekday: 'long' });
             
-            // Siapkan rows untuk Excel
-            const rows = [['NO. ABSEN', 'NAMA', 'JAM ABSEN', 'STATUS']];
-            let totalHadirKelas = 0;
+            const zip = new JSZip();
             
-            for(let no of absenNumbers) {
-                const siswa = daftarSiswa[no];
-                const presensiKey = kelas + '_' + no;
-                const dataPresensi = presensi[presensiKey];
+            // Ambil data presensi hari ini
+            const presensiSnap = await db.ref('presensi/' + tglFormatted).once('value');
+            const presensi = presensiSnap.val() || {};
+            
+            // Ambil semua siswa
+            const siswaSnap = await db.ref('siswa').once('value');
+            const semuaSiswa = siswaSnap.val() || {};
+            
+            // Loop per kelas
+            for(let kelas in semuaSiswa) {
+                const daftarSiswa = semuaSiswa[kelas];
+                const absenNumbers = Object.keys(daftarSiswa).map(Number).sort((a,b) => a - b);
                 
-                if(dataPresensi) {
-                    rows.push([no, siswa.nama, dataPresensi.jam, '✅']);
-                    totalHadirKelas++;
-                } else {
-                    rows.push([no, siswa.nama, '-', '-']);
+                if(absenNumbers.length === 0) continue;
+                
+                // Buat rows Excel
+                const rows = [['NO. ABSEN', 'NAMA', 'JAM ABSEN', 'STATUS']];
+                let totalHadirKelas = 0;
+                
+                for(let no of absenNumbers) {
+                    const siswa = daftarSiswa[no];
+                    const presensiKey = kelas + '_' + no;
+                    const dataPresensi = presensi[presensiKey];
+                    
+                    if(dataPresensi) {
+                        rows.push([no, siswa.nama, dataPresensi.jam, '✅']);
+                        totalHadirKelas++;
+                    } else {
+                        rows.push([no, siswa.nama, '-', '-']);
+                    }
                 }
+                
+                // Tambah baris total hadir
+                rows.push([]);
+                rows.push([`TOTAL HADIR: ${totalHadirKelas} ORANG`, '', '', '']);
+                
+                const ws = XLSX.utils.aoa_to_sheet(rows);
+                ws['!cols'] = [{ wch: 12 }, { wch: 35 }, { wch: 12 }, { wch: 10 }];
+                
+                // Title di atas
+                const title = `${hariNama}, ${tglFormatted} - PRESENSI ${kelas}`;
+                XLSX.utils.sheet_add_aoa(ws, [[title]], { origin: 'A1' });
+                XLSX.utils.sheet_add_aoa(ws, [['']], { origin: 'A2' });
+                
+                const wb = XLSX.utils.book_new();
+                XLSX.utils.book_append_sheet(wb, ws, `Presensi ${kelas}`);
+                zip.file(`PRESENSI_${kelas}_${tglFormatted}.xlsx`, XLSX.write(wb, { type: 'array' }));
             }
             
-            // Tambah baris total hadir
-            rows.push([]);
-            rows.push([`TOTAL HADIR: ${totalHadirKelas} ORANG`, '', '', '']);
+            const content = await zip.generateAsync({ type: 'blob' });
+            const link = document.createElement('a');
+            link.href = URL.createObjectURL(content);
+            link.download = `HARIAN_${tglFormatted}.zip`;
+            link.click();
             
-            const ws = XLSX.utils.aoa_to_sheet(rows);
-            ws['!cols'] = [{ wch: 12 }, { wch: 35 }, { wch: 12 }, { wch: 10 }];
-            
-            // Tambah title di atas
-            const title = `${hariNama}, ${tglFormatted} - PRESENSI ${kelas}`;
-            XLSX.utils.sheet_add_aoa(ws, [[title]], { origin: 'A1' });
-            XLSX.utils.sheet_add_aoa(ws, [['']], { origin: 'A2' });
-            
-            const wb = XLSX.utils.book_new();
-            XLSX.utils.book_append_sheet(wb, ws, `Presensi ${kelas}`);
-            zip.file(`PRESENSI_${kelas}_${tglFormatted}.xlsx`, XLSX.write(wb, { type: 'array' }));
+            showToast('Download Harian selesai!', 'success');
+            playBeep('success');
+        } catch(e) {
+            showToast('Error: ' + e.message, 'error');
+            playBeep('error');
         }
         
-        const content = await zip.generateAsync({ type: 'blob' });
-        const link = document.createElement('a');
-        link.href = URL.createObjectURL(content);
-        link.download = `HARIAN_${tglFormatted}.zip`;
-        link.click();
-        
         document.getElementById('loading').classList.add('hidden');
-        showToast('Download Harian selesai!', 'success');
-        playBeep('success');
     };
     
-    // ==================== DOWNLOAD REKAP MINGGUAN (format baru) ====================
+    // ==================== DOWNLOAD REKAP MINGGUAN (FIX - PER KELAS) ====================
     window.downloadRekap = async function() {
         document.getElementById('loading').classList.remove('hidden');
         
-        const zip = new JSZip();
-        const mingguID = getMingguID();
-        
-        // Ambil semua data rekap minggu ini
-        const rekapSnap = await db.ref('rekapMingguan/' + mingguID).once('value');
-        const rekapData = rekapSnap.val() || {};
-        
-        // Ambil semua siswa
-        const siswaSnap = await db.ref('siswa').once('value');
-        const semuaSiswa = siswaSnap.val() || {};
-        
-        // Kumpulkan semua hari yang ada di rekap (Senin-Jumat)
-        let semuaHari = new Set();
-        for(let key in rekapData) {
-            for(let field in rekapData[key]) {
-                if(field !== 'nama' && field !== 'kelas' && field !== 'absen') {
-                    semuaHari.add(field);
+        try {
+            const zip = new JSZip();
+            const mingguID = getMingguID();
+            
+            // Ambil semua data rekap minggu ini
+            const rekapSnap = await db.ref('rekapMingguan/' + mingguID).once('value');
+            const rekapData = rekapSnap.val() || {};
+            
+            // Ambil semua siswa
+            const siswaSnap = await db.ref('siswa').once('value');
+            const semuaSiswa = siswaSnap.val() || {};
+            
+            // Kumpulkan semua kolom hari yang ada (format: "Senin (06/01)")
+            let semuaKolomHari = new Set();
+            for(let key in rekapData) {
+                for(let field in rekapData[key]) {
+                    if(field !== 'nama' && field !== 'kelas' && field !== 'absen') {
+                        semuaKolomHari.add(field);
+                    }
                 }
             }
-        }
-        
-        // Urutkan hari sesuai urutan Senin-Jumat
-        const urutanHari = ['Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat'];
-        let kolomHari = [];
-        for(let hari of urutanHari) {
-            for(let h of semuaHari) {
-                if(h.startsWith(hari)) {
-                    kolomHari.push(h);
-                    break;
+            
+            // Urutkan berdasarkan hari Senin-Jumat
+            const urutanHari = ['Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat'];
+            let kolomHariTerurut = [];
+            for(let hari of urutanHari) {
+                for(let kolom of semuaKolomHari) {
+                    if(kolom.startsWith(hari)) {
+                        kolomHariTerurut.push(kolom);
+                        break;
+                    }
                 }
             }
-        }
-        
-        for(let kelas in semuaSiswa) {
-            const daftarSiswa = semuaSiswa[kelas];
-            const absenNumbers = Object.keys(daftarSiswa).map(Number).sort((a,b) => a - b);
             
-            // Header: NO | NAMA | Senin(tgl) | Selasa(tgl) | Rabu(tgl) | Kamis(tgl) | Jumat(tgl) | TOTAL HADIR
-            const headers = ['NO. ABSEN', 'NAMA', ...kolomHari, 'TOTAL HADIR'];
-            const rows = [headers];
-            
-            for(let no of absenNumbers) {
-                const siswa = daftarSiswa[no];
-                const key = kelas + '_' + no;
-                const dataRekap = rekapData[key] || {};
+            // Loop per kelas
+            for(let kelas in semuaSiswa) {
+                const daftarSiswa = semuaSiswa[kelas];
+                const absenNumbers = Object.keys(daftarSiswa).map(Number).sort((a,b) => a - b);
                 
-                const row = [no, siswa.nama];
-                let totalHadir = 0;
+                if(absenNumbers.length === 0) continue;
                 
-                for(let kolom of kolomHari) {
-                    const jam = dataRekap[kolom] || '-';
-                    if(jam !== '-') totalHadir++;
-                    row.push(jam);
+                // Header Excel
+                const headers = ['NO. ABSEN', 'NAMA', ...kolomHariTerurut, 'TOTAL HADIR'];
+                const rows = [headers];
+                
+                for(let no of absenNumbers) {
+                    const siswa = daftarSiswa[no];
+                    const key = kelas + '_' + no;
+                    const dataRekap = rekapData[key] || {};
+                    
+                    const row = [no, siswa.nama];
+                    let totalHadir = 0;
+                    
+                    for(let kolom of kolomHariTerurut) {
+                        const jam = dataRekap[kolom] || '-';
+                        if(jam !== '-') totalHadir++;
+                        row.push(jam);
+                    }
+                    row.push(totalHadir);
+                    rows.push(row);
                 }
-                row.push(totalHadir);
-                rows.push(row);
+                
+                const ws = XLSX.utils.aoa_to_sheet(rows);
+                ws['!cols'] = [{ wch: 10 }, { wch: 35 }, ...kolomHariTerurut.map(() => ({ wch: 15 })), { wch: 12 }];
+                
+                // Title
+                const startDate = mingguID.replace('minggu_', '');
+                const title = `REKAP MINGGUAN ${kelas} (${startDate} s/d ${startDate})`;
+                XLSX.utils.sheet_add_aoa(ws, [[title]], { origin: 'A1' });
+                XLSX.utils.sheet_add_aoa(ws, [['']], { origin: 'A2' });
+                
+                const wb = XLSX.utils.book_new();
+                XLSX.utils.book_append_sheet(wb, ws, `Rekap ${kelas}`);
+                zip.file(`REKAP_${kelas}_${mingguID}.xlsx`, XLSX.write(wb, { type: 'array' }));
             }
             
-            const ws = XLSX.utils.aoa_to_sheet(rows);
-            ws['!cols'] = [{ wch: 10 }, { wch: 35 }, ...kolomHari.map(() => ({ wch: 15 })), { wch: 12 }];
+            const content = await zip.generateAsync({ type: 'blob' });
+            const link = document.createElement('a');
+            link.href = URL.createObjectURL(content);
+            link.download = `REKAP_MINGGUAN_${mingguID}.zip`;
+            link.click();
             
-            // Tambah title
-            const startDate = mingguID.replace('minggu_', '');
-            const title = `REKAP MINGGUAN (${startDate} s/d ${startDate})`;
-            XLSX.utils.sheet_add_aoa(ws, [[title]], { origin: 'A1' });
-            XLSX.utils.sheet_add_aoa(ws, [['']], { origin: 'A2' });
-            
-            const wb = XLSX.utils.book_new();
-            XLSX.utils.book_append_sheet(wb, ws, `Rekap ${kelas}`);
-            zip.file(`REKAP_${kelas}_${mingguID}.xlsx`, XLSX.write(wb, { type: 'array' }));
+            showToast('Download Rekap selesai!', 'success');
+            playBeep('success');
+        } catch(e) {
+            showToast('Error: ' + e.message, 'error');
+            playBeep('error');
         }
-        
-        const content = await zip.generateAsync({ type: 'blob' });
-        const link = document.createElement('a');
-        link.href = URL.createObjectURL(content);
-        link.download = `REKAP_MINGGUAN_${mingguID}.zip`;
-        link.click();
         
         document.getElementById('loading').classList.add('hidden');
-        showToast('Download Rekap selesai!', 'success');
-        playBeep('success');
-    };
-    
-    window.cekDataSiswa = async function() {
-        try {
-            const snap = await db.ref('siswa').once('value');
-            const data = snap.val();
-            let pesan = "DATA SISWA:\n\n";
-            if(!data) pesan = "TIDAK ADA DATA!";
-            else {
-                for(let kelas in data) {
-                    pesan += `📚 ${kelas}:\n`;
-                    for(let absen in data[kelas]) {
-                        const s = data[kelas][absen];
-                        pesan += `   ${absen}. ${s.nama || '?'} | ${s.jk || '?'} | ${s.agama || '?'} | Hadir: ${s.totalHadir || 0}\n`;
-                    }
-                    pesan += "\n";
-                }
-            }
-            alert(pesan);
-        } catch(e) {
-            alert("Error: " + e.message);
-        }
     };
 </script>
 </body>
