@@ -515,10 +515,22 @@
     async function prosesQR(text) {
         document.getElementById('loading').classList.remove('hidden');
         try {
+            let nama = "", kelas = "", absen = "", jk = "L", agama = "Islam";
+
+            // Format pipe: "Nama|Kelas|Absen|JK|Agama"
+            if(text.includes('|')) {
+                const parts = text.split('|').map(p => p.trim());
+                nama  = parts[0] || "";
+                kelas = parts[1] || "";
+                absen = parts[2] || "";
+                jk    = parts[3] || "L";
+                agama = parts[4] || "Islam";
+            }
+
             let cleanText = text.replace(/[–—|{}]/g, '-').trim();
             cleanText = cleanText.replace(/\s+/g, ' ').trim();
-            let nama = "", kelas = "", absen = "", jk = "L", agama = "Islam";
-            if(text.includes('\n')) {
+
+            if(!nama && text.includes('\n')) {
                 const lines = text.split('\n').filter(l => l.trim() !== '');
                 if(lines.length >= 1) nama = lines[0].trim();
                 if(lines.length >= 2) {
@@ -633,31 +645,22 @@
             const presensiSnap = await db.ref('presensi/' + today).once('value');
             const presensiData = presensiSnap.val() || {};
             
-            // Kelompokkan presensi per kelas
-            const hadirPerKelas = {};
-            Object.values(presensiData).forEach(p => {
-                if(!hadirPerKelas[p.kelas]) hadirPerKelas[p.kelas] = {};
-                hadirPerKelas[p.kelas][p.absen] = p;
-            });
-            
             for(let kelas in semuaSiswa) {
                 const dataSiswaKelas = semuaSiswa[kelas];
-                const hadirKelas = hadirPerKelas[kelas] || {};
                 
                 // Urutkan berdasarkan no absen
                 const daftarAbsen = Object.keys(dataSiswaKelas).map(Number).sort((a,b) => a-b);
                 
-                // Header baris pertama: judul
-                const rows = [];
-                
                 // Row header kolom
+                const rows = [];
                 rows.push(['NO. ABSEN', 'NAMA', headerTanggal, 'STATUS']);
                 
                 let totalHadirKelas = 0;
                 
                 daftarAbsen.forEach(no => {
                     const siswa = dataSiswaKelas[no];
-                    const hadir = hadirKelas[no];
+                    // Key di Firebase: "kelas_absen", contoh: "X-1_3"
+                    const hadir = presensiData[`${kelas}_${no}`];
                     
                     if(hadir) {
                         rows.push([no, siswa.nama || hadir.nama, hadir.jam, '✅']);
