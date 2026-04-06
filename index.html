@@ -23,7 +23,6 @@
             min-height: 100vh;
         }
         
-        /* Glass morphism premium - lebih terang */
         .glass-premium {
             background: rgba(30, 41, 59, 0.85);
             backdrop-filter: blur(16px);
@@ -37,19 +36,12 @@
             box-shadow: 0 8px 32px rgba(34, 211, 238, 0.2);
         }
         
-        /* Kartu statistik lebih kontras */
         .stat-card {
             background: rgba(15, 23, 42, 0.9);
             border: 1px solid rgba(34, 211, 238, 0.4);
             border-radius: 1.5rem;
             padding: 1rem;
             text-align: center;
-        }
-        
-        /* Animations */
-        @keyframes pulse-glow {
-            0%, 100% { box-shadow: 0 0 5px rgba(34, 211, 238, 0.5); }
-            50% { box-shadow: 0 0 20px rgba(34, 211, 238, 0.8); }
         }
         
         @keyframes slideIn {
@@ -126,7 +118,6 @@
             border-radius: 10px;
         }
         
-        /* Input styling lebih jelas */
         input, select {
             background: rgba(15, 23, 42, 0.9) !important;
             border: 1px solid rgba(34, 211, 238, 0.3) !important;
@@ -143,12 +134,6 @@
             color: #94a3b8 !important;
         }
         
-        /* Tombol lebih jelas */
-        button {
-            cursor: pointer;
-        }
-        
-        /* Log presensi item lebih terang */
         .log-item {
             background: rgba(30, 41, 59, 0.9);
             border-left: 4px solid #06b6d4;
@@ -179,7 +164,7 @@
     <div class="glass-premium w-full max-w-sm p-10 rounded-[3rem] text-center transform transition-all">
         <div class="text-6xl mb-4">🔐</div>
         <h2 class="text-3xl font-black bg-gradient-to-r from-cyan-400 to-blue-400 bg-clip-text text-transparent mb-2">DZUHUR 12</h2>
-        <p class="text-gray-400 text-xs mb-6">© Gema Bintang<</p>
+        <p class="text-gray-400 text-xs mb-6">© Gema Bintang</p>
         <input type="password" id="password" placeholder="PASSWORD" class="w-full bg-gray-900/50 border border-cyan-500/30 p-4 rounded-2xl text-white text-center mb-4 focus:outline-none focus:border-cyan-400 transition">
         <button onclick="login()" class="w-full py-4 bg-gradient-to-r from-cyan-600 to-cyan-500 text-white font-bold rounded-2xl hover:shadow-lg hover:shadow-cyan-500/30 transition">➤ MASUK</button>
     </div>
@@ -187,7 +172,6 @@
 
 <!-- Main Content -->
 <div class="relative z-10">
-    <!-- Header -->
     <header class="py-8 text-center relative">
         <div class="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-40 h-40 bg-cyan-500/20 rounded-full blur-3xl"></div>
         <h1 class="text-5xl font-black bg-gradient-to-r from-cyan-400 via-blue-500 to-purple-500 bg-clip-text text-transparent">Kerohanian 12</h1>
@@ -233,13 +217,11 @@
 
         <!-- SCAN TAB -->
         <section id="tabScan" class="hidden space-y-6">
-            <!-- Mode Selection -->
             <div class="glass-premium p-2 rounded-[2rem] flex gap-2">
                 <button onclick="setMode('Islam')" id="modeIslam" class="flex-1 py-4 rounded-[1.5rem] font-black text-[10px] uppercase transition-all active-mode-islam">☪️ ISLAM</button>
                 <button onclick="setMode('Kristen')" id="modeKristen" class="flex-1 py-4 rounded-[1.5rem] font-black text-[10px] uppercase transition-all">✝️ KRISTEN</button>
             </div>
 
-            <!-- Stats Ringkas -->
             <div class="grid grid-cols-3 gap-3">
                 <div class="stat-card">
                     <div class="text-2xl font-black text-cyan-400" id="statHadir">0</div>
@@ -255,13 +237,11 @@
                 </div>
             </div>
 
-            <!-- Camera Controls -->
             <div class="flex gap-3">
                 <button onclick="startCam()" id="btnStart" class="flex-1 py-5 bg-gradient-to-r from-cyan-600 to-cyan-500 text-white font-black rounded-[2rem] text-[10px] uppercase hover:shadow-lg hover:shadow-cyan-500/30 transition transform hover:scale-[1.02]">📷 AKTIFKAN KAMERA</button>
                 <button onclick="stopCam()" id="btnStop" class="hidden flex-1 py-5 bg-gradient-to-r from-red-600 to-red-500 text-white font-black rounded-[2rem] text-[10px] uppercase transition transform hover:scale-[1.02]">⏹️ MATIKAN</button>
             </div>
 
-            <!-- Scanner Container -->
             <div class="glass-premium p-5 rounded-[3rem] relative min-h-[350px]">
                 <div id="reader"></div>
                 <div id="feedback" class="absolute inset-0 flex items-center justify-center rounded-[3rem] hidden bg-black/80 backdrop-blur">
@@ -273,7 +253,6 @@
                 </div>
             </div>
 
-            <!-- Download Section -->
             <div class="glass-premium p-6 rounded-[2.5rem]">
                 <div class="flex justify-between items-center mb-6 px-2">
                     <div class="flex items-center gap-2">
@@ -288,7 +267,6 @@
                     <button onclick="downloadRekap()" class="py-4 bg-gradient-to-r from-purple-600 to-purple-500 text-white font-black rounded-2xl text-[10px] uppercase hover:shadow-lg transition transform hover:scale-[1.02]">📈 DOWNLOAD REKAP</button>
                 </div>
 
-                <!-- Live Presensi Log -->
                 <div id="logPresensi" class="space-y-3 max-h-[400px] overflow-y-auto"></div>
             </div>
         </section>
@@ -349,20 +327,16 @@
     let mode = 'Islam';
     let scanner = null;
     
-    // Audio feedback
     function playBeep(type) {
         try {
             const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
             const oscillator = audioCtx.createOscillator();
             const gainNode = audioCtx.createGain();
-            
             oscillator.connect(gainNode);
             gainNode.connect(audioCtx.destination);
-            
             oscillator.type = 'sine';
             oscillator.frequency.value = type === 'success' ? 880 : 440;
             gainNode.gain.value = 0.3;
-            
             oscillator.start();
             gainNode.gain.exponentialRampToValueAtTime(0.00001, audioCtx.currentTime + 0.5);
             oscillator.stop(audioCtx.currentTime + 0.5);
@@ -371,13 +345,43 @@
         }
     }
     
-    // Toast notification
     function showToast(message, type = 'success') {
         const toast = document.createElement('div');
         toast.className = `toast-notif ${type === 'success' ? 'text-green-400 border-green-500/30' : 'text-red-400 border-red-500/30'}`;
         toast.innerHTML = `<div class="flex items-center gap-3"><span>${type === 'success' ? '✅' : '❌'}</span><span class="text-sm font-bold">${message}</span></div>`;
         document.body.appendChild(toast);
         setTimeout(() => toast.remove(), 3000);
+    }
+    
+    // AUTO RESET REKAP MINGGUAN SETIAP SENIN 00:00
+    function checkAndResetMingguan() {
+        const now = new Date();
+        const hari = now.getDay(); // 0 Minggu, 1 Senin, 2 Selasa...
+        const jam = now.getHours();
+        const menit = now.getMinutes();
+        
+        // Cek apakah hari Senin dan jam 00:00
+        if(hari === 1 && jam === 0 && menit === 0) {
+            localStorage.removeItem('mingguKe');
+            localStorage.setItem('mingguKe', Date.now());
+            showToast('🔄 Data rekap mingguan telah direset!', 'success');
+        }
+    }
+    
+    // Ambil ID minggu berjalan (Senin ke Senin)
+    function getMingguID() {
+        const now = new Date();
+        const hari = now.getDay();
+        const seninTerakhir = new Date(now);
+        if(hari === 0) { // Minggu, mundur 6 hari ke Senin
+            seninTerakhir.setDate(now.getDate() - 6);
+        } else if(hari === 1) { // Senin, pakai hari ini
+            // keep
+        } else { // Selasa-Jumat, mundur ke Senin minggu ini
+            seninTerakhir.setDate(now.getDate() - (hari - 1));
+        }
+        seninTerakhir.setHours(0,0,0,0);
+        return 'minggu_' + seninTerakhir.toISOString().split('T')[0];
     }
     
     // Initialize
@@ -392,9 +396,11 @@
             listenPresensi();
             updateDashboard();
         }
+        
+        // Cek reset mingguan setiap 1 menit
+        setInterval(checkAndResetMingguan, 60000);
     };
     
-    // Login
     window.login = function() {
         if(document.getElementById('password').value === PASSWORD) {
             isLogin = true;
@@ -444,7 +450,6 @@
         playBeep('success');
     };
     
-    // Update Dashboard
     async function updateDashboard() {
         const siswaSnap = await db.ref('siswa').once('value');
         const semuaSiswa = siswaSnap.val() || {};
@@ -474,7 +479,6 @@
         document.getElementById('topSiswa').innerHTML = topHtml || '<p class="text-center text-gray-400">Belum ada data</p>';
     }
     
-    // Real-time listener
     function listenPresensi() {
         const today = new Date().toLocaleDateString('id-ID').replace(/\//g, '-');
         db.ref('presensi/' + today).on('value', async (snap) => {
@@ -517,7 +521,6 @@
         });
     }
     
-    // ADMIN: Buat QR
     window.buatQR = async function() {
         const nama = document.getElementById('nama').value.trim();
         const kelas = document.getElementById('kelas').value;
@@ -557,7 +560,6 @@
         playBeep('success');
     };
     
-    // Scanner
     window.startCam = function() {
         document.getElementById('btnStart').classList.add('hidden');
         document.getElementById('btnStop').classList.remove('hidden');
@@ -579,7 +581,6 @@
         showToast('Kamera dimatikan', 'success');
     };
     
-    // Proses QR
     async function prosesQR(text) {
         document.getElementById('loading').classList.remove('hidden');
         
@@ -674,7 +675,7 @@
             
             await siswaRef.set(dataSiswa);
             
-            const jam = new Date().toLocaleTimeString('id-ID');
+            const jam = new Date().toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' });
             const status = mode === 'Islam' ? 'DZUHUR' : 'IBADAH';
             
             await presensiRef.set({
@@ -687,6 +688,20 @@
                 status: status,
                 totalHadir: totalHadir,
                 timestamp: Date.now()
+            });
+            
+            // SIMPAN KE REKAP MINGGUAN
+            const mingguID = getMingguID();
+            const hariIni = new Date().toLocaleDateString('id-ID', { weekday: 'long' });
+            const tglIni = new Date().toLocaleDateString('id-ID').replace(/\//g, '-');
+            const kolomHari = `${hariIni} (${tglIni})`;
+            
+            const rekapRef = db.ref('rekapMingguan/' + mingguID + '/' + kelas + '_' + absen);
+            await rekapRef.update({
+                [kolomHari]: jam,
+                nama: dataSiswa.nama,
+                kelas: dataSiswa.kelas,
+                absen: dataSiswa.absen
             });
             
             feedback('✅', nama, `Hadir ke-${totalHadir}`, 'bg-gradient-to-r from-green-600 to-green-500');
@@ -714,47 +729,63 @@
         setTimeout(() => fb.classList.add('hidden'), 2000);
     }
     
-    // Download Harian
+    // ==================== DOWNLOAD HARIAN (format baru) ====================
     window.downloadHarian = async function() {
         document.getElementById('loading').classList.remove('hidden');
         
-        const today = new Date().toLocaleDateString('id-ID').replace(/\//g, '-');
+        const today = new Date();
+        const tglFormatted = today.toLocaleDateString('id-ID').replace(/\//g, '-');
+        const hariNama = today.toLocaleDateString('id-ID', { weekday: 'long' });
+        
         const zip = new JSZip();
-        const presensiSnap = await db.ref('presensi/' + today).once('value');
+        const presensiSnap = await db.ref('presensi/' + tglFormatted).once('value');
         const presensi = presensiSnap.val() || {};
         
-        const perKelas = {};
-        Object.values(presensi).forEach(p => {
-            if(!perKelas[p.kelas]) perKelas[p.kelas] = [];
-            perKelas[p.kelas].push(p);
-        });
+        const siswaSnap = await db.ref('siswa').once('value');
+        const semuaSiswa = siswaSnap.val() || {};
         
-        for(let kelas in perKelas) {
-            const siswa = perKelas[kelas].sort((a,b) => parseInt(a.absen) - parseInt(b.absen));
-            const rows = [['NO', 'NAMA', 'KETERANGAN', 'JAM']];
-            const semuaAbsen = {};
-            siswa.forEach(s => semuaAbsen[s.absen] = s);
+        for(let kelas in semuaSiswa) {
+            const daftarSiswa = semuaSiswa[kelas];
+            const absenNumbers = Object.keys(daftarSiswa).map(Number).sort((a,b) => a - b);
             
-            const siswaSnap = await db.ref('siswa/' + kelas).once('value');
-            const dataSiswa = siswaSnap.val() || {};
-            const daftarAbsen = Object.keys(dataSiswa).map(Number).sort((a,b) => a - b);
+            // Siapkan rows untuk Excel
+            const rows = [['NO. ABSEN', 'NAMA', 'JAM ABSEN', 'STATUS']];
+            let totalHadirKelas = 0;
             
-            daftarAbsen.forEach(no => {
-                const s = semuaAbsen[no];
-                if(s) rows.push([no, s.nama, s.status, s.jam]);
-                else if(dataSiswa[no]) rows.push([no, dataSiswa[no].nama, 'ALPA', '-']);
-            });
+            for(let no of absenNumbers) {
+                const siswa = daftarSiswa[no];
+                const presensiKey = kelas + '_' + no;
+                const dataPresensi = presensi[presensiKey];
+                
+                if(dataPresensi) {
+                    rows.push([no, siswa.nama, dataPresensi.jam, '✅']);
+                    totalHadirKelas++;
+                } else {
+                    rows.push([no, siswa.nama, '-', '-']);
+                }
+            }
+            
+            // Tambah baris total hadir
+            rows.push([]);
+            rows.push([`TOTAL HADIR: ${totalHadirKelas} ORANG`, '', '', '']);
             
             const ws = XLSX.utils.aoa_to_sheet(rows);
+            ws['!cols'] = [{ wch: 12 }, { wch: 35 }, { wch: 12 }, { wch: 10 }];
+            
+            // Tambah title di atas
+            const title = `${hariNama}, ${tglFormatted} - PRESENSI ${kelas}`;
+            XLSX.utils.sheet_add_aoa(ws, [[title]], { origin: 'A1' });
+            XLSX.utils.sheet_add_aoa(ws, [['']], { origin: 'A2' });
+            
             const wb = XLSX.utils.book_new();
-            XLSX.utils.book_append_sheet(wb, ws, 'Presensi');
-            zip.file(`PRESENSI_${kelas}_${today}.xlsx`, XLSX.write(wb, { type: 'array' }));
+            XLSX.utils.book_append_sheet(wb, ws, `Presensi ${kelas}`);
+            zip.file(`PRESENSI_${kelas}_${tglFormatted}.xlsx`, XLSX.write(wb, { type: 'array' }));
         }
         
         const content = await zip.generateAsync({ type: 'blob' });
         const link = document.createElement('a');
         link.href = URL.createObjectURL(content);
-        link.download = `HARIAN_${today}.zip`;
+        link.download = `HARIAN_${tglFormatted}.zip`;
         link.click();
         
         document.getElementById('loading').classList.add('hidden');
@@ -762,57 +793,91 @@
         playBeep('success');
     };
     
-    // Download Rekap
+    // ==================== DOWNLOAD REKAP MINGGUAN (format baru) ====================
     window.downloadRekap = async function() {
         document.getElementById('loading').classList.remove('hidden');
         
         const zip = new JSZip();
+        const mingguID = getMingguID();
         
-        try {
-            const siswaSnap = await db.ref('siswa').once('value');
-            const semuaSiswa = siswaSnap.val() || {};
-            
-            for(let kelas in semuaSiswa) {
-                const siswa = [];
-                for(let absen in semuaSiswa[kelas]) {
-                    const data = semuaSiswa[kelas][absen];
-                    siswa.push({
-                        absen: parseInt(absen),
-                        nama: data.nama || 'TANPA NAMA',
-                        jk: data.jk || '-',
-                        agama: data.agama || '-',
-                        totalHadir: data.totalHadir || 0,
-                        kelas: data.kelas || kelas
-                    });
+        // Ambil semua data rekap minggu ini
+        const rekapSnap = await db.ref('rekapMingguan/' + mingguID).once('value');
+        const rekapData = rekapSnap.val() || {};
+        
+        // Ambil semua siswa
+        const siswaSnap = await db.ref('siswa').once('value');
+        const semuaSiswa = siswaSnap.val() || {};
+        
+        // Kumpulkan semua hari yang ada di rekap (Senin-Jumat)
+        let semuaHari = new Set();
+        for(let key in rekapData) {
+            for(let field in rekapData[key]) {
+                if(field !== 'nama' && field !== 'kelas' && field !== 'absen') {
+                    semuaHari.add(field);
                 }
-                siswa.sort((a,b) => a.absen - b.absen);
-                
-                const rows = [['NO. ABSEN', 'NAMA LENGKAP', 'JENIS KELAMIN', 'AGAMA', 'TOTAL HADIR', 'KELAS']];
-                siswa.forEach(s => {
-                    rows.push([s.absen, s.nama, s.jk === 'L' ? 'LAKI-LAKI' : (s.jk === 'P' ? 'PEREMPUAN' : s.jk), s.agama, s.totalHadir, s.kelas]);
-                });
-                
-                const ws = XLSX.utils.aoa_to_sheet(rows);
-                ws['!cols'] = [{ wch: 10 }, { wch: 30 }, { wch: 15 }, { wch: 15 }, { wch: 15 }, { wch: 10 }];
-                const wb = XLSX.utils.book_new();
-                XLSX.utils.book_append_sheet(wb, ws, 'Rekap');
-                zip.file(`REKAP_${kelas}.xlsx`, XLSX.write(wb, { type: 'array' }));
             }
-            
-            const content = await zip.generateAsync({ type: 'blob' });
-            const link = document.createElement('a');
-            link.href = URL.createObjectURL(content);
-            link.download = `REKAP_ALL_KELAS_${new Date().toLocaleDateString('id-ID').replace(/\//g, '-')}.zip`;
-            link.click();
-            
-            showToast('Download Rekap selesai!', 'success');
-            playBeep('success');
-        } catch(error) {
-            showToast('Gagal download: ' + error.message, 'error');
-            playBeep('error');
         }
         
+        // Urutkan hari sesuai urutan Senin-Jumat
+        const urutanHari = ['Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat'];
+        let kolomHari = [];
+        for(let hari of urutanHari) {
+            for(let h of semuaHari) {
+                if(h.startsWith(hari)) {
+                    kolomHari.push(h);
+                    break;
+                }
+            }
+        }
+        
+        for(let kelas in semuaSiswa) {
+            const daftarSiswa = semuaSiswa[kelas];
+            const absenNumbers = Object.keys(daftarSiswa).map(Number).sort((a,b) => a - b);
+            
+            // Header: NO | NAMA | Senin(tgl) | Selasa(tgl) | Rabu(tgl) | Kamis(tgl) | Jumat(tgl) | TOTAL HADIR
+            const headers = ['NO. ABSEN', 'NAMA', ...kolomHari, 'TOTAL HADIR'];
+            const rows = [headers];
+            
+            for(let no of absenNumbers) {
+                const siswa = daftarSiswa[no];
+                const key = kelas + '_' + no;
+                const dataRekap = rekapData[key] || {};
+                
+                const row = [no, siswa.nama];
+                let totalHadir = 0;
+                
+                for(let kolom of kolomHari) {
+                    const jam = dataRekap[kolom] || '-';
+                    if(jam !== '-') totalHadir++;
+                    row.push(jam);
+                }
+                row.push(totalHadir);
+                rows.push(row);
+            }
+            
+            const ws = XLSX.utils.aoa_to_sheet(rows);
+            ws['!cols'] = [{ wch: 10 }, { wch: 35 }, ...kolomHari.map(() => ({ wch: 15 })), { wch: 12 }];
+            
+            // Tambah title
+            const startDate = mingguID.replace('minggu_', '');
+            const title = `REKAP MINGGUAN (${startDate} s/d ${startDate})`;
+            XLSX.utils.sheet_add_aoa(ws, [[title]], { origin: 'A1' });
+            XLSX.utils.sheet_add_aoa(ws, [['']], { origin: 'A2' });
+            
+            const wb = XLSX.utils.book_new();
+            XLSX.utils.book_append_sheet(wb, ws, `Rekap ${kelas}`);
+            zip.file(`REKAP_${kelas}_${mingguID}.xlsx`, XLSX.write(wb, { type: 'array' }));
+        }
+        
+        const content = await zip.generateAsync({ type: 'blob' });
+        const link = document.createElement('a');
+        link.href = URL.createObjectURL(content);
+        link.download = `REKAP_MINGGUAN_${mingguID}.zip`;
+        link.click();
+        
         document.getElementById('loading').classList.add('hidden');
+        showToast('Download Rekap selesai!', 'success');
+        playBeep('success');
     };
     
     window.cekDataSiswa = async function() {
