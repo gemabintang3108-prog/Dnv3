@@ -209,7 +209,7 @@
                         <select id="agama" class="w-1/2 p-4 rounded-2xl text-white">
                             <option value="Islam">☪️ ISLAM</option>
                             <option value="Kristen">✝️ KRISTEN</option>
-                            <option value="Katolik">⛪ KATHOLIK</option>
+                            <option value="Katolik">⛪ KATOLIK</option>
                             <option value="Hindu">🕉️ HINDU</option>
                             <option value="Buddha">☸️ BUDDHA</option>
                             <option value="Konghucu">🏮 KONGHUCU</option>
@@ -671,13 +671,13 @@
     async function prosesQR(text) {
         document.getElementById('loading').classList.remove('hidden');
         try {
-            let nama = "", kelas = "", absen = "", jk = "L", agama = "Islam";
+            let nama = "", kelas = "", absen = "", jk = "L", agama = "";
 
             // Helper detect agama dari string
             function detectAgama(str) {
                 const s = str.toLowerCase();
                 if(s.includes('islam')) return 'Islam';
-                if(s.includes('katolik')) return 'Katolik';
+                if(s.includes('kathol') || s.includes('katol')) return 'Katholik';
                 if(s.includes('kristen')) return 'Kristen';
                 if(s.includes('hindu')) return 'Hindu';
                 if(s.includes('buddha') || s.includes('budha')) return 'Buddha';
@@ -685,19 +685,18 @@
                 return null;
             }
 
-            // Format pipe: "Nama|Kelas|Absen|JK|Agama"
+            // Detect agama dari full text QR dulu (tangkap semua format)
+            agama = detectAgama(text) || "Islam";
+
+            // Format pipe: "Nama|Kelas|Absen|JK|Agama" — override agama kalau ada
             if(text.includes('|')) {
                 const parts = text.split('|').map(p => p.trim());
                 nama  = parts[0] || "";
                 kelas = parts[1] || "";
                 absen = parts[2] || "";
                 jk    = parts[3] || "L";
-                agama = detectAgama(parts[4] || '') || "Islam";
+                if(parts[4]) agama = detectAgama(parts[4]) || parts[4] || agama;
             }
-
-            // Detect agama dari full text dulu sebelum apapun
-            const agamaFromText = detectAgama(text);
-            if(agamaFromText) agama = agamaFromText;
 
             let cleanText = text.replace(/[–—|{}]/g, '-').trim();
             cleanText = cleanText.replace(/\s+/g, ' ').trim();
@@ -1380,4 +1379,3 @@
 </script>
 </body>
 </html>
- 
