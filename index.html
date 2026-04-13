@@ -270,7 +270,7 @@
         <section id="tabScan" class="hidden space-y-6">
             <div class="glass-premium p-2 rounded-[2rem] flex gap-2">
                 <button onclick="setMode('Islam')" id="modeIslam" class="flex-1 py-4 rounded-[1.5rem] font-black text-[10px] uppercase transition-all active-mode-islam">☪️ ISLAM</button>
-                <button onclick="setMode('Kristen')" id="modeKristen" class="flex-1 py-4 rounded-[1.5rem] font-black text-[10px] uppercase transition-all">✝️ KRISTEN</button>
+                <button onclick="setMode('NonIslam')" id="modeKristen" class="flex-1 py-4 rounded-[1.5rem] font-black text-[10px] uppercase transition-all">✝️ NON ISLAM</button>
             </div>
 
             <div class="grid grid-cols-3 gap-3">
@@ -488,9 +488,9 @@
     window.setMode = function(m) {
         mode = m;
         document.getElementById('modeIslam').classList.toggle('active-mode-islam', m === 'Islam');
-        document.getElementById('modeKristen').classList.toggle('active-mode-kristen', m === 'Kristen');
-        document.getElementById('dashMode').innerText = m;
-        showToast(`Mode: ${m}`, 'success');
+        document.getElementById('modeKristen').classList.toggle('active-mode-kristen', m === 'NonIslam');
+        document.getElementById('dashMode').innerText = m === 'Islam' ? 'ISLAM' : 'NON ISLAM';
+        showToast(`Mode: ${m === 'Islam' ? 'Islam' : 'Non Islam'}`, 'success');
         playBeep('success');
     };
     
@@ -739,11 +739,11 @@
             if(!kelas) kelas = "X-1";
             if(!absen) { const angka = cleanText.match(/\b(\d+)\b/); absen = angka ? angka[1] : "1"; }
 
-            // Islam → wajib mode Islam, selain Islam → wajib mode Kristen
-            const agamaMode = agama === 'Islam' ? 'Islam' : 'Kristen';
+            // Islam → wajib mode Islam, apapun selain Islam → wajib mode NonIslam
+            const agamaMode = agama === 'Islam' ? 'Islam' : 'NonIslam';
             if(agamaMode !== mode) {
                 if(agama === 'Islam') throw `Siswa ini Islam, gunakan mode Islam`;
-                else throw `Siswa ini ${agama}, gunakan mode Kristen`;
+                else throw `Siswa ini ${agama}, gunakan mode Non Islam`;
             }
 
             const allSiswaSnap = await db.ref('siswa').once('value');
@@ -1380,3 +1380,4 @@
 </script>
 </body>
 </html>
+ 
