@@ -71,6 +71,12 @@
             color: white;
             box-shadow: 0 4px 12px rgba(59, 130, 246, 0.4);
         }
+
+        .active-mode-haid {
+            background: linear-gradient(135deg, #be123c, #f43f5e);
+            color: white;
+            box-shadow: 0 4px 12px rgba(244, 63, 94, 0.4);
+        }
         
         #reader {
             border: none !important;
@@ -271,6 +277,7 @@
             <div class="glass-premium p-2 rounded-[2rem] flex gap-2">
                 <button onclick="setMode('Islam')" id="modeIslam" class="flex-1 py-4 rounded-[1.5rem] font-black text-[10px] uppercase transition-all active-mode-islam">☪️ ISLAM</button>
                 <button onclick="setMode('NonIslam')" id="modeKristen" class="flex-1 py-4 rounded-[1.5rem] font-black text-[10px] uppercase transition-all">✝️ NON ISLAM</button>
+                <button onclick="setMode('Haid')" id="modeHaid" class="flex-1 py-4 rounded-[1.5rem] font-black text-[10px] uppercase transition-all">🩸 HAID</button>
             </div>
 
             <div class="grid grid-cols-3 gap-3">
@@ -489,8 +496,10 @@
         mode = m;
         document.getElementById('modeIslam').classList.toggle('active-mode-islam', m === 'Islam');
         document.getElementById('modeKristen').classList.toggle('active-mode-kristen', m === 'NonIslam');
-        document.getElementById('dashMode').innerText = m === 'Islam' ? 'ISLAM' : 'NON ISLAM';
-        showToast(`Mode: ${m === 'Islam' ? 'Islam' : 'Non Islam'}`, 'success');
+        document.getElementById('modeHaid').classList.toggle('active-mode-haid', m === 'Haid');
+        const label = m === 'Islam' ? 'ISLAM' : m === 'NonIslam' ? 'NON ISLAM' : 'HAID';
+        document.getElementById('dashMode').innerText = label;
+        showToast(`Mode: ${label}`, 'success');
         playBeep('success');
     };
     
@@ -738,11 +747,16 @@
             if(!kelas) kelas = "X-1";
             if(!absen) { const angka = cleanText.match(/\b(\d+)\b/); absen = angka ? angka[1] : "1"; }
 
-            // Islam → wajib mode Islam, apapun selain Islam → wajib mode NonIslam
-            const agamaMode = agama === 'Islam' ? 'Islam' : 'NonIslam';
-            if(agamaMode !== mode) {
-                if(agama === 'Islam') throw `Siswa ini Islam, gunakan mode Islam`;
-                else throw `Siswa ini ${agama}, gunakan mode Non Islam`;
+            // Cek mode — Haid skip cek agama
+            if(mode !== 'Haid') {
+                const agamaMode = agama === 'Islam' ? 'Islam' : 'NonIslam';
+                if(agamaMode !== mode) {
+                    if(agama === 'Islam') throw `Siswa ini Islam, gunakan mode Islam`;
+                    else throw `Siswa ini ${agama}, gunakan mode Non Islam`;
+                }
+            } else {
+                // Mode haid hanya untuk perempuan
+                if(jk !== 'P') throw `Mode Haid hanya untuk siswi perempuan`;
             }
 
             const allSiswaSnap = await db.ref('siswa').once('value');
@@ -779,15 +793,15 @@
             dataSiswa.totalHadir = totalHadir;
             dataSiswa.lastUpdate = Date.now();
             await siswaRef.set(dataSiswa);
-            const jam = new Date().toLocaleTimeString('id-ID');
-            const status = mode === 'Islam' ? 'DZUHUR' : 'IBADAH';
+            const jam = mode === 'Haid' ? 'HAID' : new Date().toLocaleTimeString('id-ID');
+            const status = mode === 'Islam' ? 'DZUHUR' : mode === 'Haid' ? 'HAID' : 'IBADAH';
             await presensiRef.set({
                 nama: dataSiswa.nama, kelas: dataSiswa.kelas, absen: dataSiswa.absen,
                 jk: dataSiswa.jk, agama: dataSiswa.agama, jam, status,
                 totalHadir, timestamp: Date.now()
             });
-            feedback('✅', nama, `Hadir ke-${totalHadir}`, 'bg-gradient-to-r from-green-600 to-green-500');
-            showToast(`${nama} - Hadir!`, 'success');
+            feedback('✅', nama, mode === 'Haid' ? 'Tercatat Haid' : `Hadir ke-${totalHadir}`, 'bg-gradient-to-r from-green-600 to-green-500');
+            showToast(`${nama} - ${mode === 'Haid' ? 'Haid tercatat' : 'Hadir!'}`, 'success');
             playBeep('success');
             updateDashboard();
         } catch(e) {
