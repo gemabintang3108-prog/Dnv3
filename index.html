@@ -375,7 +375,7 @@
 
                 <div class="grid grid-cols-2 gap-3 mb-6">
                     <button onclick="downloadHarian()" class="py-4 bg-gradient-to-r from-blue-600 to-blue-500 text-white font-black rounded-2xl text-[10px] uppercase hover:shadow-lg transition transform hover:scale-[1.02]">📊 DOWNLOAD HARIAN</button>
-                    <button onclick="downloadRekap()" class="py-4 bg-gradient-to-r from-purple-600 to-purple-500 text-white font-black rounded-2xl text-[10px] uppercase hover:shadow-lg transition transform hover:scale-[1.02]">📈 DOWNLOAD REKAP</button>
+                    <button onclick="downloadRekap()" class="py-4 bg-gradient-to-r from-purple-600 to-purple-500 text-white font-black rounded-2xl text-[10px] uppercase hover:shadow-lg transition transform hover:scale-[1.02]">📅 DOWNLOAD BULANAN</button>
                 </div>
 
                 <div id="logPresensi" class="space-y-3 max-h-[400px] overflow-y-auto"></div>
@@ -1159,43 +1159,45 @@
 
         try {
             const now = new Date();
-            const hariIni = now.getDay();
-            const selisihSenin = hariIni === 0 ? 6 : hariIni - 1;
-            const senin = new Date(now);
-            senin.setDate(now.getDate() - selisihSenin);
-
-            const hariKerja = [];
-            for(let i = 0; i < 5; i++) {
-                const tgl = new Date(senin);
-                tgl.setDate(senin.getDate() + i);
-                hariKerja.push(tgl);
-            }
+            const bulan = now.getMonth();
+            const tahun = now.getFullYear();
 
             const formatTglFirebase = (d) => d.toLocaleDateString('id-ID').replace(/\//g, '-');
             const formatTglHeader = (d) => {
-                const nm = NAMA_HARI[d.getDay()];
-                return `${nm} ${d.getDate()}/${d.getMonth()+1}`;
+                const namaHari = NAMA_HARI[d.getDay()];
+                return `${namaHari} ${d.getDate()}/${d.getMonth() + 1}`;
             };
 
-            const presensiMinggu = {};
-            for(let hariObj of hariKerja) {
+            const semuaTanggal = [];
+            const jumlahHariBulan = new Date(tahun, bulan + 1, 0).getDate();
+
+            for (let i = 1; i <= jumlahHariBulan; i++) {
+                const tgl = new Date(tahun, bulan, i);
+                const hari = tgl.getDay();
+                if (hari >= 1 && hari <= 5) {
+                    semuaTanggal.push(tgl);
+                }
+            }
+
+            const presensiBulanan = {};
+            for (let hariObj of semuaTanggal) {
                 const key = formatTglFirebase(hariObj);
                 const snap = await db.ref('presensi/' + key).once('value');
-                presensiMinggu[key] = snap.val() || {};
+                presensiBulanan[key] = snap.val() || {};
             }
 
             const siswaSnap = await db.ref('siswa').once('value');
             const semuaSiswa = siswaSnap.val() || {};
 
             const zip = new JSZip();
-            const tglMingguStr = formatTglFirebase(senin);
+            const namaBulan = now.toLocaleDateString('id-ID', { month: 'long', year: 'numeric' }).replace(/\s/g, '_');
 
-            for(let kelas in semuaSiswa) {
+            for (let kelas in semuaSiswa) {
                 const dataSiswaKelas = semuaSiswa[kelas];
-                const daftarAbsen = Object.keys(dataSiswaKelas).map(Number).sort((a,b) => a-b);
+                const daftarAbsen = Object.keys(dataSiswaKelas).map(Number).sort((a, b) => a - b);
 
                 const headerRow = ['NO. ABSEN', 'NAMA'];
-                hariKerja.forEach(h => headerRow.push(formatTglHeader(h)));
+                semuaTanggal.forEach(tgl => headerRow.push(formatTglHeader(tgl)));
                 headerRow.push('TOTAL HADIR');
 
                 const rows = [headerRow];
@@ -1205,17 +1207,17 @@
                     const row = [no, siswa.nama || '-'];
                     let totalHadirSiswa = 0;
 
-                    hariKerja.forEach(hariObj => {
+                    semuaTanggal.forEach(hariObj => {
                         const key = formatTglFirebase(hariObj);
-                        const presensiHari = presensiMinggu[key];
+                        const presensiHari = presensiBulanan[key];
                         const entryKey = `${kelas}_${no}`;
                         const hadirData = presensiHari[entryKey];
 
-                        if(hadirData) {
+                        if (hadirData) {
                             if (hadirData.status === 'TIDAK HADIR') {
                                 row.push('TIDAK HADIR');
                             } else {
-                                row.push(hadirData.jam);
+                                row.push(hadirData.jam || 'HADIR');
                                 totalHadirSiswa++;
                             }
                         } else {
@@ -1228,26 +1230,27 @@
                 });
 
                 const ws = XLSX.utils.aoa_to_sheet(rows);
+
                 const cols = [{ wch: 12 }, { wch: 30 }];
-                hariKerja.forEach(() => cols.push({ wch: 14 }));
+                semuaTanggal.forEach(() => cols.push({ wch: 16 }));
                 cols.push({ wch: 14 });
                 ws['!cols'] = cols;
 
                 const wb = XLSX.utils.book_new();
-                XLSX.utils.book_append_sheet(wb, ws, 'Rekap Mingguan');
-                zip.file(`REKAP_${kelas}_MINGGU_${tglMingguStr}.xlsx`, XLSX.write(wb, { type: 'array' }));
+                XLSX.utils.book_append_sheet(wb, ws, 'Rekap Bulanan');
+                zip.file(`REKAP_${kelas}_${namaBulan}.xlsx`, XLSX.write(wb, { type: 'array' }));
             }
 
             const content = await zip.generateAsync({ type: 'blob' });
             const link = document.createElement('a');
             link.href = URL.createObjectURL(content);
-            link.download = `REKAP_MINGGUAN_${tglMingguStr}.zip`;
+            link.download = `REKAP_BULANAN_${namaBulan}.zip`;
             link.click();
 
-            showToast('Download Rekap Mingguan selesai!', 'success');
+            showToast('Download Rekap Bulanan selesai!', 'success');
             playBeep('success');
 
-        } catch(error) {
+        } catch (error) {
             showToast('Gagal download: ' + error.message, 'error');
             playBeep('error');
         }
