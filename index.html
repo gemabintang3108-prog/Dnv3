@@ -832,145 +832,86 @@
         document.getElementById('loading').classList.add('hidden');
     };
 
+    function normalisasiNamaQR(v) {
+        return (v || '').toString().trim().replace(/\s+/g, ' ').toUpperCase();
+    }
+
+    function parseQRPresensi(text) {
+        if (!text || !text.toString().trim()) throw 'QR kosong';
+        const raw = text.toString().trim();
+        if (raw.includes('|')) {
+            const parts = raw.split('|').map(v => v.trim());
+            if (parts.length !== 5) throw 'QR bukan QR presensi siswa';
+            const [nama, kelasRaw, absenRaw, jkRaw, agamaRaw] = parts;
+            const kelas = kelasRaw.toUpperCase();
+            const absen = absenRaw.replace(/\D/g, '');
+            const jk = jkRaw.toUpperCase();
+            const agama = agamaRaw;
+            if (!nama || !kelas || !absen || !jk || !agama) throw 'Data QR tidak lengkap';
+            if (!/^(X|XI|XII)-\d+$/i.test(kelas)) throw 'Format kelas tidak valid';
+            if (!/^\d+$/.test(absen)) throw 'Nomor absen tidak valid';
+            if (!/^(L|P)$/i.test(jk)) throw 'Jenis kelamin tidak valid';
+            return { nama: nama.trim(), kelas, absen, jk, agama: agama.trim() };
+        }
+        const lines = raw.split(/\r?\n/).map(v => v.trim()).filter(Boolean);
+        if (lines.length >= 2) {
+            const nama = lines[0].trim();
+            const detail = lines.slice(1).join(' ').replace(/\s+/g, ' ').trim();
+            const match = detail.match(/^(X|XI|XII)-\d+\s*-\s*([LP])\s*-\s*(.+?)\s*-\s*ABSEN\s*(\d+)$/i);
+            if (!match) throw 'Format QR siswa tidak valid';
+            const kelasMatch = detail.match(/^(X|XI|XII)-\d+/i);
+            const kelas = kelasMatch[0].toUpperCase();
+            const jk = match[2].toUpperCase();
+            const agama = match[3].trim();
+            const absen = match[4];
+            if (!nama || !kelas || !absen || !jk || !agama) throw 'Data QR tidak lengkap';
+            return { nama, kelas, absen, jk, agama };
+        }
+        throw 'QR bukan QR presensi siswa';
+    }
+
     async function prosesQR(text) {
         document.getElementById('loading').classList.remove('hidden');
         try {
-            if(!text || !text.trim()) throw 'QR kosong';
-
-            // FORMAT QR LAMA YANG VALID:
-            // Nama|Kelas|Absen|JK|Agama
-            // Contoh: Gema Bintang Ramadhan|XI-6|13|L|Islam
-            const parts = text.split('|').map(p => p.trim());
-
-            // QR random seperti DANA/QRIS biasanya tidak punya 5 bagian ini.
-            if(parts.length !== 5) {
-                throw 'QR bukan QR presensi siswa';
-            }
-
-            let [nama, kelas, absen, jk, agama] = parts;
-            nama = (nama || '').trim();
-            kelas = (kelas || '').trim().toUpperCase();
-            absen = (absen || '').trim();
-            jk = (jk || '').trim().toUpperCase();
-            agama = (agama || '').trim();
-
-            if(!nama || !kelas || !absen || !jk || !agama) {
-                throw 'Data QR tidak lengkap';
-            }
-
-            if(!/^(X|XI|XII)-\d+$/i.test(kelas)) {
-                throw 'Format kelas tidak valid';
-            }
-
-            if(!/^\d+$/.test(absen)) {
-                throw 'Nomor absen tidak valid';
-            }
-
-            if(!/^(L|P)$/i.test(jk)) {
-                throw 'Jenis kelamin tidak valid';
-            }
-
-            function normalizeName(str) {
-                return (str || '').toString().trim().replace(/\s+/g, ' ').toUpperCase();
-            }
-
-            function normalizeAgama(str) {
-                const s = (str || '').toString().trim().toLowerCase();
-                if(s.includes('islam')) return 'Islam';
-                if(s.includes('kathol') || s.includes('katol')) return 'Katolik';
-                if(s.includes('kristen')) return 'Kristen';
-                if(s.includes('hindu')) return 'Hindu';
-                if(s.includes('buddha') || s.includes('budha')) return 'Buddha';
-                if(s.includes('konghucu')) return 'Konghucu';
-                return str || '';
-            }
-
-            agama = normalizeAgama(agama);
-
-            // Validasi langsung ke database berdasarkan kelas + absen.
-            // Ini bikin QR palsu / QR pembayaran tidak bisa otomatis dianggap murid.
+            let { nama, kelas, absen, jk, agama } = parseQRPresensi(text);
             const siswaRef = db.ref('siswa/' + kelas + '/' + absen);
             const siswaSnap = await siswaRef.once('value');
-
-            if(!siswaSnap.exists()) {
-                throw 'Siswa tidak ditemukan di database';
-            }
-
+            if (!siswaSnap.exists()) throw 'Siswa tidak ditemukan di database';
             let dataSiswa = siswaSnap.val() || {};
-            if(!dataSiswa.nama) {
-                throw 'Nama siswa di database kosong';
-            }
-
-            if(normalizeName(dataSiswa.nama) !== normalizeName(nama)) {
-                throw 'Data QR tidak cocok dengan database';
-            }
-
-            // Pakai data dari database sebagai sumber utama.
-            dataSiswa.kelas = dataSiswa.kelas || kelas;
-            dataSiswa.absen = dataSiswa.absen || absen;
-            dataSiswa.jk = (dataSiswa.jk || jk || '').toString().trim().toUpperCase();
-            dataSiswa.agama = normalizeAgama(dataSiswa.agama || agama);
-
+            const namaDB = dataSiswa.nama || '';
+            if (namaDB && normalisasiNamaQR(namaDB) !== normalisasiNamaQR(nama)) throw 'Data QR tidak cocok dengan database';
+            nama = dataSiswa.nama || nama;
+            jk = (dataSiswa.jk || jk || 'L').toUpperCase();
+            agama = dataSiswa.agama || agama || 'Islam';
             if(mode !== 'Haid') {
-                const agamaMode = dataSiswa.agama === 'Islam' ? 'Islam' : 'NonIslam';
+                const agamaMode = agama === 'Islam' ? 'Islam' : 'NonIslam';
                 if(agamaMode !== mode) {
-                    if(dataSiswa.agama === 'Islam') throw `Siswa ini Islam, gunakan mode Islam`;
-                    else throw `Siswa ini ${dataSiswa.agama}, gunakan mode Non Islam`;
+                    if(agama === 'Islam') throw `Siswa ini Islam, gunakan mode Islam`;
+                    else throw `Siswa ini ${agama}, gunakan mode Non Islam`;
                 }
             } else {
-                if(dataSiswa.jk !== 'P') throw `Mode Haid hanya untuk siswi perempuan`;
+                if(jk !== 'P') throw `Mode Haid hanya untuk siswi perempuan`;
             }
-
             const today = new Date().toLocaleDateString('id-ID').replace(/\//g, '-');
             const presensiRef = db.ref('presensi/' + today + '/' + kelas + '_' + absen);
             const presensiSnap = await presensiRef.once('value');
-            if(presensiSnap.exists()) {
-                const data = presensiSnap.val();
-                throw `Sudah absen jam ${data.jam}`;
-            }
-
-            let totalHadir = dataSiswa.totalHadir || 0;
-            totalHadir++;
-
-            await siswaRef.update({
-                nama: dataSiswa.nama,
-                kelas,
-                absen,
-                jk: dataSiswa.jk,
-                agama: dataSiswa.agama,
-                totalHadir,
-                lastUpdate: Date.now()
-            });
-
+            if(presensiSnap.exists()) { const data = presensiSnap.val(); throw `Sudah absen jam ${data.jam}`; }
+            let totalHadir = dataSiswa.totalHadir || 0; totalHadir++;
+            dataSiswa.nama = nama; dataSiswa.kelas = kelas; dataSiswa.absen = absen; dataSiswa.jk = jk; dataSiswa.agama = agama; dataSiswa.totalHadir = totalHadir; dataSiswa.lastUpdate = Date.now();
+            await siswaRef.set(dataSiswa);
             const jam = mode === 'Haid' ? 'HAID' : new Date().toLocaleTimeString('id-ID');
             const status = mode === 'Islam' ? 'DZUHUR' : mode === 'Haid' ? 'HAID' : 'IBADAH';
-
-            await presensiRef.set({
-                nama: dataSiswa.nama,
-                kelas,
-                absen,
-                jk: dataSiswa.jk,
-                agama: dataSiswa.agama,
-                jam,
-                status,
-                totalHadir,
-                timestamp: Date.now()
-            });
-
-            feedback('✅', dataSiswa.nama, mode === 'Haid' ? 'Tercatat Haid' : `Hadir ke-${totalHadir}`, 'bg-gradient-to-r from-green-600 to-green-500');
-            showToast(`${dataSiswa.nama} - ${mode === 'Haid' ? 'Haid tercatat' : 'Hadir!'}`, 'success');
-            playBeep('success');
-            updateDashboard();
+            await presensiRef.set({ nama: dataSiswa.nama, kelas: dataSiswa.kelas, absen: dataSiswa.absen, jk: dataSiswa.jk, agama: dataSiswa.agama, jam, status, totalHadir, timestamp: Date.now() });
+            feedback('✅', nama, mode === 'Haid' ? 'Tercatat Haid' : `Hadir ke-${totalHadir}`, 'bg-gradient-to-r from-green-600 to-green-500');
+            showToast(`${nama} - ${mode === 'Haid' ? 'Haid tercatat' : 'Hadir!'}`, 'success');
+            playBeep('success'); updateDashboard();
         } catch(e) {
-            feedback('❌', 'GAGAL', e.toString(), 'bg-gradient-to-r from-red-600 to-red-500');
-            showToast(e.toString(), 'error');
-            playBeep('error');
+            feedback('❌', 'GAGAL', e.toString(), 'bg-gradient-to-r from-red-600 to-red-500'); showToast(e.toString(), 'error'); playBeep('error');
         }
         document.getElementById('loading').classList.add('hidden');
-        setTimeout(() => {
-            try { scanner?.resume(); } catch(e) {}
-        }, 2000);
+        setTimeout(() => { try { scanner?.resume(); } catch(e) {} }, 2000);
     }
+
 
     function feedback(icon, name, msg, bg) {
         const fb = document.getElementById('feedback');
@@ -1418,63 +1359,18 @@
 
     async function prosesQRNaik(text) {
         try {
-            let nama = '', kelasLama = '', absenLama = '', jk = 'L', agama = 'Islam';
-
-            if(text.includes('|')) {
-                const parts = text.split('|').map(p => p.trim());
-                nama = parts[0];
-                kelasLama = parts[1];
-                absenLama = parts[2];
-                jk = parts[3] || 'L';
-                agama = parts[4] || 'Islam';
-            } else if(text.includes('\n')) {
-                const lines = text.split('\n').filter(l => l.trim());
-                nama = lines[0]?.trim() || '';
-                const parts = (lines[1] || '').split('-').map(p => p.trim());
-                for(let p of parts) {
-                    if(p.match(/^X/)) kelasLama = p;
-                    if(p.includes('ABSEN')) absenLama = p.replace('ABSEN','').trim();
-                    if(p === 'L' || p === 'P') jk = p;
-                    if(p.includes('Islam')) agama = 'Islam';
-                    if(p.includes('Kristen')) agama = 'Kristen';
-                }
-            }
-
-            if(!nama) throw 'QR tidak terbaca';
-
-            if(listSiswaScanned.find(s => s.nama.toUpperCase() === nama.toUpperCase())) {
-                showFeedbackNaik('⚠️', nama, 'Sudah discan!', 'bg-gradient-to-r from-yellow-600 to-yellow-500');
-                setTimeout(() => scannerNaik?.resume(), 1500);
-                return;
-            }
-
-            const snap = await db.ref('siswa').once('value');
-            const all = snap.val() || {};
-            let dataFirebase = null;
-            for(let k in all) {
-                for(let a in all[k]) {
-                    if(all[k][a].nama?.toUpperCase() === nama.toUpperCase()) {
-                        dataFirebase = { ...all[k][a], kelasLama: k, absenLama: a };
-                        break;
-                    }
-                }
-                if(dataFirebase) break;
-            }
-
-            const siswaData = dataFirebase || { nama: nama.toUpperCase(), jk, agama, kelasLama, absenLama };
-            listSiswaScanned.push(siswaData);
-            renderListNaik();
-            showFeedbackNaik('✅', nama, `Ditambahkan (${listSiswaScanned.length} siswa)`, 'bg-gradient-to-r from-green-600 to-green-500');
-            playBeep('success');
-
-        } catch(e) {
-            showFeedbackNaik('❌', 'GAGAL', e.toString(), 'bg-gradient-to-r from-red-600 to-red-500');
-            playBeep('error');
-        }
-        setTimeout(() => {
-            try { scannerNaik?.resume(); } catch(e) {}
-        }, 1800);
+            let { nama, kelas: kelasLama, absen: absenLama } = parseQRPresensi(text);
+            if(listSiswaScanned.find(s => s.nama.toUpperCase() === nama.toUpperCase())) { showFeedbackNaik('⚠️', nama, 'Sudah discan!', 'bg-gradient-to-r from-yellow-600 to-yellow-500'); setTimeout(() => scannerNaik?.resume(), 1500); return; }
+            const snap = await db.ref('siswa/' + kelasLama + '/' + absenLama).once('value');
+            if(!snap.exists()) throw 'Siswa tidak ditemukan di database';
+            const siswaData = { ...snap.val(), kelasLama, absenLama };
+            if(siswaData.nama && normalisasiNamaQR(siswaData.nama) !== normalisasiNamaQR(nama)) throw 'Data QR tidak cocok dengan database';
+            listSiswaScanned.push(siswaData); renderListNaik();
+            showFeedbackNaik('✅', siswaData.nama || nama, `Ditambahkan (${listSiswaScanned.length} siswa)`, 'bg-gradient-to-r from-green-600 to-green-500'); playBeep('success');
+        } catch(e) { showFeedbackNaik('❌', 'GAGAL', e.toString(), 'bg-gradient-to-r from-red-600 to-red-500'); playBeep('error'); }
+        setTimeout(() => { try { scannerNaik?.resume(); } catch(e) {} }, 1800);
     }
+
 
     function showFeedbackNaik(icon, nama, msg, bg) {
         const fb = document.getElementById('feedbackNaik');
