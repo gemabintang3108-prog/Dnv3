@@ -1117,20 +1117,32 @@
     }
 
     window.downloadHarian = async function() {
+        const selectedKey = document.getElementById('tanggalHarian')?.value;
+        if (!selectedKey) {
+            showToast('Pilih tanggal dulu', 'error');
+            playBeep('error');
+            return;
+        }
+
+        if (selectedKey === '__ALL__') {
+            await downloadRekapBulananTerpilih();
+            return;
+        }
+
+        await downloadHarianTanggal(selectedKey);
+    };
+
+    async function downloadHarianTanggal(selectedKey) {
         document.getElementById('loading').classList.remove('hidden');
 
         try {
-            const selectedKey = document.getElementById('tanggalHarian')?.value;
-            if (!selectedKey) throw new Error('Pilih tanggal dulu');
-
-            if (selectedKey === '__ALL__') {
-                await downloadRekap();
-                return;
+            const parts = selectedKey.split('-').map(Number);
+            if (parts.length !== 3 || parts.some(n => Number.isNaN(n))) {
+                throw new Error('Format tanggal tidak valid');
             }
 
-            const [d, m, y] = selectedKey.split('-').map(Number);
+            const [d, m, y] = parts;
             const selectedDate = new Date(y, m - 1, d);
-
             const today = selectedKey;
             const namaHari = NAMA_HARI[selectedDate.getDay()];
             const tglFormatted = selectedDate.toLocaleDateString('id-ID');
@@ -1142,27 +1154,24 @@
             const presensiSnap = await db.ref('presensi/' + today).once('value');
             const presensiData = presensiSnap.val() || {};
 
-            for(let kelas in semuaSiswa) {
-                const dataSiswaKelas = semuaSiswa[kelas];
-                const daftarAbsen = Object.keys(dataSiswaKelas).map(Number).sort((a,b) => a-b);
+            for (let kelas in semuaSiswa) {
+                const dataSiswaKelas = semuaSiswa[kelas] || {};
+                const daftarAbsen = Object.keys(dataSiswaKelas).map(Number).filter(n => !Number.isNaN(n)).sort((a,b) => a-b);
 
-                const rows = [];
-                rows.push(['NO. ABSEN', 'NAMA', headerTanggal, 'STATUS']);
-
+                const rows = [['NO. ABSEN', 'NAMA', headerTanggal, 'STATUS']];
+                const warnaHarian = [];
                 let totalHadirKelas = 0;
 
-                const warnaHarian = [];
-
                 daftarAbsen.forEach(no => {
-                    const siswa = dataSiswaKelas[no];
+                    const siswa = dataSiswaKelas[no] || {};
                     const hadir = presensiData[`${kelas}_${no}`];
                     const rowIndex = rows.length;
 
-                    if(hadir) {
+                    if (hadir) {
                         if (hadir.status === 'TIDAK HADIR') {
-                            rows.push([no, siswa.nama || hadir.nama, 'TIDAK HADIR', '❌']);
+                            rows.push([no, siswa.nama || hadir.nama || '-', 'TIDAK HADIR', '❌']);
                         } else {
-                            rows.push([no, siswa.nama || hadir.nama, hadir.jam, '✅']);
+                            rows.push([no, siswa.nama || hadir.nama || '-', hadir.jam || 'HADIR', '✅']);
                             totalHadirKelas++;
 
                             if (isHaidCell(hadir, siswa)) warnaHarian.push({ row: rowIndex, col: 2, color: 'FFC0CB' });
@@ -1178,16 +1187,11 @@
 
                 const ws = XLSX.utils.aoa_to_sheet(rows);
                 warnaHarian.forEach(item => beriWarnaJam(ws, item.row, item.col, item.color));
-                ws['!cols'] = [
-                    { wch: 12 },
-                    { wch: 30 },
-                    { wch: 22 },
-                    { wch: 10 }
-                ];
+                ws['!cols'] = [{ wch: 12 }, { wch: 30 }, { wch: 22 }, { wch: 10 }];
 
                 const wb = XLSX.utils.book_new();
                 XLSX.utils.book_append_sheet(wb, ws, 'Presensi');
-                zip.file(`HARIAN_${kelas}_${today}.xlsx`, XLSX.write(wb, { type: 'array' }));
+                zip.file(`HARIAN_${kelas}_${today}.xlsx`, XLSX.write(wb, { bookType: 'xlsx', type: 'array' }));
             }
 
             const content = await zip.generateAsync({ type: 'blob' });
@@ -1198,16 +1202,15 @@
 
             showToast('Download Harian selesai!', 'success');
             playBeep('success');
-
         } catch(error) {
-            showToast('Gagal download: ' + error.message, 'error');
+            showToast('Gagal download: ' + (error?.message || error), 'error');
             playBeep('error');
         }
 
         document.getElementById('loading').classList.add('hidden');
-    };
+    }
 
-    window.downloadRekap = async function() {
+    async function downloadRekapBulananTerpilih() {
         document.getElementById('loading').classList.remove('hidden');
 
         try {
@@ -1216,10 +1219,7 @@
             const tahun = now.getFullYear();
 
             const formatTglFirebase = (d) => d.toLocaleDateString('id-ID').replace(/\//g, '-');
-            const formatTglHeader = (d) => {
-                const namaHari = NAMA_HARI[d.getDay()];
-                return `${namaHari} ${d.getDate()}/${d.getMonth() + 1}`;
-            };
+            const formatTglHeader = (d) => `${NAMA_HARI[d.getDay()]} ${d.getDate()}/${d.getMonth() + 1}`;
 
             const semuaTanggal = [];
             const jumlahHariBulan = new Date(tahun, bulan + 1, 0).getDate();
@@ -1227,9 +1227,7 @@
             for (let i = 1; i <= jumlahHariBulan; i++) {
                 const tgl = new Date(tahun, bulan, i);
                 const hari = tgl.getDay();
-                if (hari >= 1 && hari <= 5) {
-                    semuaTanggal.push(tgl);
-                }
+                if (hari >= 1 && hari <= 5) semuaTanggal.push(tgl);
             }
 
             const presensiBulanan = {};
@@ -1241,13 +1239,12 @@
 
             const siswaSnap = await db.ref('siswa').once('value');
             const semuaSiswa = siswaSnap.val() || {};
-
             const zip = new JSZip();
             const namaBulan = now.toLocaleDateString('id-ID', { month: 'long', year: 'numeric' }).replace(/\s/g, '_');
 
             for (let kelas in semuaSiswa) {
-                const dataSiswaKelas = semuaSiswa[kelas];
-                const daftarAbsen = Object.keys(dataSiswaKelas).map(Number).sort((a, b) => a - b);
+                const dataSiswaKelas = semuaSiswa[kelas] || {};
+                const daftarAbsen = Object.keys(dataSiswaKelas).map(Number).filter(n => !Number.isNaN(n)).sort((a, b) => a - b);
 
                 const headerRow = ['NO. ABSEN', 'NAMA'];
                 semuaTanggal.forEach(tgl => headerRow.push(formatTglHeader(tgl)));
@@ -1257,14 +1254,14 @@
                 const warnaBulanan = [];
 
                 daftarAbsen.forEach(no => {
-                    const siswa = dataSiswaKelas[no];
+                    const siswa = dataSiswaKelas[no] || {};
                     const row = [no, siswa.nama || '-'];
                     const rowIndex = rows.length;
                     let totalHadirSiswa = 0;
 
                     semuaTanggal.forEach((hariObj, tanggalIndex) => {
                         const key = formatTglFirebase(hariObj);
-                        const presensiHari = presensiBulanan[key];
+                        const presensiHari = presensiBulanan[key] || {};
                         const entryKey = `${kelas}_${no}`;
                         const hadirData = presensiHari[entryKey];
                         const colIndex = 2 + tanggalIndex;
@@ -1298,7 +1295,7 @@
 
                 const wb = XLSX.utils.book_new();
                 XLSX.utils.book_append_sheet(wb, ws, 'Rekap Bulanan');
-                zip.file(`REKAP_${kelas}_${namaBulan}.xlsx`, XLSX.write(wb, { type: 'array' }));
+                zip.file(`REKAP_${kelas}_${namaBulan}.xlsx`, XLSX.write(wb, { bookType: 'xlsx', type: 'array' }));
             }
 
             const content = await zip.generateAsync({ type: 'blob' });
@@ -1307,16 +1304,17 @@
             link.download = `REKAP_BULANAN_${namaBulan}.zip`;
             link.click();
 
-            showToast('Download Rekap Bulanan selesai!', 'success');
+            showToast('Download Semua/Rekap selesai!', 'success');
             playBeep('success');
-
         } catch (error) {
-            showToast('Gagal download: ' + error.message, 'error');
+            showToast('Gagal download: ' + (error?.message || error), 'error');
             playBeep('error');
         }
 
         document.getElementById('loading').classList.add('hidden');
-    };
+    }
+
+    window.downloadRekap = downloadRekapBulananTerpilih;
 
     window.importExcel = async function() {
         const fileInput = document.getElementById('fileExcel');
