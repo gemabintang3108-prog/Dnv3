@@ -6,7 +6,7 @@
     <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
     <meta http-equiv="Pragma" content="no-cache">
     <meta http-equiv="Expires" content="0">
-    <meta name="app-build" content="20260429-anti-cache-manual-red">
+    <meta name="app-build" content="20260429-anti-cache-alpa-all">
     <title>Kerohanian Sman12</title>
 
     <!-- PWA -->
@@ -346,17 +346,15 @@
 
             <div class="glass-premium p-6 rounded-[2.5rem]">
                 <h2 class="text-sm font-black mb-4 text-cyan-400 uppercase flex items-center gap-2">📝 ABSEN MANUAL</h2>
-                <p class="text-gray-400 text-[10px] mb-4">Gunakan kalau QR rusak/basah atau siswa tidak hadir.</p>
+                <p class="text-gray-400 text-[10px] mb-4">Gunakan untuk menandai siswa tidak hadir. Tombol ALPAKAN SEMUA dipakai setelah proses scan selesai.</p>
                 <div class="grid gap-3">
                     <select id="manualKelas" class="w-full p-4 rounded-2xl text-white"></select>
                     <select id="manualAbsen" class="w-full p-4 rounded-2xl text-white">
                         <option value="">Pilih No. Absen</option>
                     </select>
                     <input type="text" id="manualNama" placeholder="Nama siswa otomatis tampil" readonly class="w-full p-4 rounded-2xl text-white opacity-70">
-                    <div class="grid grid-cols-2 gap-3">
-                        <button onclick="absenManualHadir()" class="w-full py-4 bg-gradient-to-r from-green-600 to-green-500 text-white font-black rounded-2xl text-xs uppercase hover:shadow-lg transition transform hover:scale-[1.02]">✅ TANDAI HADIR</button>
-                        <button onclick="absenManualTidakHadir()" class="w-full py-4 bg-gradient-to-r from-red-600 to-red-500 text-white font-black rounded-2xl text-xs uppercase hover:shadow-lg transition transform hover:scale-[1.02]">❌ TIDAK HADIR</button>
-                    </div>
+                    <button onclick="absenManualTidakHadir()" class="w-full py-4 bg-gradient-to-r from-red-600 to-red-500 text-white font-black rounded-2xl text-xs uppercase hover:shadow-lg transition transform hover:scale-[1.02]">❌ TANDAI TIDAK HADIR</button>
+                    <button onclick="alpakanSemuaKosong()" class="w-full py-4 bg-gradient-to-r from-orange-600 to-red-600 text-white font-black rounded-2xl text-xs uppercase hover:shadow-lg transition transform hover:scale-[1.02]">🚨 ALPAKAN SEMUA YANG BELUM ABSEN</button>
                 </div>
             </div>
 
@@ -961,88 +959,6 @@
         }
     }
 
-    window.absenManualHadir = async function() {
-        const kelas = document.getElementById('manualKelas').value;
-        const absen = document.getElementById('manualAbsen').value;
-
-        if (!kelas || !absen) {
-            showToast('Pilih kelas dan no. absen dulu!', 'error');
-            playBeep('error');
-            return;
-        }
-
-        document.getElementById('loading').classList.remove('hidden');
-
-        try {
-            const siswaRef = db.ref('siswa/' + kelas + '/' + absen);
-            const siswaSnap = await siswaRef.once('value');
-
-            if (!siswaSnap.exists()) throw new Error('Data siswa tidak ditemukan');
-
-            const siswa = siswaSnap.val();
-            const jk = (siswa.jk || '').toUpperCase();
-            const agama = siswa.agama || '';
-
-            if(mode !== 'Haid') {
-                const agamaMode = agama === 'Islam' ? 'Islam' : 'NonIslam';
-                if(agamaMode !== mode) {
-                    if(agama === 'Islam') throw new Error('Siswa ini Islam, gunakan mode Islam');
-                    else throw new Error('Siswa ini ' + agama + ', gunakan mode Non Islam');
-                }
-            } else {
-                if(jk !== 'P') throw new Error('Mode Haid hanya untuk siswi perempuan');
-            }
-
-            const today = new Date().toLocaleDateString('id-ID').replace(/\//g, '-');
-            const presensiRef = db.ref('presensi/' + today + '/' + kelas + '_' + absen);
-            const presensiSnap = await presensiRef.once('value');
-
-            if (presensiSnap.exists()) {
-                const data = presensiSnap.val();
-                throw new Error('Siswa ini sudah punya data presensi hari ini: ' + data.status);
-            }
-
-            let totalHadir = siswa.totalHadir || 0;
-            totalHadir++;
-
-            await siswaRef.update({
-                nama: siswa.nama,
-                kelas: siswa.kelas || kelas,
-                absen: siswa.absen || absen,
-                jk: siswa.jk || '',
-                agama: siswa.agama || '',
-                totalHadir,
-                lastUpdate: Date.now()
-            });
-
-            const jam = mode === 'Haid' ? 'HAID' : new Date().toLocaleTimeString('id-ID');
-            const status = mode === 'Islam' ? 'DZUHUR' : mode === 'Haid' ? 'HAID' : 'IBADAH';
-
-            await presensiRef.set({
-                nama: siswa.nama,
-                kelas: siswa.kelas || kelas,
-                absen: siswa.absen || absen,
-                jk: siswa.jk || '',
-                agama: siswa.agama || '',
-                jam,
-                status,
-                totalHadir,
-                timestamp: Date.now(),
-                manual: true
-            });
-
-            showToast(`${siswa.nama} ditandai hadir manual`, 'success');
-            playBeep('success');
-            updateDashboard();
-
-        } catch(e) {
-            showToast('Gagal: ' + e.message, 'error');
-            playBeep('error');
-        }
-
-        document.getElementById('loading').classList.add('hidden');
-    };
-
     window.absenManualTidakHadir = async function() {
         const kelas = document.getElementById('manualKelas').value;
         const absen = document.getElementById('manualAbsen').value;
@@ -1091,6 +1007,69 @@
 
         } catch(e) {
             showToast('Gagal: ' + e.message, 'error');
+            playBeep('error');
+        }
+
+        document.getElementById('loading').classList.add('hidden');
+    };
+
+
+    function getTanggalAlpaTarget() {
+        const selectedKey = document.getElementById('tanggalHarian')?.value;
+        if (selectedKey && selectedKey !== '__ALL__') return selectedKey;
+        return new Date().toLocaleDateString('id-ID').replace(/\//g, '-');
+    }
+
+    window.alpakanSemuaKosong = async function() {
+        const tanggalTarget = getTanggalAlpaTarget();
+        const konfirmasi = confirm(`⚠️ Tandai semua siswa yang belum absen pada ${tanggalTarget} sebagai TIDAK HADIR/ALPA?\n\nYang sudah absen tidak akan diubah.`);
+        if (!konfirmasi) return;
+
+        document.getElementById('loading').classList.remove('hidden');
+
+        try {
+            const siswaSnap = await db.ref('siswa').once('value');
+            const semuaSiswa = siswaSnap.val() || {};
+            const presensiSnap = await db.ref('presensi/' + tanggalTarget).once('value');
+            const presensiData = presensiSnap.val() || {};
+            const updates = {};
+            let totalAlpa = 0;
+
+            for (let kelas in semuaSiswa) {
+                const dataKelas = semuaSiswa[kelas] || {};
+                for (let absen in dataKelas) {
+                    const siswa = dataKelas[absen] || {};
+                    const key = `${kelas}_${absen}`;
+                    if (presensiData[key]) continue;
+
+                    updates[`presensi/${tanggalTarget}/${key}`] = {
+                        nama: siswa.nama || '-',
+                        kelas: siswa.kelas || kelas,
+                        absen: siswa.absen || absen,
+                        jk: siswa.jk || '',
+                        agama: siswa.agama || '',
+                        jam: 'TIDAK HADIR',
+                        status: 'TIDAK HADIR',
+                        totalHadir: siswa.totalHadir || 0,
+                        timestamp: Date.now(),
+                        manual: true,
+                        autoAlpa: true
+                    };
+                    totalAlpa++;
+                }
+            }
+
+            if (totalAlpa === 0) {
+                showToast('Tidak ada siswa kosong. Semua sudah punya presensi.', 'success');
+                playBeep('success');
+            } else {
+                await db.ref().update(updates);
+                showToast(`${totalAlpa} siswa kosong ditandai ALPA`, 'success');
+                playBeep('success');
+                updateDashboard();
+            }
+        } catch(e) {
+            showToast('Gagal alpakan semua: ' + (e.message || e), 'error');
             playBeep('error');
         }
 
@@ -1633,7 +1612,7 @@
             .catch(err => console.log('SW unregister failed', err));
     }
 
-    console.log('KEROHANIAN_BUILD', '20260429-anti-cache-manual-red');
+    console.log('KEROHANIAN_BUILD', '20260429-anti-cache-alpa-all');
 </script>
 </body>
 </html>
