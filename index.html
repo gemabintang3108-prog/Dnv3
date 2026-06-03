@@ -14,7 +14,6 @@
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="apple-mobile-web-app-title" content="Kerohanian 12">
-    <!-- PWA manifest dimatikan agar browser tidak nyangkut cache lama -->
 
     <!-- Firebase -->
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
@@ -86,17 +85,8 @@
             box-shadow: 0 4px 12px rgba(244, 63, 94, 0.4);
         }
 
-        #modeIslam,
-        #modeKristen,
-        #modeHaid {
-            color: white !important;
-        }
-
-        #modeIslam *,
-        #modeKristen *,
-        #modeHaid * {
-            color: white !important;
-        }
+        #modeIslam, #modeKristen, #modeHaid { color: white !important; }
+        #modeIslam *, #modeKristen *, #modeHaid * { color: white !important; }
 
         #modeIslam:not(.active-mode-islam),
         #modeKristen:not(.active-mode-kristen),
@@ -368,7 +358,10 @@
                 </div>
 
                 <div class="mb-4">
-                    <label class="block text-cyan-400 text-[10px] font-bold uppercase mb-2">📅 Pilih tanggal / download semua bulan ini</label>
+                    <label class="block text-cyan-400 text-[10px] font-bold uppercase mb-2">📅 Pilih Bulan</label>
+                    <input type="month" id="pilihBulan" class="w-full p-4 rounded-2xl text-white mb-4" onchange="initTanggalHarian(this.value)">
+
+                    <label class="block text-cyan-400 text-[10px] font-bold uppercase mb-2">📅 Pilih Tanggal / Rekap Bulanan</label>
                     <select id="tanggalHarian" class="w-full p-4 rounded-2xl text-white"></select>
                 </div>
 
@@ -467,15 +460,25 @@
         }
     }
 
-    // Fungsi daftar kamera dihapus agar tidak ada dropdown pilih kamera.
-
-    function initTanggalHarian() {
+    function initTanggalHarian(monthStr) {
         const select = document.getElementById('tanggalHarian');
         if (!select) return;
 
-        const now = new Date();
-        const bulan = now.getMonth();
-        const tahun = now.getFullYear();
+        let targetDate = new Date();
+        if (monthStr) {
+            const parts = monthStr.split('-');
+            targetDate = new Date(parts[0], parseInt(parts[1]) - 1, 1);
+        } else {
+            const inputBulan = document.getElementById('pilihBulan');
+            if (inputBulan) {
+                const y = targetDate.getFullYear();
+                const m = String(targetDate.getMonth() + 1).padStart(2, '0');
+                inputBulan.value = `${y}-${m}`;
+            }
+        }
+
+        const bulan = targetDate.getMonth();
+        const tahun = targetDate.getFullYear();
         const jumlahHari = new Date(tahun, bulan + 1, 0).getDate();
 
         select.innerHTML = '';
@@ -484,7 +487,6 @@
             const tgl = new Date(tahun, bulan, i);
             const hari = tgl.getDay();
 
-            // hanya Senin sampai Jumat
             if (hari >= 1 && hari <= 5) {
                 const key = tgl.toLocaleDateString('id-ID').replace(/\//g, '-');
                 const label = `${NAMA_HARI[hari]}, ${tgl.toLocaleDateString('id-ID')}`;
@@ -492,13 +494,13 @@
             }
         }
 
-        const todayKey = now.toLocaleDateString('id-ID').replace(/\//g, '-');
-        if ([...select.options].some(o => o.value === todayKey)) {
+        const todayKey = new Date().toLocaleDateString('id-ID').replace(/\//g, '-');
+        if (!monthStr && [...select.options].some(o => o.value === todayKey)) {
             select.value = todayKey;
         }
 
-        // Opsi terakhir: download semua tanggal Senin-Jumat bulan berjalan
-        select.innerHTML += `<option value="__ALL__">📦 DOWNLOAD SEMUA / REKAP BULAN INI</option>`;
+        const namaBulan = targetDate.toLocaleDateString('id-ID', { month: 'long', year: 'numeric' }).toUpperCase();
+        select.innerHTML += `<option value="__ALL__">📦 DOWNLOAD REKAP ${namaBulan}</option>`;
     }
 
     window.onload = function() {
@@ -519,8 +521,6 @@
 
         initTanggalHarian();
         setMode('Islam');
-
-        // Dropdown pilih kamera dihapus. Kamera otomatis pakai belakang di HP / default di laptop.
 
         if(localStorage.getItem('login') === 'true') {
             isLogin = true;
@@ -708,7 +708,7 @@
 
             entries.sort((a,b) => (b.timestamp||0) - (a.timestamp||0));
             let html = '';
-            entries.slice(0,30).forEach(e => {
+            entries.slice(0,100000).forEach(e => {
                 html += `<div class="log-item ${e.status === 'TIDAK HADIR' ? 'border-l-red-500' : ''}">
                     <div class="flex justify-between items-center">
                         <div>
@@ -913,7 +913,6 @@
         setTimeout(() => { try { scanner?.resume(); } catch(e) {} }, 2000);
     }
 
-
     function feedback(icon, name, msg, bg) {
         const fb = document.getElementById('feedback');
         document.getElementById('fbIcon').innerText = icon;
@@ -1013,7 +1012,6 @@
         document.getElementById('loading').classList.add('hidden');
     };
 
-
     function getTanggalAlpaTarget() {
         const selectedKey = document.getElementById('tanggalHarian')?.value;
         if (selectedKey && selectedKey !== '__ALL__') return selectedKey;
@@ -1075,7 +1073,6 @@
 
         document.getElementById('loading').classList.add('hidden');
     };
-
 
     function agamaIsIslam(agama) {
         return String(agama || '').trim().toLowerCase() === 'islam';
@@ -1211,9 +1208,16 @@
         document.getElementById('loading').classList.remove('hidden');
 
         try {
-            const now = new Date();
-            const bulan = now.getMonth();
-            const tahun = now.getFullYear();
+            const inputBulan = document.getElementById('pilihBulan')?.value;
+            let targetDate = new Date();
+            if (inputBulan) {
+                const parts = inputBulan.split('-');
+                targetDate = new Date(parts[0], parseInt(parts[1]) - 1, 1);
+            }
+
+            const bulan = targetDate.getMonth();
+            const tahun = targetDate.getFullYear();
+            const now = targetDate; 
 
             const formatTglFirebase = (d) => d.toLocaleDateString('id-ID').replace(/\//g, '-');
             const formatTglHeader = (d) => `${NAMA_HARI[d.getDay()]} ${d.getDate()}/${d.getMonth() + 1}`;
@@ -1604,8 +1608,6 @@
         document.getElementById('loading').classList.add('hidden');
     };
 
-    // Service Worker dimatikan agar HP tidak menyimpan UI versi lama.
-    // Kalau sebelumnya pernah terdaftar, bagian ini akan mencabutnya otomatis.
     if ('serviceWorker' in navigator) {
         navigator.serviceWorker.getRegistrations()
             .then(registrations => registrations.forEach(reg => reg.unregister()))
