@@ -9,13 +9,11 @@
     <meta name="app-build" content="20260429-anti-cache-alpa-all">
     <title>Kerohanian Sman12</title>
 
-    <!-- PWA -->
     <meta name="theme-color" content="#0a0f1e">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="apple-mobile-web-app-title" content="Kerohanian 12">
 
-    <!-- Firebase -->
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
     <script src="https://unpkg.com/html5-qrcode"></script>
@@ -359,10 +357,10 @@
 
                 <div class="mb-4">
                     <label class="block text-cyan-400 text-[10px] font-bold uppercase mb-2">📅 Pilih Bulan</label>
-                    <input type="month" id="pilihBulan" class="w-full p-4 rounded-2xl text-white mb-4" onchange="initTanggalHarian(this.value)">
+                    <select id="pilihBulan" class="w-full p-4 rounded-2xl text-white mb-4" onchange="initTanggalHarian(this.value)"></select>
 
                     <label class="block text-cyan-400 text-[10px] font-bold uppercase mb-2">📅 Pilih Tanggal / Rekap Bulanan</label>
-                    <select id="tanggalHarian" class="w-full p-4 rounded-2xl text-white"></select>
+                    <select id="tanggalHarian" class="w-full p-4 rounded-2xl text-white" onchange="gantiTanggalUI()"></select>
                 </div>
 
                 <div class="mb-6">
@@ -425,6 +423,7 @@
     let facingMode = 'environment';
     let scannerNaik = null;
     let listSiswaScanned = [];
+    let currentPresensiRef = null; // Tambahan biar UI nya nggak bocor datanya
 
     function playBeep(type) {
         try {
@@ -460,48 +459,63 @@
         }
     }
 
-    function initTanggalHarian(monthStr) {
-        const select = document.getElementById('tanggalHarian');
-        if (!select) return;
+    // Fungsi baru buat generate dropdown bulan biar 100% aman di laptop
+    function initDropdownBulan() {
+        const select = document.getElementById('pilihBulan');
+        if(!select) return;
+        select.innerHTML = '';
+        const now = new Date();
+        for(let i=0; i<12; i++) {
+            const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
+            const m = String(d.getMonth() + 1).padStart(2, '0');
+            const y = d.getFullYear();
+            const val = `${y}-${m}`;
+            const label = d.toLocaleDateString('id-ID', { month: 'long', year: 'numeric' }).toUpperCase();
+            select.innerHTML += `<option value="${val}">${label}</option>`;
+        }
+    }
+
+    window.initTanggalHarian = function(monthStr) {
+        const selectBulan = document.getElementById('pilihBulan');
+        const selectHari = document.getElementById('tanggalHarian');
+        if (!selectHari) return;
 
         let targetDate = new Date();
         if (monthStr) {
             const parts = monthStr.split('-');
             targetDate = new Date(parts[0], parseInt(parts[1]) - 1, 1);
-        } else {
-            const inputBulan = document.getElementById('pilihBulan');
-            if (inputBulan) {
-                const y = targetDate.getFullYear();
-                const m = String(targetDate.getMonth() + 1).padStart(2, '0');
-                inputBulan.value = `${y}-${m}`;
-            }
+        } else if (selectBulan && selectBulan.value) {
+            const parts = selectBulan.value.split('-');
+            targetDate = new Date(parts[0], parseInt(parts[1]) - 1, 1);
         }
 
         const bulan = targetDate.getMonth();
         const tahun = targetDate.getFullYear();
         const jumlahHari = new Date(tahun, bulan + 1, 0).getDate();
 
-        select.innerHTML = '';
-
+        selectHari.innerHTML = '';
         for (let i = 1; i <= jumlahHari; i++) {
             const tgl = new Date(tahun, bulan, i);
             const hari = tgl.getDay();
-
             if (hari >= 1 && hari <= 5) {
                 const key = tgl.toLocaleDateString('id-ID').replace(/\//g, '-');
                 const label = `${NAMA_HARI[hari]}, ${tgl.toLocaleDateString('id-ID')}`;
-                select.innerHTML += `<option value="${key}">${label}</option>`;
+                selectHari.innerHTML += `<option value="${key}">${label}</option>`;
             }
         }
 
         const todayKey = new Date().toLocaleDateString('id-ID').replace(/\//g, '-');
-        if (!monthStr && [...select.options].some(o => o.value === todayKey)) {
-            select.value = todayKey;
+        if (!monthStr && [...selectHari.options].some(o => o.value === todayKey)) {
+            selectHari.value = todayKey;
+        } else if (selectHari.options.length > 0) {
+            selectHari.selectedIndex = 0;
         }
 
         const namaBulan = targetDate.toLocaleDateString('id-ID', { month: 'long', year: 'numeric' }).toUpperCase();
-        select.innerHTML += `<option value="__ALL__">📦 DOWNLOAD REKAP ${namaBulan}</option>`;
-    }
+        selectHari.innerHTML += `<option value="__ALL__">📦 DOWNLOAD REKAP ${namaBulan}</option>`;
+
+        if (isLogin && typeof gantiTanggalUI === 'function') gantiTanggalUI();
+    };
 
     window.onload = function() {
         const select = document.getElementById('kelas');
@@ -519,6 +533,7 @@
             loadManualAbsenOptions();
         }
 
+        initDropdownBulan(); // Panggil fungsi generate dropdown bulan
         initTanggalHarian();
         setMode('Islam');
 
@@ -681,9 +696,25 @@
         `).join('');
     };
 
-    function listenPresensi() {
-        const today = new Date().toLocaleDateString('id-ID').replace(/\//g, '-');
-        db.ref('presensi/' + today).on('value', async (snap) => {
+    // Fungsi ganti layar UI kemaren yang lu lupa copas wkwk
+    window.gantiTanggalUI = function() {
+        const val = document.getElementById('tanggalHarian').value;
+        if (val !== '__ALL__') {
+            listenPresensi(val);
+        }
+    };
+
+    window.listenPresensi = function(tanggalKey) {
+        if (currentPresensiRef) {
+            currentPresensiRef.off();
+        }
+
+        const targetDate = (tanggalKey && tanggalKey !== '__ALL__') 
+            ? tanggalKey 
+            : new Date().toLocaleDateString('id-ID').replace(/\//g, '-');
+
+        currentPresensiRef = db.ref('presensi/' + targetDate);
+        currentPresensiRef.on('value', async (snap) => {
             const data = snap.val() || {};
             const entries = Object.values(data);
             const totalHadir = entries.filter(e => e.status !== 'TIDAK HADIR').length;
@@ -725,7 +756,7 @@
             });
             document.getElementById('logPresensi').innerHTML = html;
         });
-    }
+    };
 
     window.buatQR = async function() {
         const nama = document.getElementById('nama').value.trim();
@@ -1208,10 +1239,10 @@
         document.getElementById('loading').classList.remove('hidden');
 
         try {
-            const inputBulan = document.getElementById('pilihBulan')?.value;
+            const selectBulan = document.getElementById('pilihBulan')?.value;
             let targetDate = new Date();
-            if (inputBulan) {
-                const parts = inputBulan.split('-');
+            if (selectBulan) {
+                const parts = selectBulan.split('-');
                 targetDate = new Date(parts[0], parseInt(parts[1]) - 1, 1);
             }
 
