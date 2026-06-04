@@ -83,12 +83,19 @@
             box-shadow: 0 4px 12px rgba(244, 63, 94, 0.4);
         }
 
-        #modeIslam, #modeKristen, #modeHaid { color: white !important; }
-        #modeIslam *, #modeKristen *, #modeHaid * { color: white !important; }
+        .active-mode-keputrian {
+            background: linear-gradient(135deg, #9333ea, #a855f7);
+            color: white;
+            box-shadow: 0 4px 12px rgba(168, 85, 247, 0.4);
+        }
+
+        #modeIslam, #modeKristen, #modeHaid, #modeKeputrian { color: white !important; }
+        #modeIslam *, #modeKristen *, #modeHaid *, #modeKeputrian * { color: white !important; }
 
         #modeIslam:not(.active-mode-islam),
         #modeKristen:not(.active-mode-kristen),
-        #modeHaid:not(.active-mode-haid) {
+        #modeHaid:not(.active-mode-haid),
+        #modeKeputrian:not(.active-mode-keputrian) {
             background: rgba(255,255,255,0.08);
             color: white !important;
         }
@@ -294,10 +301,11 @@
         </section>
 
         <section id="tabScan" class="hidden space-y-6">
-            <div class="glass-premium p-2 rounded-[2rem] flex gap-2">
-                <button onclick="setMode('Islam')" id="modeIslam" class="flex-1 py-4 rounded-[1.5rem] font-black text-[10px] uppercase transition-all active-mode-islam text-white">☪️ ISLAM</button>
-                <button onclick="setMode('NonIslam')" id="modeKristen" class="flex-1 py-4 rounded-[1.5rem] font-black text-[10px] uppercase transition-all text-white">✝️ NON ISLAM</button>
-                <button onclick="setMode('Haid')" id="modeHaid" class="flex-1 py-4 rounded-[1.5rem] font-black text-[10px] uppercase transition-all text-white">🩸 HAID</button>
+            <div class="glass-premium p-2 rounded-[2rem] flex flex-wrap gap-1">
+                <button onclick="setMode('Islam')" id="modeIslam" class="flex-1 min-w-[65px] py-3 rounded-[1.5rem] font-black text-[9px] uppercase transition-all active-mode-islam text-white">☪️ ISLAM</button>
+                <button onclick="setMode('NonIslam')" id="modeKristen" class="flex-1 min-w-[65px] py-3 rounded-[1.5rem] font-black text-[9px] uppercase transition-all text-white">✝️ NON ISLAM</button>
+                <button onclick="setMode('Haid')" id="modeHaid" class="flex-1 min-w-[65px] py-3 rounded-[1.5rem] font-black text-[9px] uppercase transition-all text-white">🩸 HAID</button>
+                <button onclick="setMode('Keputrian')" id="modeKeputrian" class="flex-1 min-w-[65px] py-3 rounded-[1.5rem] font-black text-[9px] uppercase transition-all text-white">🌸 KEPUTRIAN</button>
             </div>
 
             <div class="grid grid-cols-3 gap-3">
@@ -423,7 +431,7 @@
     let facingMode = 'environment';
     let scannerNaik = null;
     let listSiswaScanned = [];
-    let currentPresensiRef = null; // Tambahan biar UI nya nggak bocor datanya
+    let currentPresensiRef = null;
 
     function playBeep(type) {
         try {
@@ -459,7 +467,6 @@
         }
     }
 
-    // Fungsi baru buat generate dropdown bulan biar 100% aman di laptop
     function initDropdownBulan() {
         const select = document.getElementById('pilihBulan');
         if(!select) return;
@@ -533,7 +540,7 @@
             loadManualAbsenOptions();
         }
 
-        initDropdownBulan(); // Panggil fungsi generate dropdown bulan
+        initDropdownBulan();
         initTanggalHarian();
         setMode('Islam');
 
@@ -623,7 +630,9 @@
         document.getElementById('modeIslam').classList.toggle('active-mode-islam', m === 'Islam');
         document.getElementById('modeKristen').classList.toggle('active-mode-kristen', m === 'NonIslam');
         document.getElementById('modeHaid').classList.toggle('active-mode-haid', m === 'Haid');
-        const label = m === 'Islam' ? 'ISLAM' : m === 'NonIslam' ? 'NON ISLAM' : 'HAID';
+        document.getElementById('modeKeputrian').classList.toggle('active-mode-keputrian', m === 'Keputrian');
+        
+        const label = m === 'Islam' ? 'ISLAM' : m === 'NonIslam' ? 'NON ISLAM' : m === 'Haid' ? 'HAID' : 'KEPUTRIAN';
         showToast(`Mode: ${label}`, 'success');
         playBeep('success');
     };
@@ -696,7 +705,6 @@
         `).join('');
     };
 
-    // Fungsi ganti layar UI kemaren yang lu lupa copas wkwk
     window.gantiTanggalUI = function() {
         const val = document.getElementById('tanggalHarian').value;
         if (val !== '__ALL__') {
@@ -859,6 +867,7 @@
 
     function getModeAktif() {
         if (document.getElementById('modeHaid')?.classList.contains('active-mode-haid')) return 'Haid';
+        if (document.getElementById('modeKeputrian')?.classList.contains('active-mode-keputrian')) return 'Keputrian';
         if (document.getElementById('modeKristen')?.classList.contains('active-mode-kristen')) return 'NonIslam';
         return 'Islam';
     }
@@ -912,30 +921,39 @@
             let dataSiswa = siswaSnap.val() || {};
             const namaDB = dataSiswa.nama || '';
             if (namaDB && normalisasiNamaQR(namaDB) !== normalisasiNamaQR(nama)) throw 'Data QR tidak cocok dengan database';
+            
             nama = dataSiswa.nama || nama;
             jk = (dataSiswa.jk || jk || 'L').toUpperCase();
             agama = dataSiswa.agama || agama || 'Islam';
-            if(mode !== 'Haid') {
+
+            if(mode === 'Haid' || mode === 'Keputrian') {
+                if(jk !== 'P') throw `Mode ${mode} hanya untuk siswi perempuan!`;
+            } else {
                 const agamaMode = agama === 'Islam' ? 'Islam' : 'NonIslam';
                 if(agamaMode !== mode) {
                     if(agama === 'Islam') throw `Siswa ini Islam, gunakan mode Islam`;
                     else throw `Siswa ini ${agama}, gunakan mode Non Islam`;
                 }
-            } else {
-                if(jk !== 'P') throw `Mode Haid hanya untuk siswi perempuan`;
             }
+
             const today = new Date().toLocaleDateString('id-ID').replace(/\//g, '-');
             const presensiRef = db.ref('presensi/' + today + '/' + kelas + '_' + absen);
             const presensiSnap = await presensiRef.once('value');
             if(presensiSnap.exists()) { const data = presensiSnap.val(); throw `Sudah absen jam ${data.jam}`; }
+            
             let totalHadir = dataSiswa.totalHadir || 0; totalHadir++;
             dataSiswa.nama = nama; dataSiswa.kelas = kelas; dataSiswa.absen = absen; dataSiswa.jk = jk; dataSiswa.agama = agama; dataSiswa.totalHadir = totalHadir; dataSiswa.lastUpdate = Date.now();
             await siswaRef.set(dataSiswa);
-            const jam = mode === 'Haid' ? 'HAID' : new Date().toLocaleTimeString('id-ID');
-            const status = mode === 'Islam' ? 'DZUHUR' : mode === 'Haid' ? 'HAID' : 'IBADAH';
+            
+            const jam = (mode === 'Haid' || mode === 'Keputrian') ? mode.toUpperCase() : new Date().toLocaleTimeString('id-ID');
+            const status = mode === 'Islam' ? 'DZUHUR' : mode === 'Haid' ? 'HAID' : mode === 'Keputrian' ? 'KEPUTRIAN' : 'IBADAH';
+            
             await presensiRef.set({ nama: dataSiswa.nama, kelas: dataSiswa.kelas, absen: dataSiswa.absen, jk: dataSiswa.jk, agama: dataSiswa.agama, jam, status, totalHadir, timestamp: Date.now() });
-            feedback('✅', nama, mode === 'Haid' ? 'Tercatat Haid' : `Hadir ke-${totalHadir}`, 'bg-gradient-to-r from-green-600 to-green-500');
-            showToast(`${nama} - ${mode === 'Haid' ? 'Haid tercatat' : 'Hadir!'}`, 'success');
+            
+            let feedbackMsg = mode === 'Haid' ? 'Tercatat Haid' : mode === 'Keputrian' ? 'Hadir Keputrian' : `Hadir ke-${totalHadir}`;
+            feedback('✅', nama, feedbackMsg, 'bg-gradient-to-r from-green-600 to-green-500');
+            showToast(`${nama} - ${feedbackMsg}`, 'success');
+            
             playBeep('success'); updateDashboard();
         } catch(e) {
             feedback('❌', 'GAGAL', e.toString(), 'bg-gradient-to-r from-red-600 to-red-500'); showToast(e.toString(), 'error'); playBeep('error');
@@ -1118,11 +1136,18 @@
         return (status === 'HAID' || jam === 'HAID') && agamaIsIslam(agama) && jk === 'P';
     }
 
+    function isKeputrianCell(hadirData) {
+        if (!hadirData) return false;
+        const status = String(hadirData.status || '').toUpperCase();
+        const jam = String(hadirData.jam || '').toUpperCase();
+        return status === 'KEPUTRIAN' || jam === 'KEPUTRIAN';
+    }
+
     function isNonMuslimHadirCell(hadirData, siswa) {
         if (!hadirData) return false;
         const status = String(hadirData.status || '').toUpperCase();
         const agama = hadirData.agama || siswa?.agama || '';
-        return status !== 'TIDAK HADIR' && status !== 'HAID' && !agamaIsIslam(agama);
+        return status !== 'TIDAK HADIR' && status !== 'HAID' && status !== 'KEPUTRIAN' && !agamaIsIslam(agama);
     }
 
     function isManualCell(hadirData) {
@@ -1200,6 +1225,7 @@
 
                             if (isManualCell(hadir)) warnaHarian.push({ row: rowIndex, col: 2, color: 'FF0000' });
                             else if (isHaidCell(hadir, siswa)) warnaHarian.push({ row: rowIndex, col: 2, color: 'FFC0CB' });
+                            else if (isKeputrianCell(hadir)) warnaHarian.push({ row: rowIndex, col: 2, color: 'D8BFD8' });
                             else if (isNonMuslimHadirCell(hadir, siswa)) warnaHarian.push({ row: rowIndex, col: 2, color: 'FFFF00' });
                         }
                     } else {
@@ -1308,6 +1334,7 @@
 
                                 if (isManualCell(hadirData)) warnaBulanan.push({ row: rowIndex, col: colIndex, color: 'FF0000' });
                                 else if (isHaidCell(hadirData, siswa)) warnaBulanan.push({ row: rowIndex, col: colIndex, color: 'FFC0CB' });
+                                else if (isKeputrianCell(hadirData)) warnaBulanan.push({ row: rowIndex, col: colIndex, color: 'D8BFD8' });
                                 else if (isNonMuslimHadirCell(hadirData, siswa)) warnaBulanan.push({ row: rowIndex, col: colIndex, color: 'FFFF00' });
                             }
                         } else {
@@ -1531,7 +1558,6 @@
         setTimeout(() => { try { scannerNaik?.resume(); } catch(e) {} }, 1800);
     }
 
-
     function showFeedbackNaik(icon, nama, msg, bg) {
         const fb = document.getElementById('feedbackNaik');
         document.getElementById('fbNaikIcon').innerText = icon;
@@ -1645,7 +1671,7 @@
             .catch(err => console.log('SW unregister failed', err));
     }
 
-    console.log('KEROHANIAN_BUILD', '20260429-anti-cache-alpa-all');
+    console.log('KEROHANIAN_BUILD', '20260429-anti-cache-alpa-all-keputrian');
 </script>
 </body>
 </html>
