@@ -2,9 +2,9 @@
 <html lang="id">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <meta name="theme-color" content="#0a0f1e">
-    <title>Kerohanian Sman12</title>
+    <title>Kerohanian 12 - App</title>
 
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
@@ -13,260 +13,332 @@
     <script src="https://cdn.jsdelivr.net/npm/xlsx-js-style@1.2.0/dist/xlsx.bundle.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;800;900&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700;800;900&display=swap" rel="stylesheet">
 
     <style>
-        * { font-family: 'Plus Jakarta Sans', sans-serif; }
+        * { font-family: 'Plus Jakarta Sans', sans-serif; -webkit-tap-highlight-color: transparent; }
 
         body {
-            background: linear-gradient(135deg, #0a0f1e 0%, #0d1525 50%, #0a0f1e 100%);
-            min-height: 100vh;
-            overscroll-behavior: none;
+            background-color: #0a0f1e;
+            color: white;
+            overscroll-behavior-y: none;
+            display: flex; justify-content: center; align-items: center; min-height: 100vh; margin: 0;
             -webkit-user-select: none;
-            color: white;
         }
 
-        .glass-premium {
-            background: rgba(30, 41, 59, 0.7);
-            backdrop-filter: blur(16px);
-            border: 1px solid rgba(34, 211, 238, 0.2);
-            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
-            transition: all 0.3s ease;
+        /* Container ala HP */
+        .app-container {
+            width: 100%; max-width: 480px; height: 100vh; height: 100dvh;
+            background: linear-gradient(180deg, #0d1525 0%, #0a0f1e 100%);
+            position: relative; overflow: hidden; display: flex; flex-direction: column;
+            box-shadow: 0 0 40px rgba(0,0,0,0.5);
         }
 
-        .glass-premium:hover {
-            border-color: rgba(34, 211, 238, 0.5);
+        .glass-card {
+            background: rgba(30, 41, 59, 0.6);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            border-radius: 1.25rem;
         }
 
-        .stat-card {
-            background: rgba(15, 23, 42, 0.6);
-            border: 1px solid rgba(34, 211, 238, 0.3);
-            border-radius: 1.5rem;
-            padding: 1.5rem;
-            text-align: left;
-            position: relative;
-            overflow: hidden;
+        .screen {
+            display: none; flex-direction: column; flex: 1; overflow-y: auto; overflow-x: hidden;
+            padding: 1rem 1rem 6rem 1rem;
+            animation: fadeIn 0.3s ease;
         }
-        
-        .stat-card::before {
-            content: '';
-            position: absolute;
-            top: 0; left: 0; width: 4px; height: 100%;
-            background: #06b6d4;
+        .screen.active { display: flex; }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
         }
 
-        .active-tab {
-            background: linear-gradient(135deg, #0891b2, #06b6d4);
-            color: white;
-            box-shadow: 0 4px 12px rgba(6, 182, 212, 0.4);
-            border: none;
-        }
-
-        .nav-item {
-            color: #94a3b8;
-            transition: all 0.2s ease;
-            border: 1px solid transparent;
-        }
-
-        .nav-item:hover:not(.active-tab) {
-            background: rgba(255, 255, 255, 0.05);
-            border-color: rgba(34, 211, 238, 0.2);
-            color: white;
-        }
-
-        /* --- SISA STYLE ASLI LU TETEP SAMA --- */
-        .active-mode-islam { background: linear-gradient(135deg, #15803d, #16a34a); box-shadow: 0 4px 12px rgba(34, 197, 94, 0.4); }
-        .active-mode-kristen { background: linear-gradient(135deg, #1d4ed8, #3b82f6); box-shadow: 0 4px 12px rgba(59, 130, 246, 0.4); }
-        .active-mode-haid { background: linear-gradient(135deg, #be123c, #f43f5e); box-shadow: 0 4px 12px rgba(244, 63, 94, 0.4); }
-        .active-mode-keputrian { background: linear-gradient(135deg, #9333ea, #a855f7); box-shadow: 0 4px 12px rgba(168, 85, 247, 0.4); }
-        #modeIslam, #modeKristen, #modeHaid, #modeKeputrian { color: white !important; }
-        
-        #reader, #readerLogin, #readerNaik { border: none !important; border-radius: 2rem !important; overflow: hidden; }
-        #reader video, #readerLogin video, #readerNaik video { border-radius: 2rem; }
-        
-        ::-webkit-scrollbar { width: 6px; }
-        ::-webkit-scrollbar-track { background: #1e293b; border-radius: 10px; }
-        ::-webkit-scrollbar-thumb { background: linear-gradient(135deg, #0891b2, #06b6d4); border-radius: 10px; }
-
+        /* Form Controls Update for Mobile */
         input, select {
-            background: rgba(15, 23, 42, 0.9) !important;
-            border: 1px solid rgba(34, 211, 238, 0.3) !important;
-            color: white !important;
+            width: 100%; padding: 1rem; border-radius: 1rem;
+            background: rgba(15, 23, 42, 0.8) !important;
+            border: 1px solid rgba(34, 211, 238, 0.2) !important;
+            color: white !important; font-size: 0.875rem;
+            appearance: none;
         }
         input:focus, select:focus {
             border-color: #06b6d4 !important; outline: none; box-shadow: 0 0 0 2px rgba(6, 182, 212, 0.2);
         }
-        .log-item { background: rgba(30, 41, 59, 0.9); border-left: 4px solid #06b6d4; border-radius: 1rem; padding: 1rem; margin-bottom: 0.75rem; transition: all 0.2s ease; }
-        .log-item:hover { transform: scale(1.01); background: rgba(51, 65, 85, 0.9); }
+
+        /* Scanner Box */
+        #reader, #readerLogin, #readerNaik {
+            border: none !important; border-radius: 1.5rem !important; overflow: hidden; width: 100%;
+            background: #000; box-shadow: inset 0 0 20px rgba(0,0,0,0.5);
+        }
+        #reader video, #readerLogin video, #readerNaik video {
+            border-radius: 1.5rem; object-fit: cover;
+        }
+
+        /* Mode Buttons */
+        .mode-btn {
+            flex: 1; padding: 0.75rem 0.25rem; text-align: center; border-radius: 1rem;
+            font-size: 0.65rem; font-weight: 800; text-transform: uppercase;
+            background: rgba(255,255,255,0.05); color: #94a3b8; transition: all 0.2s;
+        }
+        .active-mode-islam { background: #16a34a !important; color: white !important; box-shadow: 0 4px 12px rgba(22, 163, 74, 0.4); }
+        .active-mode-kristen { background: #2563eb !important; color: white !important; box-shadow: 0 4px 12px rgba(37, 99, 235, 0.4); }
+        .active-mode-haid { background: #e11d48 !important; color: white !important; box-shadow: 0 4px 12px rgba(225, 29, 72, 0.4); }
+        .active-mode-keputrian { background: #9333ea !important; color: white !important; box-shadow: 0 4px 12px rgba(147, 51, 234, 0.4); }
+
+        /* Bottom Nav Tab */
+        .bottom-nav {
+            position: absolute; bottom: 0; left: 0; right: 0;
+            background: rgba(15, 23, 42, 0.85); backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px);
+            border-top: 1px solid rgba(255,255,255,0.05);
+            display: flex; justify-content: space-around; padding: 0.75rem 0.5rem 1.5rem 0.5rem; z-index: 50;
+        }
+        .nav-item {
+            display: flex; flex-direction: column; align-items: center; justify-content: center;
+            color: #64748b; font-size: 0.65rem; font-weight: 700; gap: 0.25rem; transition: 0.2s;
+            width: 60px; text-align: center; cursor: pointer;
+        }
+        .nav-item.active { color: #06b6d4; transform: translateY(-2px); }
+        .nav-icon { font-size: 1.25rem; margin-bottom: 2px; }
+
+        /* Custom Scrollbar Mini */
+        ::-webkit-scrollbar { width: 4px; height: 4px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: rgba(34, 211, 238, 0.3); border-radius: 4px; }
+
+        .log-item { background: rgba(255,255,255,0.03); border-left: 3px solid #06b6d4; border-radius: 0.75rem; padding: 0.75rem; margin-bottom: 0.5rem; }
+        .toast-notif {
+            position: fixed; top: 20px; left: 50%; transform: translateX(-50%); z-index: 9999;
+            background: rgba(30, 41, 59, 0.95); backdrop-filter: blur(10px);
+            border: 1px solid rgba(34, 211, 238, 0.3); border-radius: 1rem; padding: 0.75rem 1.5rem;
+            animation: fadeIn 0.3s ease; white-space: nowrap; max-width: 90%;
+        }
     </style>
 </head>
-<body class="flex h-screen overflow-hidden">
+<body>
 
-<div id="loading" class="fixed inset-0 bg-black/90 z-[200] flex items-center justify-center hidden">
-    <div class="text-center">
-        <div class="w-12 h-12 border-4 border-cyan-500/20 border-t-cyan-400 rounded-full animate-spin mx-auto mb-4"></div>
-        <p class="text-cyan-400 text-sm font-bold tracking-widest">PROSES...</p>
-    </div>
-</div>
-
-<div id="modalLogin" class="fixed inset-0 bg-black/95 z-[999] flex items-center justify-center p-4">
-    <div class="glass-premium w-full max-w-sm p-8 rounded-[3rem] text-center transform transition-all">
-        <div class="text-6xl mb-4">🔐</div>
-        <h2 class="text-3xl font-black bg-gradient-to-r from-cyan-400 to-blue-400 bg-clip-text text-transparent mb-1">DZUHUR 12</h2>
-        <p class="text-gray-400 text-[10px] mb-5">© Gema Bintang — Scan QR untuk masuk</p>
-
-        <div class="bg-black/50 rounded-[2rem] overflow-hidden mb-4 relative" style="min-height:220px">
-            <div id="readerLogin"></div>
-            <div id="loginScanStatus" class="absolute inset-0 flex items-center justify-center text-gray-400 text-xs font-bold">
-                📷 Tekan tombol untuk scan
-            </div>
-        </div>
-        <button onclick="startLoginScan()" id="btnLoginScan" class="w-full py-4 bg-gradient-to-r from-cyan-600 to-cyan-500 text-white font-bold rounded-2xl hover:shadow-lg hover:shadow-cyan-500/30 transition mb-2">📷 SCAN QR LOGIN</button>
-        <button onclick="stopLoginScan()" id="btnLoginStop" class="hidden w-full py-3 bg-red-500/20 text-red-400 font-bold rounded-2xl text-xs transition">⏹️ STOP KAMERA</button>
-        <p id="loginError" class="hidden text-red-400 text-xs font-bold mt-3">❌ QR tidak valid!</p>
-    </div>
-</div>
-
-<aside class="w-64 glass-premium flex-col hidden md:flex border-r border-cyan-500/20 z-50">
-    <div class="h-24 flex flex-col justify-center px-6 border-b border-cyan-500/20 relative overflow-hidden">
-        <div class="absolute top-[-50%] left-[-50%] w-32 h-32 bg-cyan-500/20 rounded-full blur-3xl"></div>
-        <h1 class="text-2xl font-black bg-gradient-to-r from-cyan-400 via-blue-500 to-purple-500 bg-clip-text text-transparent relative z-10">Kerohanian 12</h1>
-        <p class="text-[9px] text-cyan-400 uppercase tracking-[0.3em] font-bold relative z-10">© Gema Bintang</p>
-    </div>
+<div class="app-container">
     
-    <nav class="flex-1 p-4 space-y-3 overflow-y-auto mt-4">
-        <p class="text-[10px] font-bold text-gray-500 uppercase tracking-widest px-2 mb-2">Menu Utama</p>
-        <button onclick="switchTab('dashboard')" id="btnDashboard" class="w-full nav-item flex items-center gap-3 py-3.5 px-4 rounded-xl font-bold text-xs active-tab">📊 LAPORAN</button>
-        <button onclick="switchTab('scan')" id="btnScan" class="w-full nav-item flex items-center gap-3 py-3.5 px-4 rounded-xl font-bold text-xs">📷 SCAN QR</button>
-        
-        <p class="text-[10px] font-bold text-gray-500 uppercase tracking-widest px-2 mb-2 mt-6">Sistem Admin</p>
-        <button onclick="switchTab('admin')" id="btnAdmin" class="w-full nav-item flex items-center gap-3 py-3.5 px-4 rounded-xl font-bold text-xs">👑 DATA SISWA</button>
-        <button onclick="switchTab('naikkelas')" id="btnNaikKelas" class="w-full nav-item flex items-center gap-3 py-3.5 px-4 rounded-xl font-bold text-xs">🎓 NAIK KELAS</button>
-    </nav>
-</aside>
-
-<div class="flex-1 flex flex-col h-screen overflow-hidden relative">
-    
-    <header class="h-20 glass-premium border-b border-cyan-500/20 flex items-center justify-between px-6 lg:px-10 z-40 sticky top-0 rounded-none">
-        <div class="md:hidden">
-            <h1 class="text-xl font-black bg-gradient-to-r from-cyan-400 to-blue-500 bg-clip-text text-transparent">Kero 12</h1>
+    <header class="flex justify-between items-center p-4 z-40 border-b border-white/5">
+        <div>
+            <h1 class="text-lg font-black bg-gradient-to-r from-cyan-400 to-blue-500 bg-clip-text text-transparent leading-none">Kero 12</h1>
+            <p class="text-[8px] text-cyan-400 uppercase tracking-widest mt-1">Sistem Presensi</p>
         </div>
-        <div class="hidden md:block">
-            </div>
-        
-        <div class="flex items-center gap-3">
-            <button onclick="toggleFullscreen()" class="bg-cyan-500/10 border border-cyan-500/30 text-cyan-400 px-4 py-2 rounded-xl text-xs font-bold hover:bg-cyan-500/20 transition">📱 FULLSCREEN</button>
-            <button id="btnLogout" onclick="logout()" class="hidden bg-red-500/10 border border-red-500/30 text-red-400 px-4 py-2 rounded-xl text-xs font-bold hover:bg-red-500/20 transition">🚪 KELUAR</button>
+        <div class="flex gap-2">
+            <button onclick="toggleFullscreen()" class="w-8 h-8 flex items-center justify-center rounded-full bg-slate-800 text-cyan-400 text-xs">📱</button>
+            <button id="btnLogout" onclick="logout()" class="hidden w-8 h-8 flex items-center justify-center rounded-full bg-red-500/20 text-red-400 text-xs">🚪</button>
         </div>
     </header>
 
-    <main class="flex-1 overflow-y-auto p-4 lg:p-8 pb-24 md:pb-8">
-        <div class="max-w-6xl mx-auto">
+    <div id="loading" class="absolute inset-0 bg-slate-900/90 z-[200] flex items-center justify-center hidden backdrop-blur-sm">
+        <div class="text-center">
+            <div class="w-10 h-10 border-4 border-cyan-500/20 border-t-cyan-400 rounded-full animate-spin mx-auto mb-2"></div>
+            <p class="text-[10px] font-bold text-cyan-400 tracking-widest">PROSES...</p>
+        </div>
+    </div>
 
-            <section id="tabDashboard" class="hidden space-y-6">
-                <div class="grid grid-cols-1 md:grid-cols-3 gap-4 lg:gap-6">
-                    <div class="stat-card">
-                        <div class="text-[10px] uppercase text-gray-400 font-semibold mb-1">Total Siswa Terdaftar</div>
-                        <div class="text-4xl font-black text-cyan-400" id="dashTotalSiswa">0</div>
-                    </div>
-                    <div class="stat-card">
-                        <div class="text-[10px] uppercase text-gray-400 font-semibold mb-1">Hadir Hari Ini</div>
-                        <div class="text-4xl font-black text-green-400" id="dashHadirHari">0</div>
-                    </div>
-                    <div class="stat-card">
-                        <div class="text-[10px] uppercase text-gray-400 font-semibold mb-1">Persentase Kehadiran</div>
-                        <div class="text-4xl font-black text-purple-400" id="statPersen">0%</div>
-                    </div>
+    <div id="modalLogin" class="absolute inset-0 bg-slate-900 z-[999] flex items-center justify-center p-6">
+        <div class="glass-card w-full p-6 text-center border-cyan-500/30">
+            <div class="text-5xl mb-2">🔐</div>
+            <h2 class="text-2xl font-black text-white mb-1">LOGIN APP</h2>
+            <p class="text-gray-400 text-xs mb-6">Arahkan QR ke kamera HP</p>
+
+            <div class="bg-black rounded-2xl overflow-hidden mb-4 relative aspect-square w-full max-w-[250px] mx-auto">
+                <div id="readerLogin" class="w-full h-full"></div>
+                <div id="loginScanStatus" class="absolute inset-0 flex items-center justify-center text-gray-500 text-xs font-bold">
+                    [ Area Kamera ]
                 </div>
-
-                <div class="glass-premium p-6 lg:p-8 rounded-[2.5rem]">
-                    <h2 class="text-sm font-black mb-6 text-cyan-400 uppercase flex items-center gap-2">📋 Laporan Data Direktori</h2>
-                    <div class="flex flex-col sm:flex-row gap-3 mb-6">
-                        <input type="text" id="searchSiswa" placeholder="🔍 Cari nama siswa..." oninput="filterLaporan()" class="flex-1 p-4 rounded-2xl text-sm">
-                        <select id="filterKelas" onchange="filterLaporan()" class="p-4 rounded-2xl text-sm sm:w-48">
-                            <option value="">Semua Kelas</option>
-                        </select>
-                    </div>
-                    <div id="listLaporan" class="space-y-3 max-h-[600px] overflow-y-auto pr-2"></div>
-                </div>
-            </section>
-
-            <section id="tabScan" class="space-y-6">
-                <div class="glass-premium p-2 rounded-[2rem] flex flex-wrap gap-1">
-                    <button onclick="setMode('Islam')" id="modeIslam" class="flex-1 min-w-[65px] py-3.5 rounded-[1.5rem] font-black text-[10px] uppercase transition-all active-mode-islam">☪️ ISLAM</button>
-                    <button onclick="setMode('NonIslam')" id="modeKristen" class="flex-1 min-w-[65px] py-3.5 rounded-[1.5rem] font-black text-[10px] uppercase transition-all">✝️ NON ISLAM</button>
-                    <button onclick="setMode('Haid')" id="modeHaid" class="flex-1 min-w-[65px] py-3.5 rounded-[1.5rem] font-black text-[10px] uppercase transition-all">🩸 HAID</button>
-                    <button onclick="setMode('Keputrian')" id="modeKeputrian" class="flex-1 min-w-[65px] py-3.5 rounded-[1.5rem] font-black text-[10px] uppercase transition-all">🌸 KEPUTRIAN</button>
-                </div>
-
-                <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                    <div class="space-y-6">
-                        <div class="flex gap-3">
-                            <button onclick="startCam()" id="btnStart" class="flex-1 py-4 bg-gradient-to-r from-cyan-600 to-cyan-500 font-black rounded-2xl text-xs uppercase hover:shadow-lg transition">📷 AKTIFKAN KAMERA</button>
-                            <button onclick="flipCam()" id="btnFlip" class="hidden py-4 px-6 bg-gradient-to-r from-indigo-600 to-indigo-500 font-black rounded-2xl text-xs uppercase transition">🔄</button>
-                            <button onclick="stopCam()" id="btnStop" class="hidden flex-1 py-4 bg-gradient-to-r from-red-600 to-red-500 font-black rounded-2xl text-xs uppercase transition">⏹️ MATIKAN</button>
-                        </div>
-
-                        <div class="glass-premium p-4 lg:p-6 rounded-[2.5rem] relative min-h-[350px]">
-                            <div id="reader"></div>
-                            <div id="feedback" class="absolute inset-0 flex items-center justify-center rounded-[2.5rem] hidden bg-black/80 backdrop-blur z-10">
-                                <div id="fbBox" class="text-center p-10 rounded-[3rem] shadow-2xl">
-                                    <div id="fbIcon" class="text-6xl mb-3"></div>
-                                    <p id="fbNama" class="text-2xl font-black uppercase mb-1"></p>
-                                    <p id="fbMsg" class="text-xs opacity-80 font-bold uppercase"></p>
-                                </div>
-                            </div>
-                        </div>
-
-                        <div class="glass-premium p-6 rounded-[2.5rem] border-orange-500/30">
-                            <h2 class="text-sm font-black mb-4 text-orange-400 uppercase flex items-center gap-2">📝 MANUAL / ALPA</h2>
-                            <div class="grid grid-cols-2 gap-3 mb-3">
-                                <select id="manualKelas" class="p-3 rounded-xl text-sm"></select>
-                                <select id="manualAbsen" class="p-3 rounded-xl text-sm"><option value="">No. Absen</option></select>
-                            </div>
-                            <input type="text" id="manualNama" placeholder="Nama..." readonly class="w-full p-3 rounded-xl text-sm opacity-50 mb-4 cursor-not-allowed">
-                            <div class="flex gap-2">
-                                <button onclick="absenManualTidakHadir()" class="flex-1 py-3 bg-red-600/80 font-black rounded-xl text-[10px] uppercase transition hover:bg-red-600">❌ ALPAKAN</button>
-                                <button onclick="alpakanSemuaKosong()" class="flex-1 py-3 bg-orange-600/80 font-black rounded-xl text-[10px] uppercase transition hover:bg-orange-600">🚨 ALPAKAN SISANYA</button>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="glass-premium p-6 lg:p-8 rounded-[2.5rem] flex flex-col h-full max-h-[85vh]">
-                        <div class="flex justify-between items-center mb-6">
-                            <div class="flex items-center gap-2">
-                                <div class="w-2.5 h-2.5 bg-green-400 rounded-full animate-pulse shadow-[0_0_10px_#4ade80]"></div>
-                                <span class="text-green-400 font-bold text-xs tracking-widest">LIVE</span>
-                            </div>
-                            <span class="text-cyan-400 font-black text-xl" id="totalHadir">0 HADIR</span>
-                        </div>
-
-                        <div class="grid grid-cols-2 gap-3 mb-4">
-                            <select id="pilihBulan" onchange="initTanggalHarian(this.value)" class="p-3 rounded-xl text-xs"></select>
-                            <select id="tanggalHarian" onchange="gantiTanggalUI()" class="p-3 rounded-xl text-xs"></select>
-                        </div>
-                        
-                        <button onclick="downloadHarian()" class="w-full py-4 bg-gradient-to-r from-blue-600 to-indigo-600 font-black rounded-2xl text-[10px] uppercase hover:shadow-lg mb-6 transition">📥 DOWNLOAD EXCEL EXPORT</button>
-
-                        <div class="flex-1 overflow-hidden flex flex-col">
-                            <h3 class="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-3">Aktivitas Hari Ini</h3>
-                            <div id="logPresensi" class="space-y-3 overflow-y-auto flex-1 pr-2"></div>
-                        </div>
-                    </div>
-                </div>
-            </section>
-
             </div>
-    </main>
+            <button onclick="startLoginScan()" id="btnLoginScan" class="w-full py-4 bg-cyan-600 text-white font-bold rounded-xl active:scale-95 transition">📸 MULAI SCAN</button>
+            <button onclick="stopLoginScan()" id="btnLoginStop" class="hidden w-full py-4 bg-red-500/20 text-red-400 font-bold rounded-xl active:scale-95 transition">⏹️ BATAL</button>
+            <p id="loginError" class="hidden text-red-400 text-xs font-bold mt-3">❌ QR Invalid</p>
+        </div>
+    </div>
+
+    <section id="screen-scan" class="screen active space-y-4">
+        
+        <div class="flex gap-2">
+            <button onclick="setMode('Islam')" id="modeIslam" class="mode-btn active-mode-islam">☪️ Islam</button>
+            <button onclick="setMode('NonIslam')" id="modeKristen" class="mode-btn">✝️ Non</button>
+            <button onclick="setMode('Haid')" id="modeHaid" class="mode-btn">🩸 Haid</button>
+            <button onclick="setMode('Keputrian')" id="modeKeputrian" class="mode-btn">🌸 Putri</button>
+        </div>
+
+        <div class="glass-card p-3 relative flex flex-col items-center border-cyan-500/20">
+            <div class="w-full relative aspect-[4/5] bg-black rounded-2xl overflow-hidden mb-3">
+                <div id="reader" class="w-full h-full"></div>
+                <div id="feedback" class="absolute inset-0 flex items-center justify-center hidden bg-black/80 backdrop-blur-sm z-10">
+                    <div id="fbBox" class="text-center p-6 w-11/12 rounded-[2rem]">
+                        <div id="fbIcon" class="text-5xl mb-2"></div>
+                        <p id="fbNama" class="text-lg font-black uppercase text-white leading-tight mb-1"></p>
+                        <p id="fbMsg" class="text-[10px] text-white/80 font-bold uppercase"></p>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="flex gap-2 w-full">
+                <button onclick="startCam()" id="btnStart" class="flex-1 py-3.5 bg-cyan-600 text-white font-bold rounded-xl text-xs">📸 AKTIFKAN KAMERA</button>
+                <button onclick="flipCam()" id="btnFlip" class="hidden px-4 bg-slate-700 text-white font-bold rounded-xl">🔄</button>
+                <button onclick="stopCam()" id="btnStop" class="hidden flex-1 py-3.5 bg-red-500/80 text-white font-bold rounded-xl text-xs">⏹️ STOP</button>
+            </div>
+        </div>
+
+        <div class="glass-card p-4">
+            <div class="flex justify-between items-center mb-3">
+                <div class="flex items-center gap-2">
+                    <div class="w-2 h-2 bg-green-400 rounded-full animate-pulse"></div>
+                    <span class="text-xs font-bold text-gray-300">Live Log</span>
+                </div>
+                <span class="text-cyan-400 font-black" id="totalHadir">0 Hadir</span>
+            </div>
+            <div id="logPresensi" class="max-h-[150px] overflow-y-auto space-y-2 pr-1"></div>
+        </div>
+
+        <div class="glass-card p-4 border-red-500/20">
+            <h3 class="text-[10px] font-bold text-red-400 uppercase mb-3">🚨 Manual & Alpa</h3>
+            <div class="flex gap-2 mb-2">
+                <select id="manualKelas" class="text-xs py-2"></select>
+                <select id="manualAbsen" class="text-xs py-2"><option value="">No. Absen</option></select>
+            </div>
+            <input type="text" id="manualNama" placeholder="Nama otomatis..." readonly class="text-xs py-2 mb-3 opacity-50">
+            <div class="flex gap-2">
+                <button onclick="absenManualTidakHadir()" class="flex-1 py-3 bg-red-600 rounded-xl text-[10px] font-bold">ALPAKAN 1</button>
+                <button onclick="alpakanSemuaKosong()" class="flex-1 py-3 bg-orange-600 rounded-xl text-[10px] font-bold">ALPAKAN SISA</button>
+            </div>
+        </div>
+    </section>
+
+    <section id="screen-dashboard" class="screen space-y-4">
+        
+        <div class="flex gap-3 overflow-x-auto pb-2 snap-x">
+            <div class="glass-card p-4 min-w-[140px] snap-center">
+                <p class="text-[9px] text-gray-400 uppercase font-bold mb-1">Total Siswa</p>
+                <p class="text-2xl font-black text-cyan-400" id="dashTotalSiswa">0</p>
+            </div>
+            <div class="glass-card p-4 min-w-[140px] snap-center">
+                <p class="text-[9px] text-gray-400 uppercase font-bold mb-1">Hadir Hari Ini</p>
+                <p class="text-2xl font-black text-green-400" id="dashHadirHari">0</p>
+            </div>
+            <div class="glass-card p-4 min-w-[140px] snap-center">
+                <p class="text-[9px] text-gray-400 uppercase font-bold mb-1">Persentase</p>
+                <p class="text-2xl font-black text-purple-400" id="statPersen">0%</p>
+            </div>
+        </div>
+
+        <div class="glass-card p-4 border-blue-500/20">
+            <h3 class="text-[10px] font-bold text-blue-400 uppercase mb-3">📥 Export Excel</h3>
+            <div class="space-y-2 mb-3">
+                <select id="pilihBulan" onchange="initTanggalHarian(this.value)" class="text-xs py-2"></select>
+                <select id="tanggalHarian" onchange="gantiTanggalUI()" class="text-xs py-2"></select>
+            </div>
+            <button onclick="downloadHarian()" class="w-full py-3 bg-blue-600 text-white font-bold rounded-xl text-xs">DOWNLOAD DATA</button>
+        </div>
+
+        <div class="glass-card p-4 flex-1 flex flex-col min-h-[300px]">
+            <h3 class="text-[10px] font-bold text-cyan-400 uppercase mb-3">📋 Direktori Siswa</h3>
+            <div class="flex gap-2 mb-3">
+                <input type="text" id="searchSiswa" placeholder="Cari..." oninput="filterLaporan()" class="text-xs py-2 flex-1">
+                <select id="filterKelas" onchange="filterLaporan()" class="text-xs py-2 w-24">
+                    <option value="">All</option>
+                </select>
+            </div>
+            <div id="listLaporan" class="flex-1 overflow-y-auto space-y-2 pr-1"></div>
+        </div>
+    </section>
+
+    <section id="screen-admin" class="screen space-y-4">
+        
+        <div class="glass-card p-4 border-emerald-500/20">
+            <h3 class="text-[10px] font-bold text-emerald-400 uppercase mb-3">📥 Excel Import (Bulk QR)</h3>
+            <p class="text-[9px] text-gray-400 mb-3 leading-relaxed">Upload file excel multi-sheet untuk generate QR satu sekolah sekaligus (Zip).</p>
+            <input type="file" id="fileExcel" accept=".xlsx,.xls" class="text-xs mb-3 bg-slate-800/50 p-2">
+            <button onclick="importExcel()" class="w-full py-3 bg-emerald-600 rounded-xl text-xs font-bold">PROSES & DOWNLOAD ZIP</button>
+            <div id="importProgress" class="hidden mt-3 text-center text-xs text-emerald-400 font-bold"></div>
+            <div id="importResult" class="hidden mt-3"></div>
+        </div>
+
+        <div class="glass-card p-4">
+            <h3 class="text-[10px] font-bold text-cyan-400 uppercase mb-3">📝 Tambah Siswa (Satuan)</h3>
+            <div class="space-y-2">
+                <input type="text" id="nama" placeholder="Nama Lengkap" class="text-xs py-2">
+                <div class="flex gap-2">
+                    <select id="kelas" class="text-xs py-2"></select>
+                    <input type="number" id="absen" placeholder="No. Absen" class="text-xs py-2">
+                </div>
+                <div class="flex gap-2">
+                    <select id="jk" class="text-xs py-2"><option value="L">Laki-Laki</option><option value="P">Perempuan</option></select>
+                    <select id="agama" class="text-xs py-2">
+                        <option value="Islam">Islam</option><option value="Kristen">Kristen</option>
+                        <option value="Katolik">Katolik</option><option value="Hindu">Hindu</option>
+                        <option value="Buddha">Buddha</option><option value="Konghucu">Konghucu</option>
+                    </select>
+                </div>
+                <button onclick="buatQR()" class="w-full py-3 bg-cyan-600 rounded-xl text-xs font-bold mt-1">BUAT QR</button>
+            </div>
+            <div id="qrArea" class="mt-4 flex flex-col items-center"></div>
+        </div>
+
+        <div class="glass-card p-4 border-red-500/20">
+            <h3 class="text-[10px] font-bold text-red-400 uppercase mb-2">⚠️ Reset Data</h3>
+            <p class="text-[9px] text-gray-400 mb-3">Kembalikan total hadir semua siswa ke 0 (awal semester).</p>
+            <button onclick="resetTotalHadir()" class="w-full py-3 bg-red-500/20 text-red-400 border border-red-500/30 rounded-xl text-xs font-bold">RESET TOTAL HADIR</button>
+        </div>
+    </section>
+
+    <section id="screen-naikkelas" class="screen space-y-4">
+        <div class="glass-card p-4">
+            <h3 class="text-[10px] font-bold text-yellow-400 uppercase mb-2">🎓 Sistem Naik Kelas</h3>
+            <p class="text-[9px] text-gray-400 mb-4">Pilih kelas tujuan, scan QR lama, sistem otomatis pindahin database & urut abjad.</p>
+            
+            <select id="kelasTujuan" class="text-sm font-bold text-cyan-400 mb-4"></select>
+            
+            <div class="flex gap-2 mb-4">
+                <button onclick="startScanNaikKelas()" id="btnStartNaik" class="flex-1 py-3 bg-yellow-600 font-bold rounded-xl text-xs">📸 MULAI SCAN</button>
+                <button onclick="stopScanNaikKelas()" id="btnStopNaik" class="hidden flex-1 py-3 bg-red-500 font-bold rounded-xl text-xs">⏹️ STOP</button>
+            </div>
+
+            <div class="bg-black rounded-xl relative aspect-square mb-4 overflow-hidden">
+                <div id="readerNaik" class="w-full h-full"></div>
+                <div id="feedbackNaik" class="absolute inset-0 flex items-center justify-center hidden bg-black/80 backdrop-blur-sm z-10">
+                    <div id="fbNaikBox" class="text-center p-6 rounded-2xl w-11/12">
+                        <div id="fbNaikIcon" class="text-4xl mb-2"></div>
+                        <p id="fbNaikNama" class="text-sm font-black text-white uppercase"></p>
+                        <p id="fbNaikMsg" class="text-[10px] text-white/80 mt-1"></p>
+                    </div>
+                </div>
+            </div>
+
+            <h3 class="text-[10px] font-bold text-gray-400 uppercase mb-2">Antrean Dipindah:</h3>
+            <div id="listScanNaik" class="max-h-[150px] overflow-y-auto space-y-2 mb-4 pr-1"></div>
+            
+            <div class="flex gap-2">
+                <button onclick="resetNaikKelas()" class="w-1/3 py-3 bg-slate-700 font-bold rounded-xl text-xs">RESET</button>
+                <button onclick="simpanNaikKelas()" class="flex-1 py-3 bg-cyan-600 font-bold rounded-xl text-xs">SIMPAN DATA</button>
+            </div>
+        </div>
+    </section>
+
+    <nav class="bottom-nav">
+        <div class="nav-item" id="nav-dashboard" onclick="switchTab('dashboard')">
+            <span class="nav-icon">📊</span>
+            <span>Data</span>
+        </div>
+        <div class="nav-item active" id="nav-scan" onclick="switchTab('scan')" style="color: #06b6d4;">
+            <span class="nav-icon">📸</span>
+            <span>Scan</span>
+        </div>
+        <div class="nav-item" id="nav-admin" onclick="switchTab('admin')">
+            <span class="nav-icon">⚙️</span>
+            <span>Admin</span>
+        </div>
+        <div class="nav-item" id="nav-naikkelas" onclick="switchTab('naikkelas')">
+            <span class="nav-icon">🎓</span>
+            <span>Naik</span>
+        </div>
+    </nav>
+
 </div>
 
-<div class="md:hidden fixed bottom-4 left-4 right-4 glass-premium rounded-[2rem] flex justify-around p-2 z-50">
-    <button onclick="switchTab('dashboard')" id="btnDashboardMob" class="flex-1 py-3 rounded-xl font-bold transition-all text-[10px] text-gray-400">📊 LAPORAN</button>
-    <button onclick="switchTab('scan')" id="btnScanMob" class="flex-1 py-3 rounded-xl font-bold transition-all text-[10px] text-cyan-400 active-tab">📷 SCAN</button>
-    <button onclick="switchTab('admin')" id="btnAdminMob" class="flex-1 py-3 rounded-xl font-bold transition-all text-[10px] text-gray-400">👑 ADMIN</button>
-    <button onclick="switchTab('naikkelas')" id="btnNaikKelasMob" class="flex-1 py-3 rounded-xl font-bold transition-all text-[10px] text-gray-400">🎓 NAIK</button>
-</div>
-    
 <script>
     const firebaseConfig = {
         apiKey: "AIzaSyBQwKb5BgWywX3bx3gKjNJsugJ1sUBr4X4",
@@ -314,7 +386,7 @@
     function showToast(message, type = 'success') {
         const toast = document.createElement('div');
         toast.className = `toast-notif ${type === 'success' ? 'text-green-400 border-green-500/30' : 'text-red-400 border-red-500/30'}`;
-        toast.innerHTML = `<div class="flex items-center gap-3"><span>${type === 'success' ? '✅' : '❌'}</span><span class="text-sm font-bold">${message}</span></div>`;
+        toast.innerHTML = `<div class="flex items-center gap-3"><span>${type === 'success' ? '✅' : '❌'}</span><span class="text-xs font-bold">${message}</span></div>`;
         document.body.appendChild(toast);
         setTimeout(() => toast.remove(), 3000);
     }
@@ -410,6 +482,7 @@
             isLogin = true;
             document.getElementById('modalLogin').classList.add('hidden');
             document.getElementById('btnLogout').classList.remove('hidden');
+            switchTab('scan');
             listenPresensi();
             updateDashboard();
         }
@@ -418,7 +491,7 @@
     window.startLoginScan = function() {
         document.getElementById('btnLoginScan').classList.add('hidden');
         document.getElementById('btnLoginStop').classList.remove('hidden');
-        document.getElementById('loginScanStatus').innerText = '📷 Arahkan QR login ke kamera...';
+        document.getElementById('loginScanStatus').innerText = '📷 Arahkan QR...';
         document.getElementById('loginError').classList.add('hidden');
         scannerLogin = new Html5Qrcode("readerLogin");
         scannerLogin.start(
@@ -448,7 +521,7 @@
         try { if(scannerLogin?.isScanning) scannerLogin.stop(); } catch(e) {}
         document.getElementById('btnLoginScan').classList.remove('hidden');
         document.getElementById('btnLoginStop').classList.add('hidden');
-        document.getElementById('loginScanStatus').innerText = '📷 Tekan tombol untuk scan';
+        document.getElementById('loginScanStatus').innerText = '[ Area Kamera ]';
     };
 
     function doLogin() {
@@ -469,30 +542,34 @@
         location.reload();
     };
 
+    // FUNGSI SWITCH TAB UPDATE KHUSUS UNTUK HP
     window.switchTab = function(tab) {
         if((tab === 'scan' || tab === 'naikkelas') && !isLogin) {
             document.getElementById('modalLogin').classList.remove('hidden');
             return;
         }
-        
-        // Hide/Show Section
-        ['admin', 'scan', 'naikkelas', 'dashboard'].forEach(t => {
-            const section = document.getElementById('tab' + t.charAt(0).toUpperCase() + t.slice(1));
-            if(section) section.classList.toggle('hidden', tab !== t);
-            
-            // Handle Sidebar Desktop
-            const btnSidebar = document.getElementById('btn' + t.charAt(0).toUpperCase() + t.slice(1));
-            if(btnSidebar) btnSidebar.classList.toggle('active-tab', tab === t);
-            
-            // Handle Nav Mobile
-            const btnMobile = document.getElementById('btn' + t.charAt(0).toUpperCase() + t.slice(1) + 'Mob');
-            if(btnMobile) {
-                btnMobile.classList.toggle('active-tab', tab === t);
-                btnMobile.classList.toggle('text-cyan-400', tab === t);
-                btnMobile.classList.toggle('text-gray-400', tab !== t);
-            }
-        });
 
+        // 1. Sembunyiin semua layar (screen)
+        document.querySelectorAll('.screen').forEach(el => el.classList.remove('active'));
+        
+        // 2. Munculin target layar (screen)
+        const targetScreen = document.getElementById('screen-' + tab);
+        if (targetScreen) targetScreen.classList.add('active');
+
+        // 3. Update style di Bottom Nav
+        document.querySelectorAll('.nav-item').forEach(el => {
+            el.classList.remove('active');
+            el.style.color = '#64748b'; // Balikin warna non-aktif
+        });
+        
+        // Kasih warna aktif buat nav yang dipencet
+        const activeNav = document.getElementById('nav-' + tab);
+        if (activeNav) {
+            activeNav.classList.add('active');
+            activeNav.style.color = '#06b6d4'; // Warna Cyan neon
+        }
+
+        // 4. Trigger logic bawaan lu
         if(tab !== 'scan') stopCam();
         if(tab !== 'naikkelas') stopScanNaikKelas();
         if(tab === 'dashboard') updateDashboard();
@@ -530,7 +607,9 @@
         }
 
         document.getElementById('dashTotalSiswa').innerText = totalSiswa;
-        document.getElementById('statSiswa').innerText = totalSiswa;
+        // update variable lain yg ga dipake di ui baru (biar js ga error klo elementnya dicari)
+        const elStatSiswa = document.getElementById('statSiswa');
+        if(elStatSiswa) elStatSiswa.innerText = totalSiswa;
         filterLaporan();
     }
 
@@ -551,27 +630,27 @@
 
         const container = document.getElementById('listLaporan');
         if(filtered.length === 0) {
-            container.innerHTML = '<p class="text-center text-gray-400 text-xs py-6">Tidak ada data</p>';
+            container.innerHTML = '<p class="text-center text-gray-500 text-[10px] py-6">Tidak ada data</p>';
             return;
         }
 
         container.innerHTML = filtered.map(s => `
-            <div class="bg-gray-800/60 rounded-2xl p-4">
-                <div class="flex justify-between items-start mb-3">
+            <div class="bg-gray-800/60 rounded-xl p-3 border border-white/5">
+                <div class="flex justify-between items-start mb-2">
                     <div>
-                        <b class="text-white text-sm uppercase">${s.nama || '-'}</b>
-                        <div class="text-[10px] text-cyan-400 font-bold mt-0.5">${s.kelas} • Absen ${s.absen}</div>
+                        <b class="text-white text-xs uppercase">${s.nama || '-'}</b>
+                        <div class="text-[9px] text-cyan-400 font-bold">${s.kelas} • Absen ${s.absen}</div>
                     </div>
-                    <div class="bg-cyan-500/20 px-3 py-1.5 rounded-xl text-cyan-400 font-black text-sm">${s.totalHadir || 0}x</div>
+                    <div class="bg-cyan-500/20 px-2 py-1 rounded-lg text-cyan-400 font-black text-[10px]">${s.totalHadir || 0}x</div>
                 </div>
-                <div class="grid grid-cols-2 gap-2">
-                    <div class="bg-gray-900/60 rounded-xl p-2">
-                        <div class="text-[9px] text-gray-400 uppercase mb-0.5">Jenis Kelamin</div>
-                        <div class="text-white text-xs font-bold">${s.jk === 'L' ? 'Laki-laki' : 'Perempuan'}</div>
+                <div class="flex gap-2">
+                    <div class="bg-black/30 rounded-lg p-1.5 flex-1 text-center">
+                        <div class="text-[8px] text-gray-500 uppercase">Kelamin</div>
+                        <div class="text-white text-[10px] font-bold">${s.jk === 'L' ? 'L' : 'P'}</div>
                     </div>
-                    <div class="bg-gray-900/60 rounded-xl p-2">
-                        <div class="text-[9px] text-gray-400 uppercase mb-0.5">Agama</div>
-                        <div class="text-white text-xs font-bold">${s.agama || '-'}</div>
+                    <div class="bg-black/30 rounded-lg p-1.5 flex-1 text-center">
+                        <div class="text-[8px] text-gray-500 uppercase">Agama</div>
+                        <div class="text-white text-[10px] font-bold">${s.agama || '-'}</div>
                     </div>
                 </div>
             </div>
@@ -601,8 +680,9 @@
             const totalHadir = entries.filter(e => e.status !== 'TIDAK HADIR').length;
 
             document.getElementById('totalHadir').innerText = totalHadir + ' HADIR';
-            document.getElementById('statHadir').innerText = totalHadir;
-            document.getElementById('dashHadirHari').innerText = totalHadir;
+            
+            const elDashHadir = document.getElementById('dashHadirHari');
+            if(elDashHadir) elDashHadir.innerText = totalHadir;
 
             const siswaSnap = await db.ref('siswa').once('value');
             let totalSiswa = 0;
@@ -611,10 +691,11 @@
             }
 
             const persen = totalSiswa > 0 ? Math.round((totalHadir / totalSiswa) * 100) : 0;
-            document.getElementById('statPersen').innerText = persen + '%';
+            const elStatPersen = document.getElementById('statPersen');
+            if(elStatPersen) elStatPersen.innerText = persen + '%';
 
             if(entries.length === 0) {
-                document.getElementById('logPresensi').innerHTML = '<div class="text-center text-gray-400 py-10">✨ Belum ada presensi hari ini</div>';
+                document.getElementById('logPresensi').innerHTML = '<div class="text-center text-gray-500 text-[10px] py-4">Belum ada presensi</div>';
                 return;
             }
 
@@ -624,12 +705,12 @@
                 html += `<div class="log-item ${e.status === 'TIDAK HADIR' ? 'border-l-red-500' : ''}">
                     <div class="flex justify-between items-center">
                         <div>
-                            <b class="text-white uppercase text-sm">${e.nama}</b>
-                            <div class="text-[9px] text-gray-300 mt-1">
+                            <b class="text-white uppercase text-[10px]">${e.nama}</b>
+                            <div class="text-[8px] text-gray-400 mt-0.5">
                                 ${e.kelas} • ${e.status}${e.status === 'TIDAK HADIR' ? '' : ' • ' + e.jam}
                             </div>
                         </div>
-                        <div class="px-3 py-2 rounded-xl font-black text-xs ${e.status === 'TIDAK HADIR' ? 'bg-red-500/20 text-red-400' : 'bg-gradient-to-r from-cyan-500/20 to-blue-500/20 text-cyan-400'}">
+                        <div class="px-2 py-1 rounded-md font-black text-[9px] ${e.status === 'TIDAK HADIR' ? 'bg-red-500/20 text-red-400' : 'bg-cyan-500/20 text-cyan-400'}">
                             ${e.status === 'TIDAK HADIR' ? 'ALPA' : '#' + e.totalHadir}
                         </div>
                     </div>
@@ -651,14 +732,14 @@
             nama: nama.toUpperCase(), kelas, absen, jk, agama, totalHadir: 0, terdaftar: Date.now()
         });
         const area = document.getElementById('qrArea');
-        area.innerHTML = `<div class="glass-premium p-8 rounded-[2.5rem] flex flex-col items-center mt-6 transform transition hover:scale-[1.02]">
-            <div id="qrImg" class="mb-4 bg-white p-4 rounded-2xl"></div>
-            <b class="text-white uppercase text-xl">${nama}</b>
-            <p class="text-cyan-400 font-bold uppercase text-[9px] mt-2">${kelas} • ${jk === 'L' ? 'LAKI' : 'PEREMPUAN'} • ${agama} • ABSEN ${absen}</p>
+        area.innerHTML = `<div class="glass-card p-4 rounded-xl flex flex-col items-center mt-2 w-full max-w-[200px]">
+            <div id="qrImg" class="mb-3 bg-white p-2 rounded-xl"></div>
+            <b class="text-white uppercase text-xs text-center">${nama}</b>
+            <p class="text-cyan-400 font-bold uppercase text-[8px] mt-1 text-center">${kelas} • ${jk === 'L' ? 'LAKI' : 'PEREMPUAN'} • ${agama}</p>
         </div>`;
         new QRCode(document.getElementById("qrImg"), {
             text: `${nama.toUpperCase()}|${kelas}|${absen}|${jk}|${agama}`,
-            width: 200, height: 200
+            width: 150, height: 150
         });
         document.getElementById('loading').classList.add('hidden');
         showToast('QR Code berhasil dibuat!', 'success');
@@ -682,8 +763,8 @@
                 cameraConfig,
                 {
                     fps: 5,
-                    qrbox: { width: 280, height: 280 },
-                    aspectRatio: 1.777778,
+                    qrbox: { width: 250, height: 250 },
+                    aspectRatio: 1.0, // Dibikin kotak aja biar pas di layar hape
                     disableFlip: false
                 },
                 (text) => {
@@ -693,7 +774,7 @@
                 () => {}
             );
 
-            showToast(isMobile ? '📷 Kamera HP aktif' : '💻 Kamera laptop aktif', 'success');
+            showToast(isMobile ? '📷 Kamera HP aktif' : '💻 Kamera aktif', 'success');
         } catch (e) {
             showToast('Kamera gagal dibuka: ' + e, 'error');
             document.getElementById('btnStart').classList.remove('hidden');
@@ -713,8 +794,8 @@
                 { facingMode },
                 {
                     fps: 5,
-                    qrbox: { width: 280, height: 280 },
-                    aspectRatio: 1.777778,
+                    qrbox: { width: 250, height: 250 },
+                    aspectRatio: 1.0,
                     disableFlip: false
                 },
                 (text) => {
@@ -723,9 +804,9 @@
                 },
                 () => {}
             );
-            showToast(facingMode === 'environment' ? '📷 Kamera belakang' : '💻/🤳 Kamera depan', 'success');
+            showToast(facingMode === 'environment' ? '📷 Belakang' : '🤳 Depan', 'success');
         } catch (e) {
-            showToast('Gagal ganti kamera: ' + e, 'error');
+            showToast('Gagal ganti kamera', 'error');
         }
     };
 
@@ -790,22 +871,22 @@
             let { nama, kelas, absen, jk, agama } = parseQRPresensi(text);
             const siswaRef = db.ref('siswa/' + kelas + '/' + absen);
             const siswaSnap = await siswaRef.once('value');
-            if (!siswaSnap.exists()) throw 'Siswa tidak ditemukan di database';
+            if (!siswaSnap.exists()) throw 'Siswa tidak ditemukan';
             let dataSiswa = siswaSnap.val() || {};
             const namaDB = dataSiswa.nama || '';
-            if (namaDB && normalisasiNamaQR(namaDB) !== normalisasiNamaQR(nama)) throw 'Data QR tidak cocok dengan database';
+            if (namaDB && normalisasiNamaQR(namaDB) !== normalisasiNamaQR(nama)) throw 'Data QR tdk cocok db';
             
             nama = dataSiswa.nama || nama;
             jk = (dataSiswa.jk || jk || 'L').toUpperCase();
             agama = dataSiswa.agama || agama || 'Islam';
 
             if(mode === 'Haid' || mode === 'Keputrian') {
-                if(jk !== 'P') throw `Mode ${mode} hanya untuk siswi perempuan!`;
+                if(jk !== 'P') throw `Mode ${mode} hanya untuk siswi!`;
             } else {
                 const agamaMode = agama === 'Islam' ? 'Islam' : 'NonIslam';
                 if(agamaMode !== mode) {
-                    if(agama === 'Islam') throw `Siswa ini Islam, gunakan mode Islam`;
-                    else throw `Siswa ini ${agama}, gunakan mode Non Islam`;
+                    if(agama === 'Islam') throw `Siswa ini Islam, ganti mode Islam`;
+                    else throw `Siswa ini ${agama}, ganti mode Non Islam`;
                 }
             }
 
@@ -824,12 +905,12 @@
             await presensiRef.set({ nama: dataSiswa.nama, kelas: dataSiswa.kelas, absen: dataSiswa.absen, jk: dataSiswa.jk, agama: dataSiswa.agama, jam, status, totalHadir, timestamp: Date.now() });
             
             let feedbackMsg = mode === 'Haid' ? 'Tercatat Haid' : mode === 'Keputrian' ? 'Hadir Keputrian' : `Hadir ke-${totalHadir}`;
-            feedback('✅', nama, feedbackMsg, 'bg-gradient-to-r from-green-600 to-green-500');
+            feedback('✅', nama, feedbackMsg, 'bg-green-600');
             showToast(`${nama} - ${feedbackMsg}`, 'success');
             
             playBeep('success'); updateDashboard();
         } catch(e) {
-            feedback('❌', 'GAGAL', e.toString(), 'bg-gradient-to-r from-red-600 to-red-500'); showToast(e.toString(), 'error'); playBeep('error');
+            feedback('❌', 'GAGAL', e.toString(), 'bg-red-600'); playBeep('error');
         }
         document.getElementById('loading').classList.add('hidden');
         setTimeout(() => { try { scanner?.resume(); } catch(e) {} }, 2000);
@@ -840,7 +921,7 @@
         document.getElementById('fbIcon').innerText = icon;
         document.getElementById('fbNama').innerText = name;
         document.getElementById('fbMsg').innerText = msg;
-        document.getElementById('fbBox').className = `text-center text-white p-10 rounded-[3rem] shadow-2xl ${bg}`;
+        document.getElementById('fbBox').className = `text-center p-6 w-11/12 rounded-[2rem] shadow-2xl ${bg}`;
         fb.classList.remove('hidden');
         setTimeout(() => fb.classList.add('hidden'), 2000);
     }
@@ -850,7 +931,7 @@
         const manualAbsen = document.getElementById('manualAbsen');
         const manualNama = document.getElementById('manualNama');
 
-        manualAbsen.innerHTML = `<option value="">Pilih No. Absen</option>`;
+        manualAbsen.innerHTML = `<option value="">No. Absen</option>`;
         manualNama.value = '';
 
         if (!kelas) return;
@@ -885,7 +966,7 @@
         const absen = document.getElementById('manualAbsen').value;
 
         if (!kelas || !absen) {
-            showToast('Pilih kelas dan no. absen dulu!', 'error');
+            showToast('Pilih kelas dan no. absen!', 'error');
             playBeep('error');
             return;
         }
@@ -897,7 +978,7 @@
             const siswaSnap = await siswaRef.once('value');
 
             if (!siswaSnap.exists()) {
-                throw new Error('Data siswa tidak ditemukan');
+                throw new Error('Siswa tak ditemukan');
             }
 
             const siswa = siswaSnap.val();
@@ -906,23 +987,17 @@
             const presensiSnap = await presensiRef.once('value');
 
             if (presensiSnap.exists()) {
-                throw new Error('Siswa ini sudah punya data presensi hari ini');
+                throw new Error('Sudah absen hari ini');
             }
 
             await presensiRef.set({
-                nama: siswa.nama,
-                kelas: siswa.kelas || kelas,
-                absen: siswa.absen || absen,
-                jk: siswa.jk || '',
-                agama: siswa.agama || '',
-                jam: 'TIDAK HADIR',
-                status: 'TIDAK HADIR',
-                totalHadir: siswa.totalHadir || 0,
-                timestamp: Date.now(),
-                manual: true
+                nama: siswa.nama, kelas: siswa.kelas || kelas, absen: siswa.absen || absen,
+                jk: siswa.jk || '', agama: siswa.agama || '', jam: 'TIDAK HADIR',
+                status: 'TIDAK HADIR', totalHadir: siswa.totalHadir || 0,
+                timestamp: Date.now(), manual: true
             });
 
-            showToast(`${siswa.nama} ditandai tidak hadir`, 'success');
+            showToast(`${siswa.nama} di-Alpa-kan`, 'success');
             playBeep('success');
             updateDashboard();
 
@@ -942,7 +1017,7 @@
 
     window.alpakanSemuaKosong = async function() {
         const tanggalTarget = getTanggalAlpaTarget();
-        const konfirmasi = confirm(`⚠️ Tandai semua siswa yang belum absen pada ${tanggalTarget} sebagai TIDAK HADIR/ALPA?\n\nYang sudah absen tidak akan diubah.`);
+        const konfirmasi = confirm(`⚠️ ALPAKAN semua yang belum absen tgl ${tanggalTarget}?`);
         if (!konfirmasi) return;
 
         document.getElementById('loading').classList.remove('hidden');
@@ -963,43 +1038,32 @@
                     if (presensiData[key]) continue;
 
                     updates[`presensi/${tanggalTarget}/${key}`] = {
-                        nama: siswa.nama || '-',
-                        kelas: siswa.kelas || kelas,
-                        absen: siswa.absen || absen,
-                        jk: siswa.jk || '',
-                        agama: siswa.agama || '',
-                        jam: 'TIDAK HADIR',
-                        status: 'TIDAK HADIR',
-                        totalHadir: siswa.totalHadir || 0,
-                        timestamp: Date.now(),
-                        manual: true,
-                        autoAlpa: true
+                        nama: siswa.nama || '-', kelas: siswa.kelas || kelas, absen: siswa.absen || absen,
+                        jk: siswa.jk || '', agama: siswa.agama || '', jam: 'TIDAK HADIR', status: 'TIDAK HADIR',
+                        totalHadir: siswa.totalHadir || 0, timestamp: Date.now(), manual: true, autoAlpa: true
                     };
                     totalAlpa++;
                 }
             }
 
             if (totalAlpa === 0) {
-                showToast('Tidak ada siswa kosong. Semua sudah punya presensi.', 'success');
+                showToast('Semua siswa sudah absen', 'success');
                 playBeep('success');
             } else {
                 await db.ref().update(updates);
-                showToast(`${totalAlpa} siswa kosong ditandai ALPA`, 'success');
+                showToast(`${totalAlpa} siswa di-Alpa-kan`, 'success');
                 playBeep('success');
                 updateDashboard();
             }
         } catch(e) {
-            showToast('Gagal alpakan semua: ' + (e.message || e), 'error');
+            showToast('Gagal alpakan: ' + (e.message || e), 'error');
             playBeep('error');
         }
 
         document.getElementById('loading').classList.add('hidden');
     };
 
-    function agamaIsIslam(agama) {
-        return String(agama || '').trim().toLowerCase() === 'islam';
-    }
-
+    function agamaIsIslam(agama) { return String(agama || '').trim().toLowerCase() === 'islam'; }
     function isHaidCell(hadirData, siswa) {
         if (!hadirData) return false;
         const status = String(hadirData.status || '').toUpperCase();
@@ -1008,24 +1072,19 @@
         const agama = hadirData.agama || siswa?.agama || '';
         return (status === 'HAID' || jam === 'HAID') && agamaIsIslam(agama) && jk === 'P';
     }
-
     function isKeputrianCell(hadirData) {
         if (!hadirData) return false;
         const status = String(hadirData.status || '').toUpperCase();
         const jam = String(hadirData.jam || '').toUpperCase();
         return status === 'KEPUTRIAN' || jam === 'KEPUTRIAN';
     }
-
     function isNonMuslimHadirCell(hadirData, siswa) {
         if (!hadirData) return false;
         const status = String(hadirData.status || '').toUpperCase();
         const agama = hadirData.agama || siswa?.agama || '';
         return status !== 'TIDAK HADIR' && status !== 'HAID' && status !== 'KEPUTRIAN' && !agamaIsIslam(agama);
     }
-
-    function isManualCell(hadirData) {
-        return !!hadirData && hadirData.manual === true;
-    }
+    function isManualCell(hadirData) { return !!hadirData && hadirData.manual === true; }
 
     function beriWarnaJam(ws, rowIndex, colIndex, warnaHex) {
         const cellRef = XLSX.utils.encode_cell({ r: rowIndex, c: colIndex });
@@ -1039,17 +1098,12 @@
 
     window.downloadHarian = async function() {
         const selectedKey = document.getElementById('tanggalHarian')?.value;
-        if (!selectedKey) {
-            showToast('Pilih tanggal dulu', 'error');
-            playBeep('error');
-            return;
-        }
+        if (!selectedKey) { showToast('Pilih tanggal dulu', 'error'); playBeep('error'); return; }
 
         if (selectedKey === '__ALL__') {
             await downloadRekapBulananTerpilih();
             return;
         }
-
         await downloadHarianTanggal(selectedKey);
     };
 
@@ -1058,9 +1112,7 @@
 
         try {
             const parts = selectedKey.split('-').map(Number);
-            if (parts.length !== 3 || parts.some(n => Number.isNaN(n))) {
-                throw new Error('Format tanggal tidak valid');
-            }
+            if (parts.length !== 3 || parts.some(n => Number.isNaN(n))) throw new Error('Format tanggal salah');
 
             const [d, m, y] = parts;
             const selectedDate = new Date(y, m - 1, d);
@@ -1106,8 +1158,7 @@
                     }
                 });
 
-                rows.push([]);
-                rows.push(['', `TOTAL HADIR: ${totalHadirKelas} orang`, '', '']);
+                rows.push([]); rows.push(['', `TOTAL HADIR: ${totalHadirKelas} orang`, '', '']);
 
                 const ws = XLSX.utils.aoa_to_sheet(rows);
                 warnaHarian.forEach(item => beriWarnaJam(ws, item.row, item.col, item.color));
@@ -1127,10 +1178,8 @@
             showToast('Download Harian selesai!', 'success');
             playBeep('success');
         } catch(error) {
-            showToast('Gagal download: ' + (error?.message || error), 'error');
-            playBeep('error');
+            showToast('Gagal download: ' + (error?.message || error), 'error'); playBeep('error');
         }
-
         document.getElementById('loading').classList.add('hidden');
     }
 
@@ -1238,13 +1287,10 @@
             link.download = `REKAP_BULANAN_${namaBulan}.zip`;
             link.click();
 
-            showToast('Download Semua/Rekap selesai!', 'success');
-            playBeep('success');
+            showToast('Download Semua/Rekap selesai!', 'success'); playBeep('success');
         } catch (error) {
-            showToast('Gagal download: ' + (error?.message || error), 'error');
-            playBeep('error');
+            showToast('Gagal download: ' + (error?.message || error), 'error'); playBeep('error');
         }
-
         document.getElementById('loading').classList.add('hidden');
     }
 
@@ -1259,13 +1305,12 @@
         const result = document.getElementById('importResult');
         progress.classList.remove('hidden');
         result.classList.add('hidden');
-        progress.innerText = 'Membaca file Excel...';
+        progress.innerText = 'Membaca file...';
 
         try {
             const file = fileInput.files[0];
             const arrayBuffer = await file.arrayBuffer();
             const wb = XLSX.read(arrayBuffer, { type: 'array' });
-
             const semuaSiswa = {};
 
             for(let sheetName of wb.SheetNames) {
@@ -1306,9 +1351,9 @@
             }
 
             const kelasList = Object.keys(semuaSiswa);
-            if(kelasList.length === 0) throw new Error('Tidak ada data kelas yang terbaca. Pastikan nama sheet sesuai (X.1, XI.2, dll)');
+            if(kelasList.length === 0) throw new Error('Cek penamaan sheet (misal X.1 / XI.1)');
 
-            progress.innerText = `Ditemukan ${kelasList.length} kelas. Menyimpan ke Firebase & generate QR...`;
+            progress.innerText = `Membuat QR...`;
 
             const zip = new JSZip();
             let totalSiswa = 0;
@@ -1319,28 +1364,21 @@
 
                 for(let s of siswas) {
                     await db.ref('siswa/' + kelas + '/' + s.no).set({
-                        nama: s.nama, kelas, absen: s.no, jk: s.jk, agama: s.agama,
-                        totalHadir: 0, terdaftar: Date.now()
+                        nama: s.nama, kelas, absen: s.no, jk: s.jk, agama: s.agama, totalHadir: 0, terdaftar: Date.now()
                     });
 
                     const qrText = `${s.nama}|${kelas}|${s.no}|${s.jk}|${s.agama}`;
                     const canvas = document.createElement('canvas');
-                    canvas.width = 300;
-                    canvas.height = 350;
+                    canvas.width = 300; canvas.height = 350;
                     const ctx = canvas.getContext('2d');
-                    ctx.fillStyle = '#ffffff';
-                    ctx.fillRect(0, 0, 300, 350);
+                    ctx.fillStyle = '#ffffff'; ctx.fillRect(0, 0, 300, 350);
 
                     const tempDiv = document.createElement('div');
-                    tempDiv.style.position = 'absolute';
-                    tempDiv.style.left = '-9999px';
+                    tempDiv.style.position = 'absolute'; tempDiv.style.left = '-9999px';
                     document.body.appendChild(tempDiv);
 
                     await new Promise(resolve => {
-                        new QRCode(tempDiv, {
-                            text: qrText, width: 250, height: 250,
-                            correctLevel: QRCode.CorrectLevel.M
-                        });
+                        new QRCode(tempDiv, { text: qrText, width: 250, height: 250, correctLevel: QRCode.CorrectLevel.M });
                         setTimeout(resolve, 200);
                     });
 
@@ -1353,9 +1391,7 @@
                     }
                     document.body.removeChild(tempDiv);
 
-                    ctx.fillStyle = '#000000';
-                    ctx.font = 'bold 11px Arial';
-                    ctx.textAlign = 'center';
+                    ctx.fillStyle = '#000000'; ctx.font = 'bold 11px Arial'; ctx.textAlign = 'center';
                     const namaDisplay = s.nama.length > 30 ? s.nama.substring(0,28)+'...' : s.nama;
                     ctx.fillText(namaDisplay, 150, 275);
                     ctx.font = '10px Arial';
@@ -1365,7 +1401,6 @@
                     folderQR.file(`QR_${s.no}_${s.nama.replace(/[^a-zA-Z0-9]/g,'_')}.png`, pngData, { base64: true });
                     totalSiswa++;
                 }
-                progress.innerText = `Generate QR: ${totalSiswa} siswa selesai...`;
             }
 
             const content = await zip.generateAsync({ type: 'blob' });
@@ -1375,21 +1410,13 @@
             link.click();
 
             result.classList.remove('hidden');
-            result.innerHTML = `<div class="text-green-400 text-center text-sm font-bold p-4 bg-green-400/10 rounded-2xl">
-                ✅ Berhasil! ${totalSiswa} siswa dari ${kelasList.length} kelas<br>
-                <span class="text-[10px] text-gray-400">QR tersimpan di Firebase & ZIP sudah didownload</span>
-            </div>`;
+            result.innerHTML = `<div class="text-green-400 text-[10px] p-2 bg-green-400/10 rounded-xl">✅ ${totalSiswa} Siswa ZIP Selesai</div>`;
             progress.classList.add('hidden');
-            showToast(`${totalSiswa} QR berhasil digenerate!`, 'success');
-            playBeep('success');
+            showToast(`${totalSiswa} QR berhasil!`, 'success'); playBeep('success');
 
-            updateDashboard();
-            loadManualAbsenOptions();
-
+            updateDashboard(); loadManualAbsenOptions();
         } catch(err) {
-            showToast('Gagal: ' + err.message, 'error');
-            progress.innerText = '❌ Error: ' + err.message;
-            playBeep('error');
+            showToast('Gagal: ' + err.message, 'error'); progress.innerText = '❌ Error'; playBeep('error');
         }
         document.getElementById('loading').classList.add('hidden');
     };
@@ -1399,16 +1426,13 @@
         document.getElementById('btnStopNaik').classList.remove('hidden');
         scannerNaik = new Html5Qrcode("readerNaik");
         scannerNaik.start(
-            { facingMode: "environment" },
-            { fps: 10, qrbox: 220 },
-            (text) => { scannerNaik.pause(); prosesQRNaik(text); },
-            () => {}
+            { facingMode: "environment" }, { fps: 10, qrbox: 220 },
+            (text) => { scannerNaik.pause(); prosesQRNaik(text); }, () => {}
         ).catch((e) => {
-            showToast('Kamera naik kelas gagal: ' + e, 'error');
+            showToast('Kamera naik kelas gagal', 'error');
             document.getElementById('btnStartNaik').classList.remove('hidden');
             document.getElementById('btnStopNaik').classList.add('hidden');
         });
-        showToast('Kamera naik kelas aktif', 'success');
     };
 
     window.stopScanNaikKelas = function() {
@@ -1420,14 +1444,17 @@
     async function prosesQRNaik(text) {
         try {
             let { nama, kelas: kelasLama, absen: absenLama } = parseQRPresensi(text);
-            if(listSiswaScanned.find(s => s.nama.toUpperCase() === nama.toUpperCase())) { showFeedbackNaik('⚠️', nama, 'Sudah discan!', 'bg-gradient-to-r from-yellow-600 to-yellow-500'); setTimeout(() => scannerNaik?.resume(), 1500); return; }
+            if(listSiswaScanned.find(s => s.nama.toUpperCase() === nama.toUpperCase())) { 
+                showFeedbackNaik('⚠️', nama, 'Sudah discan!', 'bg-yellow-600'); 
+                setTimeout(() => scannerNaik?.resume(), 1500); return; 
+            }
             const snap = await db.ref('siswa/' + kelasLama + '/' + absenLama).once('value');
-            if(!snap.exists()) throw 'Siswa tidak ditemukan di database';
+            if(!snap.exists()) throw 'Siswa tidak ditemukan';
             const siswaData = { ...snap.val(), kelasLama, absenLama };
-            if(siswaData.nama && normalisasiNamaQR(siswaData.nama) !== normalisasiNamaQR(nama)) throw 'Data QR tidak cocok dengan database';
+            if(siswaData.nama && normalisasiNamaQR(siswaData.nama) !== normalisasiNamaQR(nama)) throw 'QR beda dg DB';
             listSiswaScanned.push(siswaData); renderListNaik();
-            showFeedbackNaik('✅', siswaData.nama || nama, `Ditambahkan (${listSiswaScanned.length} siswa)`, 'bg-gradient-to-r from-green-600 to-green-500'); playBeep('success');
-        } catch(e) { showFeedbackNaik('❌', 'GAGAL', e.toString(), 'bg-gradient-to-r from-red-600 to-red-500'); playBeep('error'); }
+            showFeedbackNaik('✅', siswaData.nama || nama, `Ditambahkan (${listSiswaScanned.length})`, 'bg-green-600'); playBeep('success');
+        } catch(e) { showFeedbackNaik('❌', 'GAGAL', e.toString(), 'bg-red-600'); playBeep('error'); }
         setTimeout(() => { try { scannerNaik?.resume(); } catch(e) {} }, 1800);
     }
 
@@ -1436,7 +1463,7 @@
         document.getElementById('fbNaikIcon').innerText = icon;
         document.getElementById('fbNaikNama').innerText = nama;
         document.getElementById('fbNaikMsg').innerText = msg;
-        document.getElementById('fbNaikBox').className = `text-center text-white p-8 rounded-[2rem] shadow-2xl ${bg}`;
+        document.getElementById('fbNaikBox').className = `text-center p-6 rounded-2xl w-11/12 ${bg}`;
         fb.classList.remove('hidden');
         setTimeout(() => fb.classList.add('hidden'), 1800);
     }
@@ -1444,107 +1471,66 @@
     function renderListNaik() {
         const container = document.getElementById('listScanNaik');
         if(listSiswaScanned.length === 0) {
-            container.innerHTML = '<p class="text-center text-gray-400 text-xs py-4">Belum ada siswa yang discan</p>';
+            container.innerHTML = '<p class="text-center text-gray-500 text-[10px] py-2">Belum discan</p>';
             return;
         }
         container.innerHTML = listSiswaScanned.map((s, i) => `
-            <div class="flex justify-between items-center p-3 bg-gray-800/80 rounded-xl">
+            <div class="flex justify-between items-center p-2 bg-slate-800/80 rounded-lg">
                 <div>
-                    <b class="text-white text-xs uppercase">${s.nama}</b>
-                    <div class="text-[9px] text-gray-400">${s.kelasLama || '?'} → akan dipindah</div>
+                    <b class="text-white text-[10px] uppercase">${s.nama}</b>
+                    <div class="text-[8px] text-gray-400">${s.kelasLama || '?'} -> dipindah</div>
                 </div>
-                <button onclick="hapusScanNaik(${i})" class="text-red-400 text-xs font-bold px-2">✕</button>
+                <button onclick="hapusScanNaik(${i})" class="text-red-400 text-xs px-2">✕</button>
             </div>
         `).join('');
     }
 
-    window.hapusScanNaik = function(idx) {
-        listSiswaScanned.splice(idx, 1);
-        renderListNaik();
-    };
-
-    window.resetNaikKelas = function() {
-        listSiswaScanned = [];
-        renderListNaik();
-        showToast('List direset', 'success');
-    };
+    window.hapusScanNaik = function(idx) { listSiswaScanned.splice(idx, 1); renderListNaik(); };
+    window.resetNaikKelas = function() { listSiswaScanned = []; renderListNaik(); showToast('Direset', 'success'); };
 
     window.simpanNaikKelas = async function() {
-        if(listSiswaScanned.length === 0) { showToast('Belum ada siswa yang discan!', 'error'); return; }
+        if(listSiswaScanned.length === 0) { showToast('Belum ada discan!', 'error'); return; }
         const kelasTujuan = document.getElementById('kelasTujuan').value;
-        if(!kelasTujuan) { showToast('Pilih kelas tujuan dulu!', 'error'); return; }
+        if(!kelasTujuan) { showToast('Pilih kelas!', 'error'); return; }
 
         document.getElementById('loading').classList.remove('hidden');
         try {
             const sorted = [...listSiswaScanned].sort((a, b) => a.nama.localeCompare(b.nama));
-
             for(let i = 0; i < sorted.length; i++) {
                 const s = sorted[i];
                 const absenBaru = String(i + 1);
-
-                if(s.kelasLama && s.absenLama) {
-                    await db.ref('siswa/' + s.kelasLama + '/' + s.absenLama).remove();
-                }
-
+                if(s.kelasLama && s.absenLama) await db.ref('siswa/' + s.kelasLama + '/' + s.absenLama).remove();
                 await db.ref('siswa/' + kelasTujuan + '/' + absenBaru).set({
-                    nama: s.nama,
-                    kelas: kelasTujuan,
-                    absen: absenBaru,
-                    jk: s.jk || 'L',
-                    agama: s.agama || 'Islam',
-                    totalHadir: s.totalHadir || 0,
-                    terdaftar: s.terdaftar || Date.now()
+                    nama: s.nama, kelas: kelasTujuan, absen: absenBaru, jk: s.jk || 'L', agama: s.agama || 'Islam',
+                    totalHadir: s.totalHadir || 0, terdaftar: s.terdaftar || Date.now()
                 });
             }
-
-            showToast(`${sorted.length} siswa berhasil dipindah ke ${kelasTujuan}!`, 'success');
-            playBeep('success');
-            listSiswaScanned = [];
-            renderListNaik();
-            updateDashboard();
-            loadManualAbsenOptions();
-
-        } catch(e) {
-            showToast('Gagal: ' + e.message, 'error');
-            playBeep('error');
-        }
+            showToast(`${sorted.length} siswa dipindah!`, 'success'); playBeep('success');
+            listSiswaScanned = []; renderListNaik(); updateDashboard(); loadManualAbsenOptions();
+        } catch(e) { showToast('Gagal: ' + e.message, 'error'); playBeep('error'); }
         document.getElementById('loading').classList.add('hidden');
     };
 
     window.resetTotalHadir = async function() {
-        const konfirmasi = confirm('⚠️ YAKIN mau reset semua total hadir jadi 0?\n\nAksi ini tidak bisa dibatalkan!');
+        const konfirmasi = confirm('⚠️ YAKIN reset semua total hadir jadi 0?');
         if(!konfirmasi) return;
-
         document.getElementById('loading').classList.remove('hidden');
         try {
             const siswaSnap = await db.ref('siswa').once('value');
             const semuaSiswa = siswaSnap.val() || {};
             const updates = {};
-
             for(let kelas in semuaSiswa) {
-                for(let absen in semuaSiswa[kelas]) {
-                    updates[`siswa/${kelas}/${absen}/totalHadir`] = 0;
-                }
+                for(let absen in semuaSiswa[kelas]) updates[`siswa/${kelas}/${absen}/totalHadir`] = 0;
             }
-
             await db.ref().update(updates);
-            showToast('Semua total hadir berhasil direset!', 'success');
-            playBeep('success');
-            updateDashboard();
-        } catch(e) {
-            showToast('Gagal reset: ' + e.message, 'error');
-            playBeep('error');
-        }
+            showToast('Berhasil direset!', 'success'); playBeep('success'); updateDashboard();
+        } catch(e) { showToast('Gagal: ' + e.message, 'error'); playBeep('error'); }
         document.getElementById('loading').classList.add('hidden');
     };
 
     if ('serviceWorker' in navigator) {
-        navigator.serviceWorker.getRegistrations()
-            .then(registrations => registrations.forEach(reg => reg.unregister()))
-            .catch(err => console.log('SW unregister failed', err));
+        navigator.serviceWorker.getRegistrations().then(r => r.forEach(reg => reg.unregister()));
     }
-
-    console.log('KEROHANIAN_BUILD', '20260429-anti-cache-alpa-all-keputrian');
 </script>
 </body>
 </html>
