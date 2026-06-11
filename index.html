@@ -2,12 +2,12 @@
 <html lang="id">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
     <meta http-equiv="Pragma" content="no-cache">
     <meta http-equiv="Expires" content="0">
-    <title>Kerohanian SMAN 12 - Sistem Presensi Enterprise</title>
-    <meta name="theme-color" content="#050c1a">
+    <title>Kerohanian SMAN 12</title>
+    <meta name="theme-color" content="#0a1628">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="apple-mobile-web-app-title" content="Kerohanian 12">
@@ -19,7 +19,7 @@
     <script src="https://cdn.jsdelivr.net/npm/xlsx-js-style@1.2.0/dist/xlsx.bundle.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
 
     <style>
@@ -29,8 +29,6 @@
             --navy-850: #0f1d3a;
             --navy-800: #13284c;
             --navy-700: #1a3565;
-            --navy-600: #1e4080;
-            --navy-500: #264a8f;
             --cyan-500: #06b6d4;
             --cyan-400: #22d3ee;
             --cyan-300: #67e8f9;
@@ -42,609 +40,304 @@
             --amber-400: #fbbf24;
             --violet-500: #8b5cf6;
             --violet-400: #a78bfa;
-            --sidebar-w: 280px;
-            --sidebar-collapsed: 72px;
-            --header-h: 64px;
+            --safe-bottom: env(safe-area-inset-bottom, 16px);
         }
 
-        * {
-            font-family: 'Inter', system-ui, -apple-system, sans-serif;
-            box-sizing: border-box;
-            margin: 0;
-            padding: 0;
-        }
+        * { font-family: 'Inter', sans-serif; box-sizing: border-box; margin: 0; padding: 0; }
 
         body {
             background: var(--navy-950);
             min-height: 100vh;
+            min-height: 100dvh;
             overscroll-behavior: none;
+            -webkit-user-select: none;
+            user-select: none;
+            -webkit-tap-highlight-color: transparent;
+            overflow: hidden;
+            position: relative;
+        }
+
+        /* ── APP CONTAINER ─────────────────────────────── */
+        .app-container {
+            width: 100%;
+            height: 100vh;
+            height: 100dvh;
             display: flex;
             flex-direction: column;
-            overflow-x: hidden;
-        }
-
-        code, .mono {
-            font-family: 'JetBrains Mono', monospace;
-        }
-
-        /* ── TOP HEADER ENTERPRISE ─────────────────────────────── */
-        .enterprise-header {
-            height: var(--header-h);
-            background: linear-gradient(180deg, rgba(15,29,58,0.98) 0%, rgba(10,22,40,0.98) 100%);
-            border-bottom: 1px solid rgba(6,182,212,0.15);
-            display: flex;
-            align-items: center;
-            padding: 0 24px;
-            gap: 16px;
-            position: sticky;
-            top: 0;
-            z-index: 1000;
-            flex-shrink: 0;
-            backdrop-filter: blur(20px);
-            box-shadow: 0 1px 20px rgba(0,0,0,0.4);
-        }
-
-        .header-brand {
-            display: flex;
-            align-items: center;
-            gap: 14px;
-            flex-shrink: 0;
-        }
-
-        .header-logo {
-            width: 42px;
-            height: 42px;
-            background: linear-gradient(135deg, #0891b2 0%, #06b6d4 50%, #22d3ee 100%);
-            border-radius: 12px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 20px;
-            box-shadow: 0 4px 15px rgba(6,182,212,0.3);
             position: relative;
             overflow: hidden;
         }
 
-        .header-logo::after {
-            content: '';
+        /* ── SCREEN STACK ─────────────────────────────── */
+        .screen {
             position: absolute;
-            top: -50%;
-            left: -50%;
-            width: 200%;
-            height: 200%;
-            background: linear-gradient(45deg, transparent, rgba(255,255,255,0.1), transparent);
-            animation: shimmer 3s infinite;
+            inset: 0;
+            display: flex;
+            flex-direction: column;
+            overflow-y: auto;
+            overflow-x: hidden;
+            -webkit-overflow-scrolling: touch;
+            background: var(--navy-950);
+            transform: translateX(100%);
+            transition: transform 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+            z-index: 1;
+            padding-bottom: var(--safe-bottom);
         }
 
-        .header-text {
+        .screen.active {
+            transform: translateX(0);
+            z-index: 2;
+        }
+
+        .screen.prev {
+            transform: translateX(-30%);
+            z-index: 0;
+        }
+
+        .screen.home-screen {
+            transform: translateX(0);
+            z-index: 2;
+        }
+
+        .screen.home-screen.prev {
+            transform: translateX(-30%);
+            z-index: 0;
+        }
+
+        /* ── TOP BAR ─────────────────────────────── */
+        .topbar {
+            height: 56px;
+            background: var(--navy-900);
+            border-bottom: 1px solid rgba(6,182,212,0.15);
+            display: flex;
+            align-items: center;
+            padding: 0 16px;
+            gap: 12px;
+            flex-shrink: 0;
+            position: sticky;
+            top: 0;
+            z-index: 50;
+            backdrop-filter: blur(10px);
+        }
+
+        .topbar-back {
+            width: 36px;
+            height: 36px;
+            border-radius: 10px;
+            background: rgba(255,255,255,0.04);
+            border: 1px solid rgba(255,255,255,0.08);
+            color: #94a3b8;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            font-size: 16px;
+            flex-shrink: 0;
+            transition: all 0.2s;
+        }
+
+        .topbar-back:active { background: rgba(255,255,255,0.1); scale: 0.95; }
+
+        .topbar-title {
+            font-size: 15px;
+            font-weight: 700;
+            color: #e2e8f0;
+            letter-spacing: 0.02em;
+            flex: 1;
+            min-width: 0;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .topbar-action {
+            width: 36px;
+            height: 36px;
+            border-radius: 10px;
+            background: transparent;
+            border: none;
+            color: #94a3b8;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            font-size: 16px;
+            flex-shrink: 0;
+        }
+
+        /* ── SCREEN CONTENT ─────────────────────────────── */
+        .screen-content {
+            flex: 1;
+            padding: 20px 16px;
             display: flex;
             flex-direction: column;
         }
 
-        .header-app-name {
-            font-size: 16px;
-            font-weight: 800;
-            color: #e2e8f0;
-            letter-spacing: 0.02em;
-            line-height: 1.1;
+        .screen-content.center {
+            justify-content: center;
+            align-items: center;
+            text-align: center;
         }
 
-        .header-app-sub {
-            font-size: 11px;
+        /* ── HOME SCREEN ─────────────────────────────── */
+        .home-header {
+            text-align: center;
+            padding: 32px 16px 24px;
+        }
+
+        .home-logo {
+            width: 72px;
+            height: 72px;
+            background: linear-gradient(135deg, #0891b2, #06b6d4);
+            border-radius: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 32px;
+            margin: 0 auto 16px;
+            box-shadow: 0 8px 30px rgba(6,182,212,0.3);
+        }
+
+        .home-title {
+            font-size: 24px;
+            font-weight: 800;
+            color: #f1f5f9;
+            letter-spacing: -0.02em;
+        }
+
+        .home-subtitle {
+            font-size: 12px;
+            color: #64748b;
+            margin-top: 4px;
+            font-weight: 500;
+        }
+
+        .home-stats-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            margin-bottom: 24px;
+        }
+
+        .home-stat-card {
+            background: rgba(19,40,76,0.4);
+            border: 1px solid rgba(6,182,212,0.1);
+            border-radius: 14px;
+            padding: 14px 16px;
+            text-align: center;
+        }
+
+        .home-stat-value {
+            font-size: 28px;
+            font-weight: 800;
+            line-height: 1;
+        }
+
+        .home-stat-label {
+            font-size: 10px;
+            color: #64748b;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.06em;
+            margin-top: 4px;
+        }
+
+        .home-menu-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+        }
+
+        .home-menu-card {
+            background: linear-gradient(135deg, rgba(19,40,76,0.5), rgba(15,29,58,0.5));
+            border: 1px solid rgba(6,182,212,0.12);
+            border-radius: 16px;
+            padding: 20px 16px;
+            cursor: pointer;
+            transition: all 0.2s;
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .home-menu-card:active {
+            scale: 0.97;
+            border-color: rgba(6,182,212,0.3);
+        }
+
+        .home-menu-card .menu-icon {
+            width: 48px;
+            height: 48px;
+            border-radius: 14px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 22px;
+            margin: 0 auto 12px;
+        }
+
+        .home-menu-card .menu-icon.cyan { background: rgba(6,182,212,0.12); color: #22d3ee; }
+        .home-menu-card .menu-icon.emerald { background: rgba(16,185,129,0.12); color: #34d399; }
+        .home-menu-card .menu-icon.amber { background: rgba(245,158,11,0.12); color: #fbbf24; }
+        .home-menu-card .menu-icon.violet { background: rgba(139,92,246,0.12); color: #a78bfa; }
+        .home-menu-card .menu-icon.red { background: rgba(239,68,68,0.12); color: #f87171; }
+        .home-menu-card .menu-icon.rose { background: rgba(244,63,94,0.12); color: #fb7185; }
+
+        .home-menu-card .menu-title {
+            font-size: 13px;
+            font-weight: 700;
+            color: #e2e8f0;
+            margin-bottom: 4px;
+        }
+
+        .home-menu-card .menu-desc {
+            font-size: 10px;
             color: #64748b;
             font-weight: 500;
-            letter-spacing: 0.03em;
+            line-height: 1.4;
         }
 
-        .header-right {
-            margin-left: auto;
+        /* ── USER BADGE HOME ─────────────────────────────── */
+        .home-user-badge {
             display: flex;
             align-items: center;
-            gap: 12px;
-        }
-
-        .status-indicator {
-            display: flex;
-            align-items: center;
+            justify-content: center;
             gap: 8px;
-            background: rgba(16,185,129,0.1);
-            border: 1px solid rgba(16,185,129,0.25);
-            border-radius: 30px;
-            padding: 6px 14px;
-            font-size: 11px;
-            font-weight: 600;
-            color: #34d399;
-            letter-spacing: 0.04em;
+            padding: 10px;
+            margin-top: 20px;
         }
 
-        .status-dot {
-            width: 7px;
-            height: 7px;
-            background: #34d399;
-            border-radius: 50%;
-            animation: pulse 2s infinite;
-            box-shadow: 0 0 10px rgba(16,185,129,0.5);
-        }
-
-        .header-btn {
-            height: 38px;
-            padding: 0 16px;
-            border-radius: 8px;
-            font-size: 12px;
-            font-weight: 600;
-            cursor: pointer;
-            border: 1px solid rgba(255,255,255,0.08);
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            transition: all 0.2s;
-            background: rgba(255,255,255,0.04);
-            color: #94a3b8;
-            white-space: nowrap;
-        }
-
-        .header-btn:hover {
-            background: rgba(255,255,255,0.08);
-            color: #e2e8f0;
-            border-color: rgba(255,255,255,0.15);
-        }
-
-        .header-btn.logout-btn {
-            background: rgba(239,68,68,0.08);
-            border-color: rgba(239,68,68,0.2);
-            color: #f87171;
-        }
-
-        .header-btn.logout-btn:hover {
-            background: rgba(239,68,68,0.15);
-            border-color: rgba(239,68,68,0.3);
-        }
-
-        .header-user {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            padding: 4px 16px 4px 4px;
-            background: rgba(255,255,255,0.03);
-            border-radius: 30px;
-            border: 1px solid rgba(255,255,255,0.06);
-            cursor: pointer;
-            transition: all 0.2s;
-        }
-
-        .header-user:hover {
-            background: rgba(255,255,255,0.06);
-        }
-
-        .user-avatar-sm {
-            width: 34px;
-            height: 34px;
+        .home-user-avatar {
+            width: 36px;
+            height: 36px;
             background: linear-gradient(135deg, #0891b2, #06b6d4);
             border-radius: 50%;
             display: flex;
             align-items: center;
             justify-content: center;
             font-size: 14px;
-            font-weight: 700;
             color: white;
         }
 
-        .user-info-sm {
-            display: flex;
-            flex-direction: column;
-        }
-
-        .user-name-sm {
+        .home-user-info {
             font-size: 12px;
-            font-weight: 700;
-            color: #e2e8f0;
-            line-height: 1.2;
-        }
-
-        .user-role-sm {
-            font-size: 10px;
             color: #64748b;
-            font-weight: 500;
-        }
-
-        /* ── BODY LAYOUT ENTERPRISE ─────────────────────────────── */
-        .app-layout {
-            display: flex;
-            flex: 1;
-            min-height: 0;
-            position: relative;
-        }
-
-        /* ── SIDEBAR ENTERPRISE ─────────────────────────────── */
-        .enterprise-sidebar {
-            width: var(--sidebar-w);
-            background: linear-gradient(180deg, rgba(15,29,58,0.6) 0%, rgba(10,22,40,0.8) 100%);
-            border-right: 1px solid rgba(6,182,212,0.1);
-            display: flex;
-            flex-direction: column;
-            flex-shrink: 0;
-            overflow-y: auto;
-            overflow-x: hidden;
-            backdrop-filter: blur(10px);
-            transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-        }
-
-        .sidebar-header {
-            padding: 20px 20px 16px;
-            border-bottom: 1px solid rgba(6,182,212,0.08);
-        }
-
-        .sidebar-label {
-            font-size: 9px;
-            font-weight: 700;
-            text-transform: uppercase;
-            letter-spacing: 0.14em;
-            color: #3b4f6e;
-            margin-bottom: 4px;
-        }
-
-        .sidebar-menu-group {
-            padding: 8px 0;
-        }
-
-        .sidebar-menu-title {
-            font-size: 9px;
-            font-weight: 700;
-            text-transform: uppercase;
-            letter-spacing: 0.12em;
-            color: #3b4f6e;
-            padding: 16px 20px 8px;
-        }
-
-        .sidebar-nav-item {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            padding: 10px 16px;
-            margin: 2px 10px;
-            border-radius: 10px;
-            cursor: pointer;
-            transition: all 0.2s;
-            color: #64748b;
-            font-size: 13px;
-            font-weight: 500;
-            border: 1px solid transparent;
-            position: relative;
-            text-decoration: none;
-        }
-
-        .sidebar-nav-item:hover {
-            background: rgba(6,182,212,0.06);
-            color: #94a3b8;
-            border-color: rgba(6,182,212,0.1);
-        }
-
-        .sidebar-nav-item.active {
-            background: linear-gradient(135deg, rgba(6,182,212,0.12), rgba(6,182,212,0.06));
-            color: #22d3ee;
-            border-color: rgba(6,182,212,0.25);
-            box-shadow: 0 2px 10px rgba(6,182,212,0.1);
-        }
-
-        .sidebar-nav-item.active::before {
-            content: '';
-            position: absolute;
-            left: 0;
-            top: 50%;
-            transform: translateY(-50%);
-            width: 3px;
-            height: 24px;
-            background: linear-gradient(180deg, #22d3ee, #06b6d4);
-            border-radius: 0 4px 4px 0;
-        }
-
-        .sidebar-nav-icon {
-            width: 20px;
-            text-align: center;
-            font-size: 15px;
-            flex-shrink: 0;
-        }
-
-        .sidebar-nav-badge {
-            margin-left: auto;
-            background: rgba(6,182,212,0.15);
-            color: #22d3ee;
-            font-size: 10px;
-            font-weight: 700;
-            padding: 2px 8px;
-            border-radius: 12px;
-            border: 1px solid rgba(6,182,212,0.2);
-        }
-
-        .sidebar-divider {
-            height: 1px;
-            background: rgba(6,182,212,0.06);
-            margin: 8px 20px;
-        }
-
-        .sidebar-footer {
-            margin-top: auto;
-            padding: 16px;
-            border-top: 1px solid rgba(6,182,212,0.08);
-        }
-
-        .sidebar-user-card {
-            background: rgba(6,182,212,0.04);
-            border: 1px solid rgba(6,182,212,0.1);
-            border-radius: 12px;
-            padding: 12px;
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            transition: all 0.2s;
-        }
-
-        .sidebar-user-card:hover {
-            background: rgba(6,182,212,0.08);
-            border-color: rgba(6,182,212,0.2);
-        }
-
-        /* ── MAIN CONTENT AREA ─────────────────────────────── */
-        .main-container {
-            flex: 1;
-            overflow-y: auto;
-            overflow-x: hidden;
-            min-width: 0;
-            background: radial-gradient(ellipse at top, rgba(15,29,58,0.3) 0%, var(--navy-950) 70%);
-        }
-
-        .content-wrapper {
-            padding: 28px 32px;
-            max-width: 1400px;
-        }
-
-        /* ── PAGE HEADER ─────────────────────────────── */
-        .page-header-enterprise {
-            margin-bottom: 28px;
-        }
-
-        .breadcrumb {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            font-size: 12px;
-            color: #475569;
-            font-weight: 500;
-            margin-bottom: 8px;
-        }
-
-        .breadcrumb i {
-            font-size: 10px;
-            color: #334155;
-        }
-
-        .page-title-enterprise {
-            font-size: 28px;
-            font-weight: 800;
-            color: #f1f5f9;
-            letter-spacing: -0.02em;
-            line-height: 1.2;
-        }
-
-        .page-title-enterprise .highlight {
-            background: linear-gradient(135deg, #22d3ee, #06b6d4);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
-        }
-
-        .page-subtitle {
-            font-size: 13px;
-            color: #64748b;
-            font-weight: 400;
-            margin-top: 4px;
-        }
-
-        /* ── STAT CARDS ENTERPRISE ─────────────────────────────── */
-        .stat-cards-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-            gap: 16px;
-            margin-bottom: 28px;
-        }
-
-        .stat-card-enterprise {
-            background: linear-gradient(135deg, rgba(19,40,76,0.5), rgba(15,29,58,0.5));
-            border: 1px solid rgba(6,182,212,0.12);
-            border-radius: 16px;
-            padding: 20px 24px;
-            position: relative;
-            overflow: hidden;
-            transition: all 0.3s;
-            backdrop-filter: blur(10px);
-        }
-
-        .stat-card-enterprise:hover {
-            border-color: rgba(6,182,212,0.25);
-            transform: translateY(-2px);
-            box-shadow: 0 8px 25px rgba(0,0,0,0.3);
-        }
-
-        .stat-card-enterprise::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            right: 0;
-            width: 80px;
-            height: 80px;
-            background: radial-gradient(circle, rgba(6,182,212,0.08) 0%, transparent 70%);
-            border-radius: 50%;
-        }
-
-        .stat-header {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            margin-bottom: 12px;
-        }
-
-        .stat-icon-box {
-            width: 36px;
-            height: 36px;
-            border-radius: 10px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 16px;
-        }
-
-        .stat-icon-box.cyan-bg {
-            background: rgba(6,182,212,0.12);
-            color: #22d3ee;
-        }
-
-        .stat-icon-box.emerald-bg {
-            background: rgba(16,185,129,0.12);
-            color: #34d399;
-        }
-
-        .stat-icon-box.amber-bg {
-            background: rgba(245,158,11,0.12);
-            color: #fbbf24;
-        }
-
-        .stat-icon-box.violet-bg {
-            background: rgba(139,92,246,0.12);
-            color: #a78bfa;
-        }
-
-        .stat-label-enterprise {
-            font-size: 11px;
             font-weight: 600;
-            text-transform: uppercase;
-            letter-spacing: 0.06em;
-            color: #64748b;
         }
 
-        .stat-value-enterprise {
-            font-size: 36px;
-            font-weight: 800;
-            line-height: 1;
-            letter-spacing: -0.02em;
-        }
-
-        .stat-value-enterprise.cyan-text {
-            color: #22d3ee;
-        }
-
-        .stat-value-enterprise.emerald-text {
-            color: #34d399;
-        }
-
-        .stat-value-enterprise.amber-text {
-            color: #fbbf24;
-        }
-
-        .stat-change {
-            font-size: 11px;
-            color: #64748b;
-            margin-top: 6px;
-            display: flex;
-            align-items: center;
-            gap: 4px;
-        }
-
-        .stat-change.positive {
-            color: #34d399;
-        }
-
-        /* ── PANEL CARD ENTERPRISE ─────────────────────────────── */
-        .panel-enterprise {
-            background: linear-gradient(135deg, rgba(19,40,76,0.4), rgba(15,29,58,0.4));
-            border: 1px solid rgba(6,182,212,0.1);
-            border-radius: 16px;
-            overflow: hidden;
-            backdrop-filter: blur(10px);
-            transition: all 0.3s;
-        }
-
-        .panel-header-enterprise {
-            padding: 18px 24px;
-            border-bottom: 1px solid rgba(6,182,212,0.08);
-            display: flex;
-            align-items: center;
-            gap: 14px;
-            background: rgba(6,182,212,0.02);
-        }
-
-        .panel-icon-box {
-            width: 40px;
-            height: 40px;
-            border-radius: 10px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 18px;
-            flex-shrink: 0;
-        }
-
-        .panel-icon-box.cyan {
-            background: rgba(6,182,212,0.12);
-            color: #22d3ee;
-        }
-
-        .panel-icon-box.emerald {
-            background: rgba(16,185,129,0.12);
-            color: #34d399;
-        }
-
-        .panel-icon-box.red {
-            background: rgba(239,68,68,0.12);
-            color: #f87171;
-        }
-
-        .panel-icon-box.amber {
-            background: rgba(245,158,11,0.12);
-            color: #fbbf24;
-        }
-
-        .panel-icon-box.violet {
-            background: rgba(139,92,246,0.12);
-            color: #a78bfa;
-        }
-
-        .panel-title-enterprise {
-            font-size: 14px;
-            font-weight: 700;
+        .home-user-info strong {
             color: #e2e8f0;
-            letter-spacing: 0.02em;
-        }
-
-        .panel-desc-enterprise {
-            font-size: 11px;
-            color: #64748b;
-            font-weight: 400;
-            margin-top: 2px;
-        }
-
-        .panel-body-enterprise {
-            padding: 24px;
         }
 
         /* ── FORM ELEMENTS ─────────────────────────────── */
-        .form-grid-enterprise {
-            display: grid;
-            gap: 14px;
-        }
-
-        .form-row-enterprise {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 14px;
-        }
-
-        .form-group-enterprise {
+        .form-group {
             display: flex;
             flex-direction: column;
             gap: 6px;
+            margin-bottom: 12px;
         }
 
-        .form-label-enterprise {
+        .form-label {
             font-size: 11px;
             font-weight: 700;
             text-transform: uppercase;
@@ -652,150 +345,123 @@
             color: #64748b;
         }
 
-        .form-control-enterprise {
-            background: rgba(5,12,26,0.6) !important;
-            border: 1px solid rgba(6,182,212,0.15) !important;
-            border-radius: 10px !important;
-            color: #e2e8f0 !important;
-            padding: 11px 16px !important;
-            font-size: 13px !important;
-            font-family: 'Inter', sans-serif !important;
+        .form-input {
+            background: rgba(5,12,26,0.6);
+            border: 1px solid rgba(6,182,212,0.15);
+            border-radius: 12px;
+            color: #e2e8f0;
+            padding: 12px 16px;
+            font-size: 14px;
+            font-family: 'Inter', sans-serif;
             width: 100%;
             transition: all 0.2s;
-            backdrop-filter: blur(10px);
+            -webkit-appearance: none;
+            appearance: none;
         }
 
-        .form-control-enterprise:focus {
+        .form-input:focus {
             outline: none;
-            border-color: var(--cyan-500) !important;
-            box-shadow: 0 0 0 3px rgba(6,182,212,0.1), 0 0 20px rgba(6,182,212,0.05);
+            border-color: var(--cyan-500);
+            box-shadow: 0 0 0 3px rgba(6,182,212,0.1);
         }
 
-        .form-control-enterprise::placeholder {
-            color: #334155 !important;
-        }
+        .form-input::placeholder { color: #334155; }
+        .form-input:read-only { opacity: 0.5; }
 
-        .form-control-enterprise:read-only {
-            opacity: 0.5;
-            cursor: not-allowed;
-        }
-
-        select.form-control-enterprise {
+        select.form-input {
             cursor: pointer;
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%2364748b' d='M6 8L1 3h10z'/%3E%3C/svg%3E");
+            background-repeat: no-repeat;
+            background-position: right 14px center;
+            padding-right: 36px;
         }
 
-        select.form-control-enterprise option {
+        select.form-input option {
             background: #0a1628;
             color: #e2e8f0;
         }
 
-        /* ── BUTTONS ENTERPRISE ─────────────────────────────── */
-        .btn-enterprise {
-            display: inline-flex;
+        .form-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+        }
+
+        /* ── BUTTONS ─────────────────────────────── */
+        .btn {
+            display: flex;
             align-items: center;
             justify-content: center;
             gap: 8px;
-            padding: 11px 20px;
-            border-radius: 10px;
-            font-size: 12px;
-            font-weight: 600;
+            padding: 13px 20px;
+            border-radius: 12px;
+            font-size: 13px;
+            font-weight: 700;
             cursor: pointer;
             border: none;
-            transition: all 0.2s;
+            transition: all 0.15s;
             letter-spacing: 0.03em;
-            white-space: nowrap;
+            width: 100%;
+            -webkit-tap-highlight-color: transparent;
         }
 
-        .btn-primary-enterprise {
+        .btn:active { scale: 0.97; }
+
+        .btn-primary {
             background: linear-gradient(135deg, #0e7490, #06b6d4);
             color: white;
-            box-shadow: 0 4px 15px rgba(6,182,212,0.2);
+            box-shadow: 0 4px 15px rgba(6,182,212,0.25);
         }
 
-        .btn-primary-enterprise:hover {
-            box-shadow: 0 6px 20px rgba(6,182,212,0.3);
-            transform: translateY(-1px);
-        }
-
-        .btn-success-enterprise {
+        .btn-success {
             background: linear-gradient(135deg, #059669, #10b981);
             color: white;
-            box-shadow: 0 4px 15px rgba(16,185,129,0.2);
+            box-shadow: 0 4px 15px rgba(16,185,129,0.25);
         }
 
-        .btn-success-enterprise:hover {
-            box-shadow: 0 6px 20px rgba(16,185,129,0.3);
-            transform: translateY(-1px);
-        }
-
-        .btn-danger-enterprise {
+        .btn-danger {
             background: linear-gradient(135deg, #dc2626, #ef4444);
             color: white;
-            box-shadow: 0 4px 15px rgba(239,68,68,0.2);
+            box-shadow: 0 4px 15px rgba(239,68,68,0.25);
         }
 
-        .btn-danger-enterprise:hover {
-            box-shadow: 0 6px 20px rgba(239,68,68,0.3);
-            transform: translateY(-1px);
-        }
-
-        .btn-warning-enterprise {
+        .btn-warning {
             background: linear-gradient(135deg, #d97706, #f59e0b);
             color: white;
-            box-shadow: 0 4px 15px rgba(245,158,11,0.2);
+            box-shadow: 0 4px 15px rgba(245,158,11,0.25);
         }
 
-        .btn-warning-enterprise:hover {
-            box-shadow: 0 6px 20px rgba(245,158,11,0.3);
-            transform: translateY(-1px);
-        }
-
-        .btn-secondary-enterprise {
+        .btn-secondary {
             background: rgba(255,255,255,0.04);
             color: #94a3b8;
             border: 1px solid rgba(255,255,255,0.1);
         }
 
-        .btn-secondary-enterprise:hover {
-            background: rgba(255,255,255,0.08);
-            color: #e2e8f0;
-        }
-
-        .btn-sm-enterprise {
-            padding: 8px 14px;
+        .btn-sm {
+            padding: 9px 14px;
             font-size: 11px;
         }
 
-        .btn-row-enterprise {
+        .btn-row {
             display: flex;
-            gap: 10px;
+            gap: 8px;
         }
-
-        .btn-row-enterprise .btn-enterprise {
-            flex: 1;
-        }
-
-        .btn-enterprise:disabled {
-            opacity: 0.5;
-            cursor: not-allowed;
-            pointer-events: none;
-        }
+        .btn-row .btn { flex: 1; }
 
         /* ── MODE SWITCHER ─────────────────────────────── */
-        .mode-switcher {
+        .mode-bar {
             display: flex;
             background: rgba(10,22,40,0.6);
-            border: 1px solid rgba(6,182,212,0.12);
+            border: 1px solid rgba(6,182,212,0.1);
             border-radius: 12px;
             padding: 4px;
-            gap: 4px;
-            margin-bottom: 24px;
-            backdrop-filter: blur(10px);
+            gap: 3px;
+            margin-bottom: 16px;
         }
 
-        .mode-btn-enterprise {
+        .mode-btn {
             flex: 1;
-            padding: 10px 8px;
+            padding: 10px 6px;
             border-radius: 9px;
             font-size: 10px;
             font-weight: 700;
@@ -806,161 +472,23 @@
             background: transparent;
             color: #475569;
             transition: all 0.2s;
-        }
-
-        .mode-btn-enterprise.active-islam {
-            background: linear-gradient(135deg, #065f46, #059669);
-            color: white;
-            box-shadow: 0 2px 10px rgba(16,185,129,0.3);
-        }
-
-        .mode-btn-enterprise.active-nonislam {
-            background: linear-gradient(135deg, #1e3a8a, #3b82f6);
-            color: white;
-            box-shadow: 0 2px 10px rgba(59,130,246,0.3);
-        }
-
-        .mode-btn-enterprise.active-haid {
-            background: linear-gradient(135deg, #9f1239, #e11d48);
-            color: white;
-            box-shadow: 0 2px 10px rgba(225,29,72,0.3);
-        }
-
-        .mode-btn-enterprise.active-keputrian {
-            background: linear-gradient(135deg, #6b21a8, #9333ea);
-            color: white;
-            box-shadow: 0 2px 10px rgba(147,51,234,0.3);
-        }
-
-        /* ── LOG LIST ENTERPRISE ─────────────────────────────── */
-        .log-container {
-            display: flex;
-            flex-direction: column;
-            gap: 8px;
-            max-height: 450px;
-            overflow-y: auto;
-            scroll-behavior: smooth;
-        }
-
-        .log-item-enterprise {
-            background: rgba(10,22,40,0.4);
-            border: 1px solid rgba(6,182,212,0.08);
-            border-radius: 10px;
-            padding: 14px 18px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            transition: all 0.2s;
-            border-left: 3px solid var(--cyan-500);
-        }
-
-        .log-item-enterprise:hover {
-            border-color: rgba(6,182,212,0.2);
-            background: rgba(10,22,40,0.6);
-            transform: translateX(2px);
-        }
-
-        .log-item-enterprise.alpa-log {
-            border-left-color: #ef4444;
-        }
-
-        .log-item-enterprise.haid-log {
-            border-left-color: #e11d48;
-        }
-
-        .log-item-enterprise.keputrian-log {
-            border-left-color: #9333ea;
-        }
-
-        .log-item-enterprise.nonislam-log {
-            border-left-color: #3b82f6;
-        }
-
-        .log-info {
-            display: flex;
-            flex-direction: column;
-            gap: 4px;
-        }
-
-        .log-nama-enterprise {
-            font-size: 14px;
-            font-weight: 700;
-            color: #e2e8f0;
-            letter-spacing: 0.02em;
-        }
-
-        .log-meta {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            font-size: 11px;
-            color: #64748b;
-            font-weight: 500;
-        }
-
-        .log-meta-dot {
-            width: 4px;
-            height: 4px;
-            background: #475569;
-            border-radius: 50%;
-        }
-
-        .badge-enterprise {
-            font-size: 10px;
-            font-weight: 700;
-            padding: 6px 12px;
-            border-radius: 8px;
-            letter-spacing: 0.04em;
-        }
-
-        .badge-hadir-enterprise {
-            background: rgba(6,182,212,0.12);
-            color: #22d3ee;
-            border: 1px solid rgba(6,182,212,0.2);
-        }
-
-        .badge-alpa-enterprise {
-            background: rgba(239,68,68,0.12);
-            color: #f87171;
-            border: 1px solid rgba(239,68,68,0.2);
-        }
-
-        .badge-haid-enterprise {
-            background: rgba(225,29,72,0.12);
-            color: #fb7185;
-            border: 1px solid rgba(225,29,72,0.2);
-        }
-
-        /* ── EMPTY STATE ─────────────────────────────── */
-        .empty-state {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            padding: 40px 20px;
             text-align: center;
         }
 
-        .empty-state-icon {
-            font-size: 48px;
-            margin-bottom: 16px;
-            opacity: 0.3;
-        }
+        .mode-btn.active-islam { background: linear-gradient(135deg, #065f46, #059669); color: white; }
+        .mode-btn.active-nonislam { background: linear-gradient(135deg, #1e3a8a, #3b82f6); color: white; }
+        .mode-btn.active-haid { background: linear-gradient(135deg, #9f1239, #e11d48); color: white; }
+        .mode-btn.active-keputrian { background: linear-gradient(135deg, #6b21a8, #9333ea); color: white; }
 
-        .empty-state-text {
-            font-size: 13px;
-            color: #475569;
-            font-weight: 500;
-        }
-
-        /* ── CAMERA CONTAINER ENTERPRISE ─────────────────────────────── */
-        .camera-wrapper {
+        /* ── CAMERA ─────────────────────────────── */
+        .camera-box {
             background: rgba(5,12,26,0.8);
             border: 1px solid rgba(6,182,212,0.15);
-            border-radius: 14px;
+            border-radius: 16px;
             overflow: hidden;
             position: relative;
-            min-height: 320px;
+            min-height: 280px;
+            flex-shrink: 0;
         }
 
         .camera-placeholder {
@@ -971,25 +499,25 @@
             align-items: center;
             justify-content: center;
             background: rgba(5,12,26,0.9);
-            backdrop-filter: blur(4px);
             z-index: 10;
-            gap: 12px;
+            gap: 10px;
         }
 
-        .camera-placeholder-icon {
+        .camera-placeholder i {
             font-size: 40px;
-            opacity: 0.25;
+            opacity: 0.2;
+            color: #64748b;
         }
 
-        .camera-placeholder-text {
-            font-size: 12px;
+        .camera-placeholder p {
+            font-size: 11px;
             color: #334155;
             font-weight: 600;
             text-transform: uppercase;
             letter-spacing: 0.06em;
         }
 
-        .scan-feedback-overlay {
+        .scan-feedback {
             position: absolute;
             inset: 0;
             display: none;
@@ -998,62 +526,175 @@
             background: rgba(5,12,26,0.95);
             backdrop-filter: blur(12px);
             z-index: 20;
-            border-radius: 14px;
+            border-radius: 16px;
         }
 
-        .scan-feedback-overlay.show {
-            display: flex;
-        }
+        .scan-feedback.show { display: flex; }
 
-        .feedback-card-enterprise {
+        .feedback-card {
             text-align: center;
-            padding: 36px 48px;
+            padding: 32px 40px;
             border-radius: 18px;
-            min-width: 260px;
+            min-width: 220px;
         }
 
-        .feedback-card-enterprise .fb-icon-large {
-            font-size: 56px;
-            margin-bottom: 14px;
+        .feedback-card .fb-icon { font-size: 48px; margin-bottom: 10px; }
+        .feedback-card .fb-name { font-size: 18px; font-weight: 800; color: white; }
+        .feedback-card .fb-msg { font-size: 11px; color: rgba(255,255,255,0.7); font-weight: 600; text-transform: uppercase; margin-top: 4px; }
+
+        /* ── LOG LIST ─────────────────────────────── */
+        .log-list {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
         }
 
-        .feedback-card-enterprise .fb-name-large {
-            font-size: 20px;
-            font-weight: 800;
-            color: white;
-            letter-spacing: 0.02em;
+        .log-item {
+            background: rgba(10,22,40,0.4);
+            border: 1px solid rgba(6,182,212,0.08);
+            border-left: 3px solid var(--cyan-500);
+            border-radius: 10px;
+            padding: 12px 16px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
         }
 
-        .feedback-card-enterprise .fb-msg-large {
-            font-size: 12px;
-            color: rgba(255,255,255,0.7);
-            font-weight: 600;
-            text-transform: uppercase;
-            margin-top: 6px;
+        .log-item.alpa { border-left-color: #ef4444; }
+        .log-item.haid { border-left-color: #e11d48; }
+        .log-item.keputrian { border-left-color: #9333ea; }
+        .log-item.nonislam { border-left-color: #3b82f6; }
+
+        .log-nama { font-size: 13px; font-weight: 700; color: #e2e8f0; }
+        .log-meta { font-size: 10px; color: #64748b; margin-top: 2px; }
+
+        .badge {
+            font-size: 10px;
+            font-weight: 700;
+            padding: 4px 10px;
+            border-radius: 8px;
             letter-spacing: 0.04em;
         }
 
-        /* ── QR RESULT DISPLAY ─────────────────────────────── */
-        .qr-result-display {
-            background: linear-gradient(135deg, rgba(19,40,76,0.5), rgba(15,29,58,0.5));
-            border: 1px solid rgba(6,182,212,0.15);
-            border-radius: 16px;
-            padding: 28px;
+        .badge-hadir { background: rgba(6,182,212,0.12); color: #22d3ee; border: 1px solid rgba(6,182,212,0.2); }
+        .badge-alpa { background: rgba(239,68,68,0.12); color: #f87171; border: 1px solid rgba(239,68,68,0.2); }
+        .badge-haid { background: rgba(225,29,72,0.12); color: #fb7185; border: 1px solid rgba(225,29,72,0.2); }
+
+        /* ── EMPTY STATE ─────────────────────────────── */
+        .empty-state {
             display: flex;
             flex-direction: column;
             align-items: center;
-            gap: 16px;
+            justify-content: center;
+            padding: 30px 20px;
+            text-align: center;
+        }
+
+        .empty-state i { font-size: 40px; color: #334155; margin-bottom: 10px; }
+        .empty-state p { font-size: 12px; color: #475569; font-weight: 500; }
+
+        /* ── QR RESULT ─────────────────────────────── */
+        .qr-result-card {
+            background: rgba(19,40,76,0.4);
+            border: 1px solid rgba(6,182,212,0.12);
+            border-radius: 16px;
+            padding: 24px;
+            text-align: center;
             margin-top: 16px;
         }
 
-        .qr-white-bg {
+        .qr-result-card .qr-white-box {
             background: white;
-            padding: 16px;
+            padding: 12px;
             border-radius: 12px;
-            box-shadow: 0 8px 25px rgba(0,0,0,0.3);
+            display: inline-block;
+            margin-bottom: 12px;
         }
 
-        /* ── MODAL LOGIN ENTERPRISE ─────────────────────────────── */
+        /* ── NAIK KELAS ITEM ─────────────────────────────── */
+        .naik-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px 14px;
+            background: rgba(10,22,40,0.4);
+            border: 1px solid rgba(6,182,212,0.08);
+            border-radius: 10px;
+        }
+
+        /* ── LAPORAN CARD ─────────────────────────────── */
+        .laporan-card {
+            background: rgba(10,22,40,0.4);
+            border: 1px solid rgba(6,182,212,0.08);
+            border-radius: 12px;
+            padding: 14px 16px;
+        }
+
+        /* ── TOAST ─────────────────────────────── */
+        .toast-container {
+            position: fixed;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 9999;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            width: calc(100% - 32px);
+            max-width: 400px;
+            pointer-events: none;
+        }
+
+        .toast {
+            background: rgba(19,40,76,0.95);
+            border: 1px solid rgba(6,182,212,0.2);
+            border-radius: 12px;
+            padding: 12px 16px;
+            font-size: 12px;
+            font-weight: 600;
+            color: #e2e8f0;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            animation: slideUp 0.3s ease;
+            backdrop-filter: blur(20px);
+            pointer-events: auto;
+        }
+
+        .toast.error { border-color: rgba(239,68,68,0.25); }
+
+        /* ── LOADING ─────────────────────────────── */
+        .loading-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(2,6,23,0.9);
+            z-index: 9998;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            flex-direction: column;
+            gap: 14px;
+        }
+
+        .loading-overlay.show { display: flex; }
+
+        .spinner {
+            width: 40px;
+            height: 40px;
+            border: 3px solid rgba(6,182,212,0.15);
+            border-top-color: #06b6d4;
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+        }
+
+        .loading-text {
+            font-size: 10px;
+            font-weight: 700;
+            color: #22d3ee;
+            letter-spacing: 0.1em;
+        }
+
+        /* ── LOGIN OVERLAY ─────────────────────────────── */
         .login-overlay {
             position: fixed;
             inset: 0;
@@ -1063,66 +704,59 @@
             align-items: center;
             justify-content: center;
             padding: 20px;
-            backdrop-filter: blur(20px);
         }
 
-        .login-modal {
-            background: linear-gradient(135deg, rgba(15,29,58,0.95), rgba(10,22,40,0.95));
+        .login-card {
+            background: var(--navy-900);
             border: 1px solid rgba(6,182,212,0.2);
-            border-radius: 24px;
+            border-radius: 20px;
             width: 100%;
-            max-width: 440px;
+            max-width: 380px;
             overflow: hidden;
-            box-shadow: 0 25px 60px rgba(0,0,0,0.5), 0 0 80px rgba(6,182,212,0.05);
         }
 
-        .login-header {
-            background: linear-gradient(135deg, rgba(19,40,76,0.8), rgba(15,29,58,0.8));
-            padding: 36px 32px 24px;
+        .login-card-header {
+            padding: 28px 24px 20px;
             text-align: center;
             border-bottom: 1px solid rgba(6,182,212,0.1);
         }
 
-        .login-logo-box {
-            width: 70px;
-            height: 70px;
+        .login-logo {
+            width: 60px;
+            height: 60px;
             background: linear-gradient(135deg, #0891b2, #06b6d4);
-            border-radius: 18px;
+            border-radius: 16px;
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 32px;
-            margin: 0 auto 16px;
-            box-shadow: 0 8px 25px rgba(6,182,212,0.3);
+            font-size: 26px;
+            margin: 0 auto 12px;
         }
 
         .login-title {
-            font-size: 24px;
+            font-size: 20px;
             font-weight: 800;
             color: #e2e8f0;
-            letter-spacing: 0.02em;
         }
 
-        .login-subtitle {
-            font-size: 12px;
+        .login-sub {
+            font-size: 11px;
             color: #64748b;
-            margin-top: 6px;
-            font-weight: 400;
-            line-height: 1.5;
+            margin-top: 4px;
         }
 
-        .login-body {
-            padding: 24px 32px 32px;
+        .login-card-body {
+            padding: 20px 24px 24px;
         }
 
-        .login-scan-area {
+        .login-scan-box {
             background: rgba(5,12,26,0.6);
-            border: 1px solid rgba(6,182,212,0.15);
+            border: 1px solid rgba(6,182,212,0.12);
             border-radius: 14px;
             overflow: hidden;
             position: relative;
-            min-height: 220px;
-            margin-bottom: 16px;
+            min-height: 200px;
+            margin-bottom: 14px;
         }
 
         .login-scan-placeholder {
@@ -1132,849 +766,417 @@
             flex-direction: column;
             align-items: center;
             justify-content: center;
-            gap: 10px;
+            gap: 8px;
         }
 
-        .login-scan-placeholder-icon {
-            font-size: 36px;
-            opacity: 0.3;
-        }
-
-        .login-scan-placeholder-text {
-            font-size: 12px;
-            color: #475569;
-            font-weight: 600;
-        }
-
-        .login-footer {
-            margin-top: 20px;
-            padding-top: 20px;
-            border-top: 1px solid rgba(6,182,212,0.08);
-            text-align: center;
-        }
-
-        .login-footer-text {
-            font-size: 10px;
-            color: #334155;
-            font-weight: 500;
-        }
+        .login-scan-placeholder i { font-size: 32px; opacity: 0.2; color: #64748b; }
+        .login-scan-placeholder p { font-size: 11px; color: #475569; font-weight: 600; }
 
         .login-error {
             display: none;
-            font-size: 12px;
+            font-size: 11px;
             color: #f87171;
             font-weight: 700;
             text-align: center;
-            margin-top: 12px;
+            margin-top: 10px;
             padding: 10px;
             background: rgba(239,68,68,0.08);
             border: 1px solid rgba(239,68,68,0.2);
             border-radius: 8px;
         }
 
-        /* ── TOAST ENTERPRISE ─────────────────────────────── */
-        .toast-container {
-            position: fixed;
-            bottom: 24px;
-            right: 24px;
-            z-index: 99999;
-            display: flex;
-            flex-direction: column;
-            gap: 8px;
+        .login-footer {
+            text-align: center;
+            padding: 16px;
+            border-top: 1px solid rgba(6,182,212,0.06);
         }
 
-        .toast-enterprise {
-            background: rgba(19,40,76,0.95);
-            border: 1px solid rgba(6,182,212,0.2);
-            border-radius: 12px;
-            padding: 12px 18px;
-            font-size: 13px;
-            font-weight: 600;
-            color: #e2e8f0;
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            animation: slideInRight 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-            min-width: 240px;
-            backdrop-filter: blur(20px);
-            box-shadow: 0 8px 25px rgba(0,0,0,0.4);
+        .login-footer p {
+            font-size: 10px;
+            color: #334155;
+            font-weight: 500;
         }
 
-        .toast-enterprise.error-toast {
-            border-color: rgba(239,68,68,0.25);
-        }
-
-        .toast-enterprise .toast-icon {
-            font-size: 18px;
-        }
-
-        /* ── LOADING OVERLAY ─────────────────────────────── */
-        .loading-overlay-enterprise {
-            position: fixed;
-            inset: 0;
-            background: rgba(2,6,23,0.9);
-            z-index: 99998;
-            display: none;
-            align-items: center;
-            justify-content: center;
-            flex-direction: column;
-            gap: 16px;
-            backdrop-filter: blur(10px);
-        }
-
-        .loading-overlay-enterprise.show {
-            display: flex;
-        }
-
-        .spinner-enterprise {
-            width: 48px;
-            height: 48px;
-            border: 3px solid rgba(6,182,212,0.15);
-            border-top-color: #06b6d4;
-            border-radius: 50%;
-            animation: spin 0.8s linear infinite;
-        }
-
-        .loading-text {
-            font-size: 11px;
-            font-weight: 700;
-            color: #22d3ee;
-            letter-spacing: 0.1em;
-            text-transform: uppercase;
-        }
-
-        /* ── SCROLLBAR CUSTOM ─────────────────────────────── */
-        ::-webkit-scrollbar {
-            width: 5px;
-            height: 5px;
-        }
-
-        ::-webkit-scrollbar-track {
-            background: transparent;
-        }
-
-        ::-webkit-scrollbar-thumb {
-            background: rgba(6,182,212,0.2);
-            border-radius: 10px;
-        }
-
-        ::-webkit-scrollbar-thumb:hover {
-            background: rgba(6,182,212,0.35);
-        }
+        /* ── SCROLLBAR ─────────────────────────────── */
+        ::-webkit-scrollbar { width: 3px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: rgba(6,182,212,0.2); border-radius: 10px; }
 
         /* ── ANIMATIONS ─────────────────────────────── */
-        @keyframes spin {
-            to { transform: rotate(360deg); }
+        @keyframes spin { to { transform: rotate(360deg); } }
+        @keyframes slideUp { from { transform: translateY(10px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+        @keyframes pulse { 0%,100% { opacity:1; } 50% { opacity:0.4; } }
+
+        /* ── UPLOAD AREA ─────────────────────────────── */
+        .upload-area {
+            background: rgba(5,12,26,0.4);
+            border: 1.5px dashed rgba(6,182,212,0.2);
+            border-radius: 14px;
+            padding: 20px;
+            text-align: center;
+            margin-bottom: 14px;
         }
 
-        @keyframes pulse {
-            0%, 100% { opacity: 1; }
-            50% { opacity: 0.4; }
-        }
-
-        @keyframes shimmer {
-            0% { transform: translateX(-100%) rotate(45deg); }
-            100% { transform: translateX(100%) rotate(45deg); }
-        }
-
-        @keyframes slideInRight {
-            from { transform: translateX(30px); opacity: 0; }
-            to { transform: translateX(0); opacity: 1; }
-        }
-
-        @keyframes fadeInUp {
-            from { transform: translateY(10px); opacity: 0; }
-            to { transform: translateY(0); opacity: 1; }
-        }
-
-        .animate-fade-in-up {
-            animation: fadeInUp 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-        }
-
-        /* ── RESPONSIVE ─────────────────────────────── */
-        @media (max-width: 768px) {
-            .enterprise-sidebar {
-                width: var(--sidebar-collapsed);
-            }
-
-            .sidebar-nav-item span:not(.sidebar-nav-icon),
-            .sidebar-nav-badge,
-            .sidebar-menu-title,
-            .sidebar-label,
-            .sidebar-user-card .user-info-sm,
-            .sidebar-user-card .user-name-sm,
-            .sidebar-user-card .user-role-sm {
-                display: none;
-            }
-
-            .sidebar-nav-item {
-                justify-content: center;
-                padding: 12px;
-            }
-
-            .sidebar-nav-icon {
-                width: auto;
-                font-size: 18px;
-            }
-
-            .sidebar-user-card {
-                justify-content: center;
-                padding: 10px;
-            }
-
-            .content-wrapper {
-                padding: 16px 12px;
-            }
-
-            .form-row-enterprise {
-                grid-template-columns: 1fr;
-            }
-
-            .page-title-enterprise {
-                font-size: 22px;
-            }
-
-            .stat-cards-grid {
-                grid-template-columns: repeat(2, 1fr);
-            }
-
-            .stat-value-enterprise {
-                font-size: 28px;
-            }
-
-            .header-user .user-info-sm {
-                display: none;
-            }
-        }
-
-        @media (max-width: 480px) {
-            .enterprise-sidebar {
-                width: 56px;
-            }
-
-            .header-app-sub {
-                display: none;
-            }
-
-            .header-right .header-btn span:not(i) {
-                display: none;
-            }
-
-            .stat-cards-grid {
-                grid-template-columns: 1fr 1fr;
-                gap: 10px;
-            }
-
-            .stat-card-enterprise {
-                padding: 14px 16px;
-            }
-
-            .stat-value-enterprise {
-                font-size: 24px;
-            }
-
-            .panel-body-enterprise {
-                padding: 16px;
-            }
-
-            .mode-switcher {
-                flex-wrap: wrap;
-            }
-
-            .mode-btn-enterprise {
-                flex: 1 1 45%;
-                font-size: 9px;
-                padding: 8px 6px;
-            }
-        }
+        /* ── READER RESET ─────────────────────────────── */
+        #reader, #readerLogin, #readerNaik { border: none !important; }
+        #reader video, #readerLogin video, #readerNaik video { border-radius: 14px; }
     </style>
 </head>
 <body>
 
-<!-- LOADING OVERLAY -->
-<div id="loadingOverlay" class="loading-overlay-enterprise">
-    <div class="spinner-enterprise"></div>
+<!-- LOADING -->
+<div id="loadingOverlay" class="loading-overlay">
+    <div class="spinner"></div>
     <div class="loading-text">Memproses...</div>
 </div>
 
-<!-- TOAST CONTAINER -->
+<!-- TOAST -->
 <div class="toast-container" id="toastContainer"></div>
 
-<!-- LOGIN MODAL -->
-<div id="loginModal" class="login-overlay">
-    <div class="login-modal">
-        <div class="login-header">
-            <div class="login-logo-box">
-                <i class="fas fa-mosque"></i>
-            </div>
+<!-- LOGIN OVERLAY -->
+<div id="loginOverlay" class="login-overlay">
+    <div class="login-card">
+        <div class="login-card-header">
+            <div class="login-logo">🕌</div>
             <div class="login-title">DZUHUR 12</div>
-            <div class="login-subtitle">Sistem Presensi Kerohanian Terintegrasi<br>SMAN 12 — Enterprise Grade System</div>
+            <div class="login-sub">Sistem Presensi Kerohanian SMAN 12<br>Scan QR untuk masuk</div>
         </div>
-        <div class="login-body">
-            <div class="login-scan-area">
+        <div class="login-card-body">
+            <div class="login-scan-box">
                 <div id="readerLogin"></div>
                 <div id="loginScanPlaceholder" class="login-scan-placeholder">
-                    <div class="login-scan-placeholder-icon">
-                        <i class="fas fa-qrcode"></i>
-                    </div>
-                    <div class="login-scan-placeholder-text">SCAN QR UNTUK AKSES SISTEM</div>
+                    <i class="fas fa-qrcode"></i>
+                    <p>SCAN QR LOGIN</p>
                 </div>
             </div>
-            <button onclick="startLoginScan()" id="btnLoginStart" class="btn-enterprise btn-primary-enterprise" style="width:100%;">
-                <i class="fas fa-camera"></i> SCAN QR LOGIN
+            <button onclick="startLoginScan()" id="btnLoginStart" class="btn btn-primary">
+                <i class="fas fa-camera"></i> SCAN QR
             </button>
-            <button onclick="stopLoginScan()" id="btnLoginStop" class="btn-enterprise btn-danger-enterprise" style="width:100%; display:none;">
-                <i class="fas fa-stop"></i> STOP KAMERA
+            <button onclick="stopLoginScan()" id="btnLoginStop" class="btn btn-danger" style="display:none;">
+                <i class="fas fa-stop"></i> STOP
             </button>
             <div id="loginError" class="login-error">
-                <i class="fas fa-exclamation-triangle"></i> QR tidak valid! Silakan coba lagi.
+                <i class="fas fa-exclamation-triangle"></i> QR tidak valid!
             </div>
         </div>
         <div class="login-footer">
-            <div class="login-footer-text">© Gema Bintang • Kerohanian SMAN 12 • v2.0 Enterprise</div>
+            <p>© Gema Bintang • Kerohanian SMAN 12</p>
         </div>
     </div>
 </div>
 
-<!-- ENTERPRISE HEADER -->
-<header class="enterprise-header">
-    <div class="header-brand">
-        <div class="header-logo">
-            <i class="fas fa-star-and-crescent"></i>
-        </div>
-        <div class="header-text">
-            <div class="header-app-name">KEROHANIAN 12</div>
-            <div class="header-app-sub">Enterprise Presensi System</div>
+<!-- APP CONTAINER -->
+<div class="app-container" id="appContainer">
+
+    <!-- ═══════════════ HOME SCREEN ═══════════════ -->
+    <div class="screen home-screen active" id="screenHome">
+        <div class="screen-content">
+            <div class="home-header">
+                <div class="home-logo">🕌</div>
+                <div class="home-title">Kerohanian 12</div>
+                <div class="home-subtitle">Sistem Presensi Dzuhur Terintegrasi</div>
+            </div>
+
+            <div class="home-stats-row">
+                <div class="home-stat-card">
+                    <div class="home-stat-value" style="color:#22d3ee;" id="homeHadir">0</div>
+                    <div class="home-stat-label">Hadir Hari Ini</div>
+                </div>
+                <div class="home-stat-card">
+                    <div class="home-stat-value" style="color:#fbbf24;" id="homeTotal">0</div>
+                    <div class="home-stat-label">Total Siswa</div>
+                </div>
+            </div>
+
+            <div class="home-menu-grid">
+                <div class="home-menu-card" onclick="navigateTo('scan')">
+                    <div class="menu-icon cyan"><i class="fas fa-camera"></i></div>
+                    <div class="menu-title">Scan Presensi</div>
+                    <div class="menu-desc">Scan QR Code siswa untuk presensi</div>
+                </div>
+                <div class="home-menu-card" onclick="navigateTo('admin')">
+                    <div class="menu-icon amber"><i class="fas fa-crown"></i></div>
+                    <div class="menu-title">Admin Panel</div>
+                    <div class="menu-desc">Tambah siswa & generate QR</div>
+                </div>
+                <div class="home-menu-card" onclick="navigateTo('naikkelas')">
+                    <div class="menu-icon violet"><i class="fas fa-graduation-cap"></i></div>
+                    <div class="menu-title">Naik Kelas</div>
+                    <div class="menu-desc">Migrasi siswa ke kelas baru</div>
+                </div>
+                <div class="home-menu-card" onclick="navigateTo('laporan')">
+                    <div class="menu-icon emerald"><i class="fas fa-chart-bar"></i></div>
+                    <div class="menu-title">Data & Laporan</div>
+                    <div class="menu-desc">Lihat & download data</div>
+                </div>
+            </div>
+
+            <div style="margin-top:16px;">
+                <div class="home-menu-card" onclick="navigateTo('import')" style="display:flex; align-items:center; gap:12px; text-align:left; padding:14px 16px;">
+                    <div class="menu-icon emerald" style="margin:0;"><i class="fas fa-file-excel"></i></div>
+                    <div>
+                        <div class="menu-title">Import Excel</div>
+                        <div class="menu-desc">Upload data massal & generate QR</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="home-user-badge">
+                <div class="home-user-avatar"><i class="fas fa-user"></i></div>
+                <div class="home-user-info">Login sebagai <strong>Administrator</strong></div>
+                <button onclick="logout()" style="margin-left:auto; background:rgba(239,68,68,0.1); color:#f87171; border:1px solid rgba(239,68,68,0.2); border-radius:8px; padding:6px 12px; font-size:10px; font-weight:700; cursor:pointer;">
+                    <i class="fas fa-sign-out-alt"></i> Keluar
+                </button>
+            </div>
         </div>
     </div>
 
-    <div class="header-right">
-        <div class="status-indicator">
-            <div class="status-dot"></div>
-            <span>SISTEM ONLINE</span>
+    <!-- ═══════════════ SCAN SCREEN ═══════════════ -->
+    <div class="screen" id="screenScan">
+        <div class="topbar">
+            <div class="topbar-back" onclick="navigateTo('home')"><i class="fas fa-arrow-left"></i></div>
+            <div class="topbar-title">Scan Presensi</div>
         </div>
-        <button onclick="toggleFullscreen()" class="header-btn">
-            <i class="fas fa-expand"></i> <span>LAYAR PENUH</span>
-        </button>
-        <button id="btnLogoutHeader" onclick="logout()" class="header-btn logout-btn" style="display:none;">
-            <i class="fas fa-sign-out-alt"></i> <span>KELUAR</span>
-        </button>
-        <div class="header-user">
-            <div class="user-avatar-sm">
-                <i class="fas fa-user"></i>
+        <div class="screen-content">
+            <!-- Mode -->
+            <div class="mode-bar">
+                <button onclick="setMode('Islam')" id="modeIslam" class="mode-btn active-islam">☪️ Islam</button>
+                <button onclick="setMode('NonIslam')" id="modeKristen" class="mode-btn">✝️ Non Islam</button>
+                <button onclick="setMode('Haid')" id="modeHaid" class="mode-btn">🩸 Haid</button>
+                <button onclick="setMode('Keputrian')" id="modeKeputrian" class="mode-btn">🌸 Keputrian</button>
             </div>
-            <div class="user-info-sm">
-                <div class="user-name-sm">ADMIN</div>
-                <div class="user-role-sm">Super Administrator</div>
+
+            <!-- Camera -->
+            <div class="camera-box" style="margin-bottom:14px;">
+                <div id="reader"></div>
+                <div id="cameraPlaceholder" class="camera-placeholder">
+                    <i class="fas fa-camera"></i>
+                    <p>Kamera belum aktif</p>
+                </div>
+                <div class="scan-feedback" id="feedback">
+                    <div class="feedback-card" id="fbBox">
+                        <div class="fb-icon" id="fbIcon"></div>
+                        <div class="fb-name" id="fbNama"></div>
+                        <div class="fb-msg" id="fbMsg"></div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="btn-row" style="margin-bottom:14px;">
+                <button onclick="startCam()" id="btnStart" class="btn btn-primary btn-sm"><i class="fas fa-play"></i> Aktifkan</button>
+                <button onclick="flipCam()" id="btnFlip" class="btn btn-secondary btn-sm" style="display:none;"><i class="fas fa-sync"></i></button>
+                <button onclick="stopCam()" id="btnStop" class="btn btn-danger btn-sm" style="display:none;"><i class="fas fa-stop"></i></button>
+            </div>
+
+            <!-- Manual Absen -->
+            <div style="background:rgba(19,40,76,0.3); border:1px solid rgba(6,182,212,0.1); border-radius:14px; padding:16px; margin-bottom:14px;">
+                <div style="font-size:12px; font-weight:700; color:#e2e8f0; margin-bottom:10px;">
+                    <i class="fas fa-pen-to-square" style="color:#fbbf24;"></i> Absen Manual
+                </div>
+                <div class="form-row" style="margin-bottom:8px;">
+                    <div class="form-group" style="margin-bottom:0;">
+                        <label class="form-label">Kelas</label>
+                        <select id="manualKelas" class="form-input"></select>
+                    </div>
+                    <div class="form-group" style="margin-bottom:0;">
+                        <label class="form-label">No. Absen</label>
+                        <select id="manualAbsen" class="form-input"><option value="">Pilih</option></select>
+                    </div>
+                </div>
+                <div class="form-group" style="margin-bottom:8px;">
+                    <label class="form-label">Nama</label>
+                    <input type="text" id="manualNama" readonly class="form-input" placeholder="Otomatis">
+                </div>
+                <div class="btn-row">
+                    <button onclick="absenManualTidakHadir()" class="btn btn-danger btn-sm">❌ Tidak Hadir</button>
+                    <button onclick="alpakanSemuaKosong()" class="btn btn-warning btn-sm">🚨 Alpakan Semua</button>
+                </div>
+            </div>
+
+            <!-- Log -->
+            <div>
+                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
+                    <div style="font-size:12px; font-weight:700; color:#e2e8f0;">
+                        <i class="fas fa-list" style="color:#22d3ee;"></i> Log Presensi
+                    </div>
+                    <div style="font-size:13px; font-weight:800; color:#22d3ee;" id="totalHadir">0 Hadir</div>
+                </div>
+                <div class="form-row" style="margin-bottom:10px;">
+                    <select id="pilihBulan" class="form-input" onchange="initTanggalHarian(this.value)"></select>
+                    <select id="tanggalHarian" class="form-input" onchange="gantiTanggalUI()"></select>
+                </div>
+                <button onclick="downloadHarian()" class="btn btn-primary btn-sm" style="margin-bottom:10px;">
+                    <i class="fas fa-download"></i> Download
+                </button>
+                <div id="logPresensi" class="log-list">
+                    <div class="empty-state"><i class="fas fa-inbox"></i><p>Belum ada presensi</p></div>
+                </div>
             </div>
         </div>
     </div>
-</header>
 
-<!-- BODY LAYOUT -->
-<div class="app-layout">
-
-    <!-- ENTERPRISE SIDEBAR -->
-    <nav class="enterprise-sidebar">
-        <div class="sidebar-header">
-            <div class="sidebar-label">Navigation Menu</div>
+    <!-- ═══════════════ ADMIN SCREEN ═══════════════ -->
+    <div class="screen" id="screenAdmin">
+        <div class="topbar">
+            <div class="topbar-back" onclick="navigateTo('home')"><i class="fas fa-arrow-left"></i></div>
+            <div class="topbar-title">Admin Panel</div>
         </div>
-
-        <div class="sidebar-menu-group">
-            <div class="sidebar-menu-title">Main Operations</div>
-
-            <a class="sidebar-nav-item active" id="navAdmin" onclick="switchTab('admin')">
-                <span class="sidebar-nav-icon"><i class="fas fa-crown"></i></span>
-                <span>Administrator</span>
-                <span class="sidebar-nav-badge">MASTER</span>
-            </a>
-
-            <a class="sidebar-nav-item" id="navScan" onclick="switchTab('scan')">
-                <span class="sidebar-nav-icon"><i class="fas fa-camera-retro"></i></span>
-                <span>Scan Presensi</span>
-                <span class="sidebar-nav-badge">LIVE</span>
-            </a>
-
-            <a class="sidebar-nav-item" id="navNaik" onclick="switchTab('naikkelas')">
-                <span class="sidebar-nav-icon"><i class="fas fa-graduation-cap"></i></span>
-                <span>Naik Kelas</span>
-                <span class="sidebar-nav-badge">MIGRATE</span>
-            </a>
-        </div>
-
-        <div class="sidebar-divider"></div>
-
-        <div class="sidebar-menu-group">
-            <div class="sidebar-menu-title">Reports & Data</div>
-
-            <a class="sidebar-nav-item" id="navDashboard" onclick="switchTab('dashboard')">
-                <span class="sidebar-nav-icon"><i class="fas fa-chart-pie"></i></span>
-                <span>Data & Laporan</span>
-            </a>
-        </div>
-
-        <div class="sidebar-footer">
-            <div class="sidebar-user-card">
-                <div class="user-avatar-sm">
-                    <i class="fas fa-shield-haltered"></i>
+        <div class="screen-content">
+            <!-- Tambah Siswa -->
+            <div style="background:rgba(19,40,76,0.3); border:1px solid rgba(6,182,212,0.1); border-radius:16px; padding:16px; margin-bottom:14px;">
+                <div style="font-size:13px; font-weight:700; color:#e2e8f0; margin-bottom:12px;">
+                    <i class="fas fa-user-plus" style="color:#22d3ee;"></i> Registrasi Siswa
                 </div>
-                <div class="user-info-sm">
-                    <div class="user-name-sm">ADMINISTRATOR</div>
-                    <div class="user-role-sm">Kerohanian SMAN 12</div>
+                <div class="form-group">
+                    <label class="form-label">Nama Lengkap</label>
+                    <input type="text" id="nama" placeholder="Masukkan nama" class="form-input">
                 </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label class="form-label">Kelas</label>
+                        <select id="kelas" class="form-input"></select>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">No. Absen</label>
+                        <input type="number" id="absen" placeholder="01" class="form-input">
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label class="form-label">Jenis Kelamin</label>
+                        <select id="jk" class="form-input">
+                            <option value="L">Laki-laki</option>
+                            <option value="P">Perempuan</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Agama</label>
+                        <select id="agama" class="form-input">
+                            <option value="Islam">Islam</option>
+                            <option value="Kristen">Kristen</option>
+                            <option value="Katolik">Katolik</option>
+                            <option value="Hindu">Hindu</option>
+                            <option value="Buddha">Buddha</option>
+                            <option value="Konghucu">Konghucu</option>
+                        </select>
+                    </div>
+                </div>
+                <button onclick="buatQR()" class="btn btn-primary"><i class="fas fa-qrcode"></i> Generate QR</button>
+                <div id="qrArea"></div>
+            </div>
+
+            <!-- Reset -->
+            <div style="background:rgba(19,40,76,0.3); border:1px solid rgba(239,68,68,0.15); border-radius:16px; padding:16px;">
+                <div style="font-size:13px; font-weight:700; color:#e2e8f0; margin-bottom:8px;">
+                    <i class="fas fa-rotate-left" style="color:#f87171;"></i> Reset Total Hadir
+                </div>
+                <p style="font-size:11px; color:#64748b; margin-bottom:12px;">Reset semua kehadiran ke 0. Tidak bisa dibatalkan.</p>
+                <button onclick="resetTotalHadir()" class="btn btn-danger btn-sm">
+                    <i class="fas fa-exclamation-triangle"></i> Reset Semua
+                </button>
             </div>
         </div>
-    </nav>
+    </div>
 
-    <!-- MAIN CONTENT -->
-    <main class="main-container">
-        <div class="content-wrapper">
+    <!-- ═══════════════ NAIK KELAS SCREEN ═══════════════ -->
+    <div class="screen" id="screenNaikKelas">
+        <div class="topbar">
+            <div class="topbar-back" onclick="navigateTo('home')"><i class="fas fa-arrow-left"></i></div>
+            <div class="topbar-title">Naik Kelas</div>
+        </div>
+        <div class="screen-content">
+            <div class="form-group">
+                <label class="form-label">Kelas Tujuan</label>
+                <select id="kelasTujuan" class="form-input"></select>
+            </div>
 
-            <!-- ═══════════════════ TAB ADMIN ═══════════════════ -->
-            <div id="tabAdmin">
-                <div class="page-header-enterprise">
-                    <div class="breadcrumb">
-                        <i class="fas fa-home"></i> Beranda <i class="fas fa-chevron-right"></i> Administrator
-                    </div>
-                    <div class="page-title-enterprise">Manajemen <span class="highlight">Siswa</span></div>
-                    <div class="page-subtitle">Kelola data siswa, generate QR Code, dan import data massal</div>
-                </div>
-
-                <div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap:20px;">
-
-                    <!-- Tambah Siswa Panel -->
-                    <div class="panel-enterprise">
-                        <div class="panel-header-enterprise">
-                            <div class="panel-icon-box cyan">
-                                <i class="fas fa-user-plus"></i>
-                            </div>
-                            <div>
-                                <div class="panel-title-enterprise">Registrasi Siswa Baru</div>
-                                <div class="panel-desc-enterprise">Daftarkan siswa & generate QR Code unik</div>
-                            </div>
-                        </div>
-                        <div class="panel-body-enterprise">
-                            <div class="form-grid-enterprise">
-                                <div class="form-group-enterprise">
-                                    <label class="form-label-enterprise">Nama Lengkap</label>
-                                    <input type="text" id="nama" placeholder="Masukkan nama lengkap siswa" class="form-control-enterprise">
-                                </div>
-                                <div class="form-row-enterprise">
-                                    <div class="form-group-enterprise">
-                                        <label class="form-label-enterprise">Kelas</label>
-                                        <select id="kelas" class="form-control-enterprise"></select>
-                                    </div>
-                                    <div class="form-group-enterprise">
-                                        <label class="form-label-enterprise">No. Absen</label>
-                                        <input type="number" id="absen" placeholder="01" class="form-control-enterprise">
-                                    </div>
-                                </div>
-                                <div class="form-row-enterprise">
-                                    <div class="form-group-enterprise">
-                                        <label class="form-label-enterprise">Jenis Kelamin</label>
-                                        <select id="jk" class="form-control-enterprise">
-                                            <option value="L">Laki-laki</option>
-                                            <option value="P">Perempuan</option>
-                                        </select>
-                                    </div>
-                                    <div class="form-group-enterprise">
-                                        <label class="form-label-enterprise">Agama</label>
-                                        <select id="agama" class="form-control-enterprise">
-                                            <option value="Islam">Islam</option>
-                                            <option value="Kristen">Kristen</option>
-                                            <option value="Katolik">Katolik</option>
-                                            <option value="Hindu">Hindu</option>
-                                            <option value="Buddha">Buddha</option>
-                                            <option value="Konghucu">Konghucu</option>
-                                        </select>
-                                    </div>
-                                </div>
-                                <button onclick="buatQR()" class="btn-enterprise btn-primary-enterprise" style="width:100%;">
-                                    <i class="fas fa-qrcode"></i> GENERATE QR CODE
-                                </button>
-                            </div>
-                            <div id="qrArea"></div>
-                        </div>
-                    </div>
-
-                    <div style="display:flex; flex-direction:column; gap:20px;">
-
-                        <!-- Import Excel Panel -->
-                        <div class="panel-enterprise">
-                            <div class="panel-header-enterprise">
-                                <div class="panel-icon-box emerald">
-                                    <i class="fas fa-file-excel"></i>
-                                </div>
-                                <div>
-                                    <div class="panel-title-enterprise">Import Data Massal</div>
-                                    <div class="panel-desc-enterprise">Upload file Excel & generate QR otomatis</div>
-                                </div>
-                            </div>
-                            <div class="panel-body-enterprise">
-                                <div style="background: rgba(5,12,26,0.4); border: 1.5px dashed rgba(6,182,212,0.2); border-radius: 12px; padding: 20px; text-align: center; margin-bottom: 16px;">
-                                    <i class="fas fa-cloud-upload-alt" style="font-size: 32px; color: #475569; margin-bottom: 10px; display: block;"></i>
-                                    <input type="file" id="fileExcel" accept=".xlsx,.xls" class="form-control-enterprise" style="background: transparent !important; border: none !important; padding: 8px 0 !important; text-align: center;">
-                                    <p style="font-size: 10px; color: #475569; margin-top: 6px;">Format: .xlsx / .xls — Multi-sheet per kelas</p>
-                                </div>
-                                <button onclick="importExcel()" class="btn-enterprise btn-success-enterprise" style="width:100%;">
-                                    <i class="fas fa-upload"></i> PROSES & GENERATE QR
-                                </button>
-                                <div id="importProgress" style="display:none; margin-top:16px; text-align:center; font-size:12px; font-weight:600; color:#22d3ee;"></div>
-                                <div id="importResult" style="display:none; margin-top:16px;"></div>
-                            </div>
-                        </div>
-
-                        <!-- Reset Total Hadir Panel -->
-                        <div class="panel-enterprise">
-                            <div class="panel-header-enterprise">
-                                <div class="panel-icon-box red">
-                                    <i class="fas fa-rotate-left"></i>
-                                </div>
-                                <div>
-                                    <div class="panel-title-enterprise">Reset Total Kehadiran</div>
-                                    <div class="panel-desc-enterprise">Reset semua counter kehadiran ke 0</div>
-                                </div>
-                            </div>
-                            <div class="panel-body-enterprise">
-                                <p style="font-size:12px; color:#64748b; margin-bottom:16px; line-height:1.7;">
-                                    <i class="fas fa-info-circle"></i> Gunakan fitur ini di awal tahun ajaran baru. 
-                                    Semua total kehadiran siswa akan di-reset menjadi 0. 
-                                    <strong style="color:#f87171;">Aksi ini tidak dapat dibatalkan!</strong>
-                                </p>
-                                <button onclick="resetTotalHadir()" class="btn-enterprise btn-danger-enterprise" style="width:100%;">
-                                    <i class="fas fa-exclamation-triangle"></i> RESET SEMUA TOTAL HADIR
-                                </button>
-                            </div>
-                        </div>
+            <div class="camera-box" style="margin-bottom:14px;">
+                <div id="readerNaik"></div>
+                <div class="scan-feedback" id="feedbackNaik">
+                    <div class="feedback-card" id="fbNaikBox">
+                        <div class="fb-icon" id="fbNaikIcon"></div>
+                        <div class="fb-name" id="fbNaikNama"></div>
+                        <div class="fb-msg" id="fbNaikMsg"></div>
                     </div>
                 </div>
             </div>
 
-            <!-- ═══════════════════ TAB SCAN ═══════════════════ -->
-            <div id="tabScan" style="display:none;">
-                <div class="page-header-enterprise">
-                    <div class="breadcrumb">
-                        <i class="fas fa-home"></i> Beranda <i class="fas fa-chevron-right"></i> Presensi
-                    </div>
-                    <div class="page-title-enterprise">Scan <span class="highlight">Presensi</span></div>
-                    <div class="page-subtitle">Lakukan presensi siswa dengan scan QR Code</div>
-                </div>
-
-                <!-- Mode Switcher -->
-                <div class="mode-switcher">
-                    <button onclick="setMode('Islam')" id="modeIslam" class="mode-btn-enterprise active-islam">
-                        <i class="fas fa-mosque"></i> Islam
-                    </button>
-                    <button onclick="setMode('NonIslam')" id="modeKristen" class="mode-btn-enterprise">
-                        <i class="fas fa-church"></i> Non Islam
-                    </button>
-                    <button onclick="setMode('Haid')" id="modeHaid" class="mode-btn-enterprise">
-                        <i class="fas fa-female"></i> Haid
-                    </button>
-                    <button onclick="setMode('Keputrian')" id="modeKeputrian" class="mode-btn-enterprise">
-                        <i class="fas fa-flower"></i> Keputrian
-                    </button>
-                </div>
-
-                <!-- Stats Cards -->
-                <div class="stat-cards-grid">
-                    <div class="stat-card-enterprise">
-                        <div class="stat-header">
-                            <div class="stat-icon-box cyan-bg">
-                                <i class="fas fa-check-circle"></i>
-                            </div>
-                            <div class="stat-label-enterprise">Hadir Hari Ini</div>
-                        </div>
-                        <div class="stat-value-enterprise cyan-text" id="statHadir">0</div>
-                        <div class="stat-change positive">
-                            <i class="fas fa-users"></i> Total presensi tercatat
-                        </div>
-                    </div>
-
-                    <div class="stat-card-enterprise">
-                        <div class="stat-header">
-                            <div class="stat-icon-box amber-bg">
-                                <i class="fas fa-database"></i>
-                            </div>
-                            <div class="stat-label-enterprise">Total Siswa</div>
-                        </div>
-                        <div class="stat-value-enterprise amber-text" id="statSiswa">0</div>
-                        <div class="stat-change">Siswa terdaftar</div>
-                    </div>
-
-                    <div class="stat-card-enterprise">
-                        <div class="stat-header">
-                            <div class="stat-icon-box emerald-bg">
-                                <i class="fas fa-chart-line"></i>
-                            </div>
-                            <div class="stat-label-enterprise">Kehadiran</div>
-                        </div>
-                        <div class="stat-value-enterprise emerald-text" id="statPersen">0%</div>
-                        <div class="stat-change positive">Persentase kehadiran</div>
-                    </div>
-                </div>
-
-                <div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap:20px;">
-
-                    <!-- Camera Panel -->
-                    <div class="panel-enterprise">
-                        <div class="panel-header-enterprise">
-                            <div class="panel-icon-box cyan">
-                                <i class="fas fa-camera"></i>
-                            </div>
-                            <div>
-                                <div class="panel-title-enterprise">Kamera Presensi</div>
-                                <div class="panel-desc-enterprise">Arahkan QR Code siswa ke kamera</div>
-                            </div>
-                        </div>
-                        <div class="panel-body-enterprise">
-                            <div class="btn-row-enterprise" style="margin-bottom:16px;">
-                                <button onclick="startCam()" id="btnStart" class="btn-enterprise btn-primary-enterprise btn-sm-enterprise">
-                                    <i class="fas fa-play"></i> Aktifkan Kamera
-                                </button>
-                                <button onclick="flipCam()" id="btnFlip" class="btn-enterprise btn-secondary-enterprise btn-sm-enterprise" style="display:none; flex:0; padding:8px 12px;">
-                                    <i class="fas fa-sync"></i>
-                                </button>
-                                <button onclick="stopCam()" id="btnStop" class="btn-enterprise btn-danger-enterprise btn-sm-enterprise" style="display:none;">
-                                    <i class="fas fa-stop"></i> Matikan
-                                </button>
-                            </div>
-                            <div class="camera-wrapper">
-                                <div id="reader"></div>
-                                <div id="cameraPlaceholder" class="camera-placeholder">
-                                    <div class="camera-placeholder-icon">
-                                        <i class="fas fa-camera"></i>
-                                    </div>
-                                    <div class="camera-placeholder-text">Kamera Belum Aktif</div>
-                                </div>
-                                <div class="scan-feedback-overlay" id="feedback">
-                                    <div class="feedback-card-enterprise" id="fbBox">
-                                        <div class="fb-icon-large" id="fbIcon"></div>
-                                        <div class="fb-name-large" id="fbNama"></div>
-                                        <div class="fb-msg-large" id="fbMsg"></div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Absen & Log Panel -->
-                    <div style="display:flex; flex-direction:column; gap:20px;">
-
-                        <!-- Absen Manual Panel -->
-                        <div class="panel-enterprise">
-                            <div class="panel-header-enterprise">
-                                <div class="panel-icon-box amber">
-                                    <i class="fas fa-pen-to-square"></i>
-                                </div>
-                                <div>
-                                    <div class="panel-title-enterprise">Absen Manual</div>
-                                    <div class="panel-desc-enterprise">Tandai tidak hadir atau alpakan massal</div>
-                                </div>
-                            </div>
-                            <div class="panel-body-enterprise">
-                                <div class="form-grid-enterprise">
-                                    <div class="form-row-enterprise">
-                                        <div class="form-group-enterprise">
-                                            <label class="form-label-enterprise">Kelas</label>
-                                            <select id="manualKelas" class="form-control-enterprise"></select>
-                                        </div>
-                                        <div class="form-group-enterprise">
-                                            <label class="form-label-enterprise">No. Absen</label>
-                                            <select id="manualAbsen" class="form-control-enterprise">
-                                                <option value="">Pilih No. Absen</option>
-                                            </select>
-                                        </div>
-                                    </div>
-                                    <div class="form-group-enterprise">
-                                        <label class="form-label-enterprise">Nama Siswa</label>
-                                        <input type="text" id="manualNama" placeholder="Otomatis terisi" readonly class="form-control-enterprise">
-                                    </div>
-                                    <div class="btn-row-enterprise">
-                                        <button onclick="absenManualTidakHadir()" class="btn-enterprise btn-danger-enterprise btn-sm-enterprise">
-                                            <i class="fas fa-times"></i> Tandai Tidak Hadir
-                                        </button>
-                                        <button onclick="alpakanSemuaKosong()" class="btn-enterprise btn-warning-enterprise btn-sm-enterprise">
-                                            <i class="fas fa-exclamation"></i> Alpakan Semua
-                                        </button>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-
-                        <!-- Log Presensi Panel -->
-                        <div class="panel-enterprise">
-                            <div class="panel-header-enterprise">
-                                <div class="panel-icon-box cyan">
-                                    <i class="fas fa-list-check"></i>
-                                </div>
-                                <div>
-                                    <div class="panel-title-enterprise">Log Presensi</div>
-                                    <div style="font-size:13px; font-weight:700; color:#22d3ee;" id="totalHadir">0 Hadir</div>
-                                </div>
-                            </div>
-                            <div class="panel-body-enterprise">
-                                <div class="form-row-enterprise" style="margin-bottom:16px;">
-                                    <div class="form-group-enterprise">
-                                        <label class="form-label-enterprise">Bulan</label>
-                                        <select id="pilihBulan" class="form-control-enterprise" onchange="initTanggalHarian(this.value)"></select>
-                                    </div>
-                                    <div class="form-group-enterprise">
-                                        <label class="form-label-enterprise">Tanggal / Rekap</label>
-                                        <select id="tanggalHarian" class="form-control-enterprise" onchange="gantiTanggalUI()"></select>
-                                    </div>
-                                </div>
-                                <button onclick="downloadHarian()" class="btn-enterprise btn-primary-enterprise btn-sm-enterprise" style="width:100%; margin-bottom:16px;">
-                                    <i class="fas fa-download"></i> Download Pilihan
-                                </button>
-                                <div id="logPresensi" class="log-container">
-                                    <div class="empty-state">
-                                        <div class="empty-state-icon">
-                                            <i class="fas fa-inbox"></i>
-                                        </div>
-                                        <div class="empty-state-text">Belum ada presensi hari ini</div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
+            <div class="btn-row" style="margin-bottom:14px;">
+                <button onclick="startScanNaikKelas()" id="btnStartNaik" class="btn btn-warning btn-sm"><i class="fas fa-play"></i> Scan</button>
+                <button onclick="stopScanNaikKelas()" id="btnStopNaik" class="btn btn-danger btn-sm" style="display:none;"><i class="fas fa-stop"></i> Stop</button>
             </div>
 
-            <!-- ═══════════════════ TAB NAIK KELAS ═══════════════════ -->
-            <div id="tabNaikKelas" style="display:none;">
-                <div class="page-header-enterprise">
-                    <div class="breadcrumb">
-                        <i class="fas fa-home"></i> Beranda <i class="fas fa-chevron-right"></i> Migrasi
-                    </div>
-                    <div class="page-title-enterprise">Naik <span class="highlight">Kelas</span></div>
-                    <div class="page-subtitle">Pindahkan siswa ke kelas baru dengan scan QR</div>
-                </div>
-
-                <div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap:20px;">
-                    <div class="panel-enterprise">
-                        <div class="panel-header-enterprise">
-                            <div class="panel-icon-box amber">
-                                <i class="fas fa-qrcode"></i>
-                            </div>
-                            <div>
-                                <div class="panel-title-enterprise">Kamera Naik Kelas</div>
-                                <div class="panel-desc-enterprise">Scan QR siswa satu per satu</div>
-                            </div>
-                        </div>
-                        <div class="panel-body-enterprise">
-                            <div class="form-group-enterprise" style="margin-bottom:16px;">
-                                <label class="form-label-enterprise">Kelas Tujuan</label>
-                                <select id="kelasTujuan" class="form-control-enterprise"></select>
-                            </div>
-                            <div class="btn-row-enterprise" style="margin-bottom:16px;">
-                                <button onclick="startScanNaikKelas()" id="btnStartNaik" class="btn-enterprise btn-warning-enterprise btn-sm-enterprise">
-                                    <i class="fas fa-play"></i> Mulai Scan
-                                </button>
-                                <button onclick="stopScanNaikKelas()" id="btnStopNaik" class="btn-enterprise btn-danger-enterprise btn-sm-enterprise" style="display:none;">
-                                    <i class="fas fa-stop"></i> Stop
-                                </button>
-                            </div>
-                            <div class="camera-wrapper">
-                                <div id="readerNaik"></div>
-                                <div class="scan-feedback-overlay" id="feedbackNaik">
-                                    <div class="feedback-card-enterprise" id="fbNaikBox">
-                                        <div class="fb-icon-large" id="fbNaikIcon"></div>
-                                        <div class="fb-name-large" id="fbNaikNama"></div>
-                                        <div class="fb-msg-large" id="fbNaikMsg"></div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="panel-enterprise">
-                        <div class="panel-header-enterprise">
-                            <div class="panel-icon-box cyan">
-                                <i class="fas fa-list-ul"></i>
-                            </div>
-                            <div>
-                                <div class="panel-title-enterprise">Daftar Scan</div>
-                                <div class="panel-desc-enterprise">Siswa yang sudah discan</div>
-                            </div>
-                        </div>
-                        <div class="panel-body-enterprise">
-                            <div id="listScanNaik" style="display:flex; flex-direction:column; gap:8px; max-height:320px; overflow-y:auto; margin-bottom:16px;"></div>
-                            <div class="btn-row-enterprise">
-                                <button onclick="simpanNaikKelas()" class="btn-enterprise btn-primary-enterprise btn-sm-enterprise">
-                                    <i class="fas fa-save"></i> Simpan & Assign
-                                </button>
-                                <button onclick="resetNaikKelas()" class="btn-enterprise btn-secondary-enterprise btn-sm-enterprise">
-                                    <i class="fas fa-trash"></i> Reset
-                                </button>
-                            </div>
-                        </div>
-                    </div>
-                </div>
+            <div style="font-size:12px; font-weight:700; color:#e2e8f0; margin-bottom:8px;">
+                <i class="fas fa-list-ul" style="color:#22d3ee;"></i> Daftar Scan
             </div>
+            <div id="listScanNaik" style="display:flex; flex-direction:column; gap:6px; margin-bottom:14px; max-height:250px; overflow-y:auto;"></div>
 
-            <!-- ═══════════════════ TAB DASHBOARD ═══════════════════ -->
-            <div id="tabDashboard" style="display:none;">
-                <div class="page-header-enterprise">
-                    <div class="breadcrumb">
-                        <i class="fas fa-home"></i> Beranda <i class="fas fa-chevron-right"></i> Laporan
-                    </div>
-                    <div class="page-title-enterprise">Data <span class="highlight">Siswa</span></div>
-                    <div class="page-subtitle">Lihat dan cari data seluruh siswa terdaftar</div>
-                </div>
-
-                <div class="stat-cards-grid" style="margin-bottom:24px;">
-                    <div class="stat-card-enterprise">
-                        <div class="stat-header">
-                            <div class="stat-icon-box cyan-bg">
-                                <i class="fas fa-users"></i>
-                            </div>
-                            <div class="stat-label-enterprise">Total Siswa Terdaftar</div>
-                        </div>
-                        <div class="stat-value-enterprise cyan-text" id="dashTotalSiswa">0</div>
-                    </div>
-                    <div class="stat-card-enterprise">
-                        <div class="stat-header">
-                            <div class="stat-icon-box emerald-bg">
-                                <i class="fas fa-user-check"></i>
-                            </div>
-                            <div class="stat-label-enterprise">Hadir Hari Ini</div>
-                        </div>
-                        <div class="stat-value-enterprise emerald-text" id="dashHadirHari">0</div>
-                    </div>
-                </div>
-
-                <div class="panel-enterprise">
-                    <div class="panel-header-enterprise">
-                        <div class="panel-icon-box cyan">
-                            <i class="fas fa-table"></i>
-                        </div>
-                        <div>
-                            <div class="panel-title-enterprise">Database Siswa</div>
-                            <div class="panel-desc-enterprise">Cari dan filter data siswa</div>
-                        </div>
-                    </div>
-                    <div class="panel-body-enterprise">
-                        <div style="display:flex; gap:12px; margin-bottom:20px;">
-                            <div style="flex:1; position:relative;">
-                                <i class="fas fa-search" style="position:absolute; left:14px; top:50%; transform:translateY(-50%); color:#475569; font-size:13px;"></i>
-                                <input type="text" id="searchSiswa" placeholder="Cari nama siswa..." oninput="filterLaporan()" class="form-control-enterprise" style="padding-left:38px !important;">
-                            </div>
-                            <select id="filterKelas" onchange="filterLaporan()" class="form-control-enterprise" style="width:160px;">
-                                <option value="">Semua Kelas</option>
-                            </select>
-                        </div>
-                        <div id="listLaporan" style="display:flex; flex-direction:column; gap:10px; max-height:550px; overflow-y:auto;"></div>
-                    </div>
-                </div>
+            <div class="btn-row">
+                <button onclick="simpanNaikKelas()" class="btn btn-primary btn-sm"><i class="fas fa-save"></i> Simpan</button>
+                <button onclick="resetNaikKelas()" class="btn btn-secondary btn-sm"><i class="fas fa-trash"></i> Reset</button>
             </div>
-
         </div>
-    </main>
+    </div>
+
+    <!-- ═══════════════ LAPORAN SCREEN ═══════════════ -->
+    <div class="screen" id="screenLaporan">
+        <div class="topbar">
+            <div class="topbar-back" onclick="navigateTo('home')"><i class="fas fa-arrow-left"></i></div>
+            <div class="topbar-title">Data & Laporan</div>
+        </div>
+        <div class="screen-content">
+            <div class="home-stats-row" style="margin-bottom:14px;">
+                <div class="home-stat-card">
+                    <div class="home-stat-value" style="color:#22d3ee;" id="dashTotalSiswa">0</div>
+                    <div class="home-stat-label">Total Siswa</div>
+                </div>
+                <div class="home-stat-card">
+                    <div class="home-stat-value" style="color:#34d399;" id="dashHadirHari">0</div>
+                    <div class="home-stat-label">Hadir Hari Ini</div>
+                </div>
+            </div>
+
+            <div style="display:flex; gap:8px; margin-bottom:12px;">
+                <div style="flex:1; position:relative;">
+                    <i class="fas fa-search" style="position:absolute; left:12px; top:50%; transform:translateY(-50%); color:#475569; font-size:12px;"></i>
+                    <input type="text" id="searchSiswa" placeholder="Cari nama..." oninput="filterLaporan()" class="form-input" style="padding-left:34px;">
+                </div>
+                <select id="filterKelas" onchange="filterLaporan()" class="form-input" style="width:130px;">
+                    <option value="">Semua</option>
+                </select>
+            </div>
+
+            <div id="listLaporan" style="display:flex; flex-direction:column; gap:8px;"></div>
+        </div>
+    </div>
+
+    <!-- ═══════════════ IMPORT SCREEN ═══════════════ -->
+    <div class="screen" id="screenImport">
+        <div class="topbar">
+            <div class="topbar-back" onclick="navigateTo('home')"><i class="fas fa-arrow-left"></i></div>
+            <div class="topbar-title">Import Excel</div>
+        </div>
+        <div class="screen-content">
+            <div style="background:rgba(19,40,76,0.3); border:1px solid rgba(6,182,212,0.1); border-radius:16px; padding:16px;">
+                <div style="font-size:13px; font-weight:700; color:#e2e8f0; margin-bottom:12px;">
+                    <i class="fas fa-file-excel" style="color:#34d399;"></i> Upload File Excel
+                </div>
+                <div class="upload-area">
+                    <i class="fas fa-cloud-upload-alt" style="font-size:36px; color:#475569; margin-bottom:8px; display:block;"></i>
+                    <input type="file" id="fileExcel" accept=".xlsx,.xls" class="form-input" style="background:transparent; border:none; padding:8px; text-align:center;">
+                    <p style="font-size:10px; color:#475569; margin-top:4px;">Format .xlsx / .xls — Multi-sheet</p>
+                </div>
+                <button onclick="importExcel()" class="btn btn-success"><i class="fas fa-upload"></i> Proses & Generate QR</button>
+                <div id="importProgress" style="display:none; text-align:center; font-size:12px; font-weight:600; color:#22d3ee; margin-top:12px;"></div>
+                <div id="importResult" style="display:none; margin-top:12px;"></div>
+            </div>
+        </div>
+    </div>
+
 </div>
 
 <script>
-    // Firebase Configuration
+    // Firebase Config
     const firebaseConfig = {
         apiKey: "AIzaSyBQwKb5BgWywX3bx3gKjNJsugJ1sUBr4X4",
         authDomain: "absen-dzuhur.firebaseapp.com",
@@ -1984,16 +1186,13 @@
         messagingSenderId: "254784143918",
         appId: "1:254784143918:web:5d9769d58fced6a0b015bf"
     };
-
     firebase.initializeApp(firebaseConfig);
     const db = firebase.database();
 
-    // Constants
     const PASSWORD = "bintang31";
     const KELAS_LIST = ["X-1","X-2","X-3","X-4","X-5","X-6","XI-1","XI-2","XI-3","XI-4","XI-5","XI-6","XII-1","XII-2","XII-3","XII-4","XII-5","XII-6"];
     const NAMA_HARI = ['Minggu','Senin','Selasa','Rabu','Kamis','Jumat','Sabtu'];
 
-    // State Variables
     let isLogin = false;
     let mode = 'Islam';
     let scanner = null;
@@ -2003,8 +1202,68 @@
     let scannerNaik = null;
     let listSiswaScanned = [];
     let currentPresensiRef = null;
+    let currentScreen = 'home';
+    let screenHistory = ['home'];
 
-    // ── Utility Functions ───────────────────────────────
+    // ── Navigation ───────────────────────────────
+    window.navigateTo = function(screenName) {
+        if (!isLogin && screenName !== 'home') {
+            document.getElementById('loginOverlay').style.display = '';
+            return;
+        }
+        stopCam();
+        stopScanNaikKelas();
+        
+        const allScreens = ['home', 'scan', 'admin', 'naikkelas', 'laporan', 'import'];
+        allScreens.forEach(s => {
+            const el = document.getElementById('screen' + s.charAt(0).toUpperCase() + s.slice(1).replace('laporan', 'Laporan').replace('naikkelas', 'NaikKelas').replace('import', 'Import'));
+            if (el) {
+                el.classList.remove('active', 'prev');
+            }
+        });
+
+        const targetMap = {
+            'home': 'screenHome',
+            'scan': 'screenScan',
+            'admin': 'screenAdmin',
+            'naikkelas': 'screenNaikKelas',
+            'laporan': 'screenLaporan',
+            'import': 'screenImport'
+        };
+
+        const targetId = targetMap[screenName];
+        const target = document.getElementById(targetId);
+        const current = document.getElementById(targetMap[currentScreen]);
+
+        if (current && current !== target) {
+            current.classList.add('prev');
+            current.classList.remove('active');
+        }
+        if (target) {
+            target.classList.add('active');
+            target.classList.remove('prev');
+        }
+
+        screenHistory.push(screenName);
+        currentScreen = screenName;
+
+        if (screenName === 'home') updateHomeStats();
+        if (screenName === 'laporan') updateDashboard();
+        if (screenName === 'scan') {
+            if (isLogin) listenPresensi();
+        }
+    };
+
+    // ── Toast ───────────────────────────────
+    function showToast(message, type = 'success') {
+        const container = document.getElementById('toastContainer');
+        const t = document.createElement('div');
+        t.className = 'toast' + (type === 'error' ? ' error' : '');
+        t.innerHTML = `<span>${type === 'success' ? '✅' : '❌'}</span><span>${message}</span>`;
+        container.appendChild(t);
+        setTimeout(() => { t.style.opacity = '0'; t.style.transition = 'all 0.3s'; setTimeout(() => t.remove(), 300); }, 2500);
+    }
+
     function playBeep(type) {
         try {
             const ctx = new (window.AudioContext || window.webkitAudioContext)();
@@ -2015,37 +1274,12 @@
             osc.frequency.value = type === 'success' ? 880 : 440;
             gain.gain.value = 0.3;
             osc.start();
-            gain.gain.exponentialRampToValueAtTime(0.00001, ctx.currentTime + 0.5);
-            osc.stop(ctx.currentTime + 0.5);
+            gain.gain.exponentialRampToValueAtTime(0.00001, ctx.currentTime + 0.4);
+            osc.stop(ctx.currentTime + 0.4);
         } catch(e) {}
     }
 
-    function showToast(message, type = 'success') {
-        const container = document.getElementById('toastContainer');
-        const toast = document.createElement('div');
-        toast.className = `toast-enterprise${type === 'error' ? ' error-toast' : ''}`;
-        toast.innerHTML = `
-            <span class="toast-icon">${type === 'success' ? '✅' : '❌'}</span>
-            <span>${message}</span>
-        `;
-        container.appendChild(toast);
-        setTimeout(() => {
-            toast.style.opacity = '0';
-            toast.style.transform = 'translateX(30px)';
-            toast.style.transition = 'all 0.3s';
-            setTimeout(() => toast.remove(), 300);
-        }, 3000);
-    }
-
-    function toggleFullscreen() {
-        if (!document.fullscreenElement) {
-            document.documentElement.requestFullscreen().catch(() => {});
-        } else {
-            document.exitFullscreen().catch(() => {});
-        }
-    }
-
-    // ── Dropdown Initialization ───────────────────────────────
+    // ── Init ───────────────────────────────
     function initDropdownBulan() {
         const select = document.getElementById('pilihBulan');
         if (!select) return;
@@ -2055,9 +1289,7 @@
             const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
             const m = String(d.getMonth() + 1).padStart(2, '0');
             const y = d.getFullYear();
-            const val = `${y}-${m}`;
-            const label = d.toLocaleDateString('id-ID', { month: 'long', year: 'numeric' }).toUpperCase();
-            select.innerHTML += `<option value="${val}">${label}</option>`;
+            select.innerHTML += `<option value="${y}-${m}">${d.toLocaleDateString('id-ID', { month: 'long', year: 'numeric' }).toUpperCase()}</option>`;
         }
     }
 
@@ -2069,7 +1301,7 @@
         if (monthStr) {
             const parts = monthStr.split('-');
             targetDate = new Date(parts[0], parseInt(parts[1]) - 1, 1);
-        } else if (selectBulan && selectBulan.value) {
+        } else if (selectBulan?.value) {
             const parts = selectBulan.value.split('-');
             targetDate = new Date(parts[0], parseInt(parts[1]) - 1, 1);
         }
@@ -2079,34 +1311,24 @@
         selectHari.innerHTML = '';
         for (let i = 1; i <= jumlahHari; i++) {
             const tgl = new Date(tahun, bulan, i);
-            const hari = tgl.getDay();
-            if (hari >= 1 && hari <= 5) {
+            if (tgl.getDay() >= 1 && tgl.getDay() <= 5) {
                 const key = tgl.toLocaleDateString('id-ID').replace(/\//g, '-');
-                const label = `${NAMA_HARI[hari]}, ${tgl.toLocaleDateString('id-ID')}`;
-                selectHari.innerHTML += `<option value="${key}">${label}</option>`;
+                selectHari.innerHTML += `<option value="${key}">${NAMA_HARI[tgl.getDay()]}, ${tgl.toLocaleDateString('id-ID')}</option>`;
             }
         }
         const todayKey = new Date().toLocaleDateString('id-ID').replace(/\//g, '-');
-        if (!monthStr && [...selectHari.options].some(o => o.value === todayKey)) {
-            selectHari.value = todayKey;
-        } else if (selectHari.options.length > 0) {
-            selectHari.selectedIndex = 0;
-        }
-        const namaBulan = targetDate.toLocaleDateString('id-ID', { month: 'long', year: 'numeric' }).toUpperCase();
-        selectHari.innerHTML += `<option value="__ALL__">📦 DOWNLOAD REKAP ${namaBulan}</option>`;
+        if (!monthStr && [...selectHari.options].some(o => o.value === todayKey)) selectHari.value = todayKey;
+        else if (selectHari.options.length > 0) selectHari.selectedIndex = 0;
+        selectHari.innerHTML += `<option value="__ALL__">📦 Rekap ${targetDate.toLocaleDateString('id-ID', { month: 'long', year: 'numeric' }).toUpperCase()}</option>`;
         if (isLogin && typeof gantiTanggalUI === 'function') gantiTanggalUI();
     };
 
-    // ── Window Onload ───────────────────────────────
     window.onload = function() {
-        const selectKelas = document.getElementById('kelas');
-        const selectTujuan = document.getElementById('kelasTujuan');
-        const manualKelas = document.getElementById('manualKelas');
-        KELAS_LIST.forEach(k => {
-            if (selectKelas) selectKelas.innerHTML += `<option value="${k}">${k}</option>`;
-            if (selectTujuan) selectTujuan.innerHTML += `<option value="${k}">${k}</option>`;
-            if (manualKelas) manualKelas.innerHTML += `<option value="${k}">${k}</option>`;
+        ['kelas', 'kelasTujuan', 'manualKelas'].forEach(id => {
+            const el = document.getElementById(id);
+            if (el) KELAS_LIST.forEach(k => el.innerHTML += `<option value="${k}">${k}</option>`);
         });
+        const manualKelas = document.getElementById('manualKelas');
         if (manualKelas) {
             manualKelas.addEventListener('change', loadManualAbsenOptions);
             loadManualAbsenOptions();
@@ -2114,42 +1336,38 @@
         initDropdownBulan();
         initTanggalHarian();
         setMode('Islam');
+        renderListNaik();
         if (localStorage.getItem('login') === 'true') {
             isLogin = true;
-            document.getElementById('loginModal').style.display = 'none';
-            document.getElementById('btnLogoutHeader').style.display = '';
+            document.getElementById('loginOverlay').style.display = 'none';
             listenPresensi();
+            updateHomeStats();
             updateDashboard();
         }
-        renderListNaik();
     };
 
-    // ── Login Functions ───────────────────────────────
+    // ── Login ───────────────────────────────
     window.startLoginScan = function() {
         document.getElementById('btnLoginStart').style.display = 'none';
         document.getElementById('btnLoginStop').style.display = '';
-        const placeholder = document.getElementById('loginScanPlaceholder');
-        if (placeholder) placeholder.style.display = 'none';
+        const ph = document.getElementById('loginScanPlaceholder');
+        if (ph) ph.style.display = 'none';
         document.getElementById('loginError').style.display = 'none';
         scannerLogin = new Html5Qrcode("readerLogin");
-        scannerLogin.start(
-            { facingMode: "environment" },
-            { fps: 10, qrbox: 180 },
+        scannerLogin.start({ facingMode: "environment" }, { fps: 10, qrbox: 160 },
             (text) => {
                 scannerLogin.stop();
                 document.getElementById('btnLoginStop').style.display = 'none';
-                if (text.trim() === PASSWORD) {
-                    doLogin();
-                } else {
+                if (text.trim() === PASSWORD) { doLogin(); }
+                else {
                     document.getElementById('loginError').style.display = '';
-                    if (placeholder) placeholder.style.display = '';
+                    if (ph) ph.style.display = '';
                     document.getElementById('btnLoginStart').style.display = '';
                     playBeep('error');
                 }
-            },
-            () => {}
+            }, () => {}
         ).catch(e => {
-            showToast('Login scan gagal: ' + e, 'error');
+            showToast('Gagal: ' + e, 'error');
             document.getElementById('btnLoginStart').style.display = '';
             document.getElementById('btnLoginStop').style.display = 'none';
         });
@@ -2159,71 +1377,62 @@
         try { if (scannerLogin?.isScanning) scannerLogin.stop(); } catch(e) {}
         document.getElementById('btnLoginStart').style.display = '';
         document.getElementById('btnLoginStop').style.display = 'none';
-        const placeholder = document.getElementById('loginScanPlaceholder');
-        if (placeholder) placeholder.style.display = '';
+        const ph = document.getElementById('loginScanPlaceholder');
+        if (ph) ph.style.display = '';
     };
 
     function doLogin() {
         isLogin = true;
         localStorage.setItem('login', 'true');
-        document.getElementById('loginModal').style.display = 'none';
-        document.getElementById('btnLogoutHeader').style.display = '';
-        switchTab('scan');
+        document.getElementById('loginOverlay').style.display = 'none';
+        navigateTo('home');
         listenPresensi();
+        updateHomeStats();
         updateDashboard();
-        showToast('Login berhasil! Selamat datang di sistem.', 'success');
+        showToast('Login berhasil!', 'success');
         playBeep('success');
     }
 
     window.logout = function() {
-        if (confirm('Apakah Anda yakin ingin keluar dari sistem?')) {
+        if (confirm('Yakin keluar?')) {
             isLogin = false;
             localStorage.removeItem('login');
             location.reload();
         }
     };
 
-    // ── Navigation ───────────────────────────────
-    function setNavActive(tab) {
-        ['navAdmin','navScan','navNaik','navDashboard'].forEach(id => {
-            const el = document.getElementById(id);
-            if (el) el.classList.remove('active');
-        });
-        const map = { admin:'navAdmin', scan:'navScan', naikkelas:'navNaik', dashboard:'navDashboard' };
-        if (map[tab]) {
-            const el = document.getElementById(map[tab]);
-            if (el) el.classList.add('active');
-        }
-    }
-
-    window.switchTab = function(tab) {
-        if ((tab === 'scan' || tab === 'naikkelas') && !isLogin) {
-            document.getElementById('loginModal').style.display = '';
-            return;
-        }
-        document.getElementById('tabAdmin').style.display = tab === 'admin' ? '' : 'none';
-        document.getElementById('tabScan').style.display = tab === 'scan' ? '' : 'none';
-        document.getElementById('tabNaikKelas').style.display = tab === 'naikkelas' ? '' : 'none';
-        document.getElementById('tabDashboard').style.display = tab === 'dashboard' ? '' : 'none';
-        setNavActive(tab);
-        if (tab !== 'scan') stopCam();
-        if (tab !== 'naikkelas') stopScanNaikKelas();
-        if (tab === 'dashboard') updateDashboard();
-    };
-
-    // ── Mode Setter ───────────────────────────────
+    // ── Mode ───────────────────────────────
     window.setMode = function(m) {
         mode = m;
-        document.getElementById('modeIslam').className = 'mode-btn-enterprise' + (m === 'Islam' ? ' active-islam' : '');
-        document.getElementById('modeKristen').className = 'mode-btn-enterprise' + (m === 'NonIslam' ? ' active-nonislam' : '');
-        document.getElementById('modeHaid').className = 'mode-btn-enterprise' + (m === 'Haid' ? ' active-haid' : '');
-        document.getElementById('modeKeputrian').className = 'mode-btn-enterprise' + (m === 'Keputrian' ? ' active-keputrian' : '');
-        const label = m === 'Islam' ? 'Islam' : m === 'NonIslam' ? 'Non Islam' : m === 'Haid' ? 'Haid' : 'Keputrian';
-        showToast(`Mode presensi diubah: ${label}`, 'success');
+        document.getElementById('modeIslam').className = 'mode-btn' + (m === 'Islam' ? ' active-islam' : '');
+        document.getElementById('modeKristen').className = 'mode-btn' + (m === 'NonIslam' ? ' active-nonislam' : '');
+        document.getElementById('modeHaid').className = 'mode-btn' + (m === 'Haid' ? ' active-haid' : '');
+        document.getElementById('modeKeputrian').className = 'mode-btn' + (m === 'Keputrian' ? ' active-keputrian' : '');
+        showToast(`Mode: ${m === 'Islam' ? 'Islam' : m === 'NonIslam' ? 'Non Islam' : m === 'Haid' ? 'Haid' : 'Keputrian'}`, 'success');
         playBeep('success');
     };
 
-    // ── Dashboard & Report Functions ───────────────────────────────
+    // ── Home Stats ───────────────────────────────
+    async function updateHomeStats() {
+        const siswaSnap = await db.ref('siswa').once('value');
+        let total = 0;
+        const data = siswaSnap.val() || {};
+        for (let k in data) total += Object.keys(data[k] || {}).length;
+        document.getElementById('homeTotal').innerText = total;
+        document.getElementById('statSiswa') && (document.getElementById('statSiswa').innerText = total);
+        
+        const today = new Date().toLocaleDateString('id-ID').replace(/\//g, '-');
+        const presensiSnap = await db.ref('presensi/' + today).once('value');
+        const presensi = presensiSnap.val() || {};
+        const hadir = Object.values(presensi).filter(e => e.status !== 'TIDAK HADIR').length;
+        document.getElementById('homeHadir').innerText = hadir;
+        document.getElementById('statHadir') && (document.getElementById('statHadir').innerText = hadir);
+        document.getElementById('dashHadirHari') && (document.getElementById('dashHadirHari').innerText = hadir);
+        
+        const persen = total > 0 ? Math.round((hadir / total) * 100) : 0;
+        document.getElementById('statPersen') && (document.getElementById('statPersen').innerText = persen + '%');
+    }
+
     async function updateDashboard() {
         const siswaSnap = await db.ref('siswa').once('value');
         const semuaSiswa = siswaSnap.val() || {};
@@ -2231,21 +1440,17 @@
         let totalSiswa = 0;
         const filterKelas = document.getElementById('filterKelas');
         if (filterKelas) {
-            const existingKelas = new Set(Array.from(filterKelas.options).map(o => o.value).filter(v => v));
+            const existing = new Set(Array.from(filterKelas.options).map(o => o.value).filter(v => v));
             for (let kelas in semuaSiswa) {
-                if (!existingKelas.has(kelas)) {
-                    filterKelas.innerHTML += `<option value="${kelas}">${kelas}</option>`;
-                }
+                if (!existing.has(kelas)) filterKelas.innerHTML += `<option value="${kelas}">${kelas}</option>`;
                 for (let absen in semuaSiswa[kelas]) {
                     totalSiswa++;
                     allSiswaData.push({ ...semuaSiswa[kelas][absen], kelas, absen });
                 }
             }
         }
-        const dashTotalEl = document.getElementById('dashTotalSiswa');
-        const statSiswaEl = document.getElementById('statSiswa');
-        if (dashTotalEl) dashTotalEl.innerText = totalSiswa;
-        if (statSiswaEl) statSiswaEl.innerText = totalSiswa;
+        document.getElementById('dashTotalSiswa').innerText = totalSiswa;
+        updateHomeStats();
         filterLaporan();
     }
 
@@ -2253,56 +1458,29 @@
         const search = (document.getElementById('searchSiswa')?.value || '').toLowerCase();
         const kelasFilter = document.getElementById('filterKelas')?.value || '';
         let filtered = allSiswaData.filter(s => {
-            const namaMatch = (s.nama || '').toLowerCase().includes(search);
-            const kelasMatch = !kelasFilter || s.kelas === kelasFilter;
-            return namaMatch && kelasMatch;
+            return (s.nama || '').toLowerCase().includes(search) && (!kelasFilter || s.kelas === kelasFilter);
         });
-        filtered.sort((a, b) => {
-            if (a.kelas !== b.kelas) return a.kelas.localeCompare(b.kelas);
-            return parseInt(a.absen) - parseInt(b.absen);
-        });
+        filtered.sort((a, b) => a.kelas.localeCompare(b.kelas) || parseInt(a.absen) - parseInt(b.absen));
         const container = document.getElementById('listLaporan');
         if (!container) return;
         if (filtered.length === 0) {
-            container.innerHTML = `
-                <div class="empty-state">
-                    <div class="empty-state-icon"><i class="fas fa-search"></i></div>
-                    <div class="empty-state-text">Tidak ada data ditemukan</div>
-                </div>`;
+            container.innerHTML = '<div class="empty-state"><i class="fas fa-search"></i><p>Tidak ada data</p></div>';
             return;
         }
         container.innerHTML = filtered.map(s => `
-            <div style="background:rgba(10,22,40,0.4); border:1px solid rgba(6,182,212,0.08); border-radius:12px; padding:16px 20px; transition:all 0.2s;">
-                <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:12px;">
+            <div class="laporan-card">
+                <div style="display:flex; justify-content:space-between; align-items:flex-start;">
                     <div>
-                        <div style="font-size:14px; font-weight:700; color:#e2e8f0;">${s.nama || '-'}</div>
-                        <div style="font-size:11px; color:#22d3ee; font-weight:600; margin-top:3px;">
-                            <i class="fas fa-graduation-cap"></i> ${s.kelas} &nbsp;•&nbsp; <i class="fas fa-hashtag"></i> Absen ${s.absen}
-                        </div>
+                        <div style="font-size:13px; font-weight:700; color:#e2e8f0;">${s.nama || '-'}</div>
+                        <div style="font-size:10px; color:#22d3ee; font-weight:600; margin-top:2px;">${s.kelas} • Absen ${s.absen} • ${s.jk === 'L' ? 'L' : 'P'} • ${s.agama || '-'}</div>
                     </div>
-                    <div style="background:rgba(6,182,212,0.1); color:#22d3ee; font-size:14px; font-weight:800; padding:6px 14px; border-radius:10px; border:1px solid rgba(6,182,212,0.2);">
-                        ${s.totalHadir || 0}x Hadir
-                    </div>
-                </div>
-                <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px;">
-                    <div style="background:rgba(255,255,255,0.02); border-radius:8px; padding:10px 12px;">
-                        <div style="font-size:10px; color:#475569; font-weight:700; text-transform:uppercase; margin-bottom:3px;">Jenis Kelamin</div>
-                        <div style="font-size:12px; color:#e2e8f0; font-weight:600;">
-                            <i class="fas ${s.jk === 'L' ? 'fa-mars' : 'fa-venus'}"></i> ${s.jk === 'L' ? 'Laki-laki' : 'Perempuan'}
-                        </div>
-                    </div>
-                    <div style="background:rgba(255,255,255,0.02); border-radius:8px; padding:10px 12px;">
-                        <div style="font-size:10px; color:#475569; font-weight:700; text-transform:uppercase; margin-bottom:3px;">Agama</div>
-                        <div style="font-size:12px; color:#e2e8f0; font-weight:600;">
-                            <i class="fas fa-place-of-worship"></i> ${s.agama || '-'}
-                        </div>
-                    </div>
+                    <div style="background:rgba(6,182,212,0.1); color:#22d3ee; font-size:13px; font-weight:800; padding:4px 10px; border-radius:8px;">${s.totalHadir || 0}x</div>
                 </div>
             </div>
         `).join('');
     };
 
-    // ── Presensi Listeners ───────────────────────────────
+    // ── Presensi Listener ───────────────────────────────
     window.gantiTanggalUI = function() {
         const val = document.getElementById('tanggalHarian')?.value;
         if (val && val !== '__ALL__') listenPresensi(val);
@@ -2310,103 +1488,75 @@
 
     window.listenPresensi = function(tanggalKey) {
         if (currentPresensiRef) currentPresensiRef.off();
-        const targetDate = (tanggalKey && tanggalKey !== '__ALL__')
-            ? tanggalKey
-            : new Date().toLocaleDateString('id-ID').replace(/\//g, '-');
+        const targetDate = (tanggalKey && tanggalKey !== '__ALL__') ? tanggalKey : new Date().toLocaleDateString('id-ID').replace(/\//g, '-');
         currentPresensiRef = db.ref('presensi/' + targetDate);
-        currentPresensiRef.on('value', async (snap) => {
+        currentPresensiRef.on('value', (snap) => {
             const data = snap.val() || {};
             const entries = Object.values(data);
             const totalHadir = entries.filter(e => e.status !== 'TIDAK HADIR').length;
-            const totalHadirEl = document.getElementById('totalHadir');
-            const statHadirEl = document.getElementById('statHadir');
-            const dashHadirEl = document.getElementById('dashHadirHari');
-            if (totalHadirEl) totalHadirEl.innerText = totalHadir + ' Hadir';
-            if (statHadirEl) statHadirEl.innerText = totalHadir;
-            if (dashHadirEl) dashHadirEl.innerText = totalHadir;
-
-            const siswaSnap = await db.ref('siswa').once('value');
-            let totalSiswa = 0;
-            for (let kelas in siswaSnap.val() || {}) totalSiswa += Object.keys(siswaSnap.val()[kelas] || {}).length;
-            const persen = totalSiswa > 0 ? Math.round((totalHadir / totalSiswa) * 100) : 0;
-            const statPersenEl = document.getElementById('statPersen');
-            if (statPersenEl) statPersenEl.innerText = persen + '%';
+            const el = document.getElementById('totalHadir');
+            if (el) el.innerText = totalHadir + ' Hadir';
+            document.getElementById('statHadir') && (document.getElementById('statHadir').innerText = totalHadir);
+            document.getElementById('dashHadirHari') && (document.getElementById('dashHadirHari').innerText = totalHadir);
+            document.getElementById('homeHadir') && (document.getElementById('homeHadir').innerText = totalHadir);
 
             const logContainer = document.getElementById('logPresensi');
             if (!logContainer) return;
             if (entries.length === 0) {
-                logContainer.innerHTML = `
-                    <div class="empty-state">
-                        <div class="empty-state-icon"><i class="fas fa-inbox"></i></div>
-                        <div class="empty-state-text">Belum ada presensi hari ini</div>
-                    </div>`;
+                logContainer.innerHTML = '<div class="empty-state"><i class="fas fa-inbox"></i><p>Belum ada presensi</p></div>';
                 return;
             }
             entries.sort((a, b) => (b.timestamp || 0) - (a.timestamp || 0));
-            logContainer.innerHTML = entries.slice(0, 100000).map(e => {
-                let logClass = '';
-                let badgeClass = 'badge-hadir-enterprise';
-                let badgeText = `#${e.totalHadir}`;
-                if (e.status === 'TIDAK HADIR') { logClass = 'alpa-log'; badgeClass = 'badge-alpa-enterprise'; badgeText = 'ALPA'; }
-                else if (e.jam === 'HAID') { logClass = 'haid-log'; badgeClass = 'badge-haid-enterprise'; badgeText = 'HAID'; }
-                else if (e.jam === 'KEPUTRIAN') { logClass = 'keputrian-log'; badgeClass = 'badge-haid-enterprise'; badgeText = 'KEPUTRIAN'; }
-                else if (e.status === 'IBADAH') { logClass = 'nonislam-log'; badgeText = 'IBADAH'; }
+            logContainer.innerHTML = entries.map(e => {
+                let cls = '';
+                let badgeCls = 'badge-hadir';
+                let badgeTxt = `#${e.totalHadir}`;
+                if (e.status === 'TIDAK HADIR') { cls = 'alpa'; badgeCls = 'badge-alpa'; badgeTxt = 'ALPA'; }
+                else if (e.jam === 'HAID') { cls = 'haid'; badgeCls = 'badge-haid'; badgeTxt = 'HAID'; }
+                else if (e.jam === 'KEPUTRIAN') { cls = 'keputrian'; badgeTxt = 'KEPUTRIAN'; }
+                else if (e.status === 'IBADAH') { cls = 'nonislam'; badgeTxt = 'IBADAH'; }
                 return `
-                    <div class="log-item-enterprise ${logClass}">
-                        <div class="log-info">
-                            <div class="log-nama-enterprise">${e.nama}</div>
-                            <div class="log-meta">
-                                <span>${e.kelas}</span>
-                                <span class="log-meta-dot"></span>
-                                <span>${e.status}${e.status !== 'TIDAK HADIR' ? '' : ''}</span>
-                                ${e.status !== 'TIDAK HADIR' ? `<span class="log-meta-dot"></span><span>${e.jam}</span>` : ''}
-                            </div>
+                    <div class="log-item ${cls}">
+                        <div>
+                            <div class="log-nama">${e.nama}</div>
+                            <div class="log-meta">${e.kelas} • ${e.status}${e.status !== 'TIDAK HADIR' ? ' • ' + e.jam : ''}</div>
                         </div>
-                        <div class="badge-enterprise ${badgeClass}">${badgeText}</div>
-                    </div>
-                `;
+                        <div class="badge ${badgeCls}">${badgeTxt}</div>
+                    </div>`;
             }).join('');
         });
     };
 
-    // ── QR Code Generation ───────────────────────────────
+    // ── QR Generation ───────────────────────────────
     window.buatQR = async function() {
         const nama = document.getElementById('nama').value.trim();
         const kelas = document.getElementById('kelas').value;
         const absen = document.getElementById('absen').value.trim();
         const jk = document.getElementById('jk').value;
         const agama = document.getElementById('agama').value;
-        if (!nama || !absen) { showToast('Lengkapi semua data!', 'error'); playBeep('error'); return; }
+        if (!nama || !absen) { showToast('Lengkapi data!', 'error'); playBeep('error'); return; }
         document.getElementById('loadingOverlay').classList.add('show');
         await db.ref('siswa/' + kelas + '/' + absen).set({
             nama: nama.toUpperCase(), kelas, absen, jk, agama, totalHadir: 0, terdaftar: Date.now()
         });
         const area = document.getElementById('qrArea');
         area.innerHTML = `
-            <div class="qr-result-display">
-                <div class="qr-white-bg" id="qrImg"></div>
-                <div style="text-align:center;">
-                    <div style="font-size:16px; font-weight:800; color:#e2e8f0;">${nama.toUpperCase()}</div>
-                    <div style="font-size:11px; color:#22d3ee; font-weight:700; margin-top:6px;">
-                        <i class="fas fa-graduation-cap"></i> ${kelas} &nbsp;•&nbsp;
-                        <i class="fas ${jk === 'L' ? 'fa-mars' : 'fa-venus'}"></i> ${jk === 'L' ? 'Laki-laki' : 'Perempuan'} &nbsp;•&nbsp;
-                        <i class="fas fa-place-of-worship"></i> ${agama} &nbsp;•&nbsp;
-                        <i class="fas fa-hashtag"></i> Absen ${absen}
-                    </div>
-                </div>
+            <div class="qr-result-card">
+                <div class="qr-white-box" id="qrImg"></div>
+                <div style="font-size:15px; font-weight:800; color:#e2e8f0;">${nama.toUpperCase()}</div>
+                <div style="font-size:10px; color:#22d3ee; font-weight:600; margin-top:4px;">${kelas} • ${jk === 'L' ? 'Laki-laki' : 'Perempuan'} • ${agama} • Absen ${absen}</div>
             </div>`;
         new QRCode(document.getElementById("qrImg"), {
-            text: `${nama.toUpperCase()}|${kelas}|${absen}|${jk}|${agama}`,
-            width: 200, height: 200
+            text: `${nama.toUpperCase()}|${kelas}|${absen}|${jk}|${agama}`, width: 180, height: 180
         });
         document.getElementById('loadingOverlay').classList.remove('show');
-        showToast('QR Code berhasil dibuat!', 'success');
+        showToast('QR berhasil dibuat!', 'success');
         playBeep('success');
         updateDashboard();
         loadManualAbsenOptions();
     };
 
-    // ── Camera Functions ───────────────────────────────
+    // ── Camera ───────────────────────────────
     window.startCam = async function() {
         document.getElementById('btnStart').style.display = 'none';
         document.getElementById('btnFlip').style.display = '';
@@ -2414,16 +1564,15 @@
         document.getElementById('cameraPlaceholder').style.display = 'none';
         scanner = new Html5Qrcode("reader");
         try {
-            const isMobile = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
             await scanner.start(
-                isMobile ? { facingMode: "environment" } : { facingMode: "user" },
+                { facingMode: "environment" },
                 { fps: 5, qrbox: { width: 240, height: 240 }, aspectRatio: 1.333 },
                 (text) => { scanner.pause(); prosesQR(text); },
                 () => {}
             );
-            showToast('Kamera aktif dan siap digunakan', 'success');
+            showToast('Kamera aktif', 'success');
         } catch(e) {
-            showToast('Kamera gagal diaktifkan: ' + e, 'error');
+            showToast('Gagal: ' + e, 'error');
             document.getElementById('btnStart').style.display = '';
             document.getElementById('btnFlip').style.display = 'none';
             document.getElementById('btnStop').style.display = 'none';
@@ -2438,8 +1587,8 @@
         try {
             await scanner.start({ facingMode }, { fps: 5, qrbox: { width: 240, height: 240 }, aspectRatio: 1.333 },
                 (text) => { scanner.pause(); prosesQR(text); }, () => {});
-            showToast(facingMode === 'environment' ? 'Kamera belakang aktif' : 'Kamera depan aktif', 'success');
-        } catch(e) { showToast('Gagal ganti kamera', 'error'); }
+            showToast(facingMode === 'environment' ? 'Kamera belakang' : 'Kamera depan', 'success');
+        } catch(e) { showToast('Gagal', 'error'); }
     };
 
     window.stopCam = function() {
@@ -2448,11 +1597,9 @@
         document.getElementById('btnStart').style.display = '';
         document.getElementById('btnFlip').style.display = 'none';
         document.getElementById('btnStop').style.display = 'none';
-        const placeholder = document.getElementById('cameraPlaceholder');
-        if (placeholder) placeholder.style.display = '';
+        document.getElementById('cameraPlaceholder').style.display = '';
     };
 
-    // ── QR Processing ───────────────────────────────
     function getModeAktif() {
         if (document.getElementById('modeHaid')?.classList.contains('active-haid')) return 'Haid';
         if (document.getElementById('modeKeputrian')?.classList.contains('active-keputrian')) return 'Keputrian';
@@ -2463,36 +1610,22 @@
     function normalisasiNamaQR(v) { return (v || '').toString().trim().replace(/\s+/g, ' ').toUpperCase(); }
 
     function parseQRPresensi(text) {
-        if (!text || !text.toString().trim()) throw 'QR kosong';
+        if (!text?.toString().trim()) throw 'QR kosong';
         const raw = text.toString().trim();
         if (raw.includes('|')) {
             const parts = raw.split('|').map(v => v.trim());
-            if (parts.length !== 5) throw 'QR bukan QR presensi siswa';
+            if (parts.length !== 5) throw 'Bukan QR presensi';
             const [nama, kelasRaw, absenRaw, jkRaw, agamaRaw] = parts;
             const kelas = kelasRaw.toUpperCase();
             const absen = absenRaw.replace(/\D/g, '');
             const jk = jkRaw.toUpperCase();
-            const agama = agamaRaw;
-            if (!nama || !kelas || !absen || !jk || !agama) throw 'Data QR tidak lengkap';
-            if (!/^(X|XI|XII)-\d+$/i.test(kelas)) throw 'Format kelas tidak valid';
-            if (!/^\d+$/.test(absen)) throw 'Nomor absen tidak valid';
-            if (!/^(L|P)$/i.test(jk)) throw 'Jenis kelamin tidak valid';
-            return { nama: nama.trim(), kelas, absen, jk, agama: agama.trim() };
+            if (!nama || !kelas || !absen || !jk || !agamaRaw) throw 'Data tidak lengkap';
+            if (!/^(X|XI|XII)-\d+$/i.test(kelas)) throw 'Format kelas salah';
+            if (!/^\d+$/.test(absen)) throw 'Absen salah';
+            if (!/^(L|P)$/i.test(jk)) throw 'JK salah';
+            return { nama: nama.trim(), kelas, absen, jk, agama: agamaRaw.trim() };
         }
-        const lines = raw.split(/\r?\n/).map(v => v.trim()).filter(Boolean);
-        if (lines.length >= 2) {
-            const nama = lines[0].trim();
-            const detail = lines.slice(1).join(' ').replace(/\s+/g, ' ').trim();
-            const match = detail.match(/^(X|XI|XII)-\d+\s*-\s*([LP])\s*-\s*(.+?)\s*-\s*ABSEN\s*(\d+)$/i);
-            if (!match) throw 'Format QR siswa tidak valid';
-            const kelasMatch = detail.match(/^(X|XI|XII)-\d+/i);
-            const kelas = kelasMatch[0].toUpperCase();
-            const jk = match[2].toUpperCase();
-            const agama = match[3].trim();
-            const absen = match[4];
-            return { nama, kelas, absen, jk, agama };
-        }
-        throw 'QR bukan QR presensi siswa';
+        throw 'Format QR tidak dikenal';
     }
 
     async function prosesQR(text) {
@@ -2502,48 +1635,35 @@
             let { nama, kelas, absen, jk, agama } = parseQRPresensi(text);
             const siswaRef = db.ref('siswa/' + kelas + '/' + absen);
             const siswaSnap = await siswaRef.once('value');
-            if (!siswaSnap.exists()) throw 'Siswa tidak ditemukan di database';
+            if (!siswaSnap.exists()) throw 'Siswa tidak ditemukan';
             let dataSiswa = siswaSnap.val() || {};
-            const namaDB = dataSiswa.nama || '';
-            if (namaDB && normalisasiNamaQR(namaDB) !== normalisasiNamaQR(nama)) throw 'Data QR tidak cocok dengan database';
+            if (dataSiswa.nama && normalisasiNamaQR(dataSiswa.nama) !== normalisasiNamaQR(nama)) throw 'Data QR tidak cocok';
             nama = dataSiswa.nama || nama;
             jk = (dataSiswa.jk || jk || 'L').toUpperCase();
             agama = dataSiswa.agama || agama || 'Islam';
+
             if (mode === 'Haid' || mode === 'Keputrian') {
-                if (jk !== 'P') throw `Mode ${mode} hanya untuk siswi perempuan!`;
+                if (jk !== 'P') throw `Mode ${mode} hanya untuk perempuan!`;
             } else {
                 const agamaMode = agama === 'Islam' ? 'Islam' : 'NonIslam';
-                if (agamaMode !== mode) {
-                    if (agama === 'Islam') throw 'Siswa ini Islam, gunakan mode Islam';
-                    else throw `Siswa ini ${agama}, gunakan mode Non Islam`;
-                }
+                if (agamaMode !== mode) throw agama === 'Islam' ? 'Gunakan mode Islam' : `Gunakan mode Non Islam (${agama})`;
             }
+
             const today = new Date().toLocaleDateString('id-ID').replace(/\//g, '-');
             const presensiRef = db.ref('presensi/' + today + '/' + kelas + '_' + absen);
             const presensiSnap = await presensiRef.once('value');
-            if (presensiSnap.exists()) {
-                const d = presensiSnap.val();
-                throw `Sudah absen jam ${d.jam}`;
-            }
-            let totalHadir = dataSiswa.totalHadir || 0;
-            totalHadir++;
-            dataSiswa.nama = nama;
-            dataSiswa.kelas = kelas;
-            dataSiswa.absen = absen;
-            dataSiswa.jk = jk;
-            dataSiswa.agama = agama;
-            dataSiswa.totalHadir = totalHadir;
-            dataSiswa.lastUpdate = Date.now();
-            await siswaRef.set(dataSiswa);
+            if (presensiSnap.exists()) throw `Sudah absen jam ${presensiSnap.val().jam}`;
+
+            let totalHadir = (dataSiswa.totalHadir || 0) + 1;
+            await siswaRef.set({ ...dataSiswa, nama, kelas, absen, jk, agama, totalHadir, lastUpdate: Date.now() });
+
             const jam = (mode === 'Haid' || mode === 'Keputrian') ? mode.toUpperCase() : new Date().toLocaleTimeString('id-ID');
             const status = mode === 'Islam' ? 'DZUHUR' : mode === 'Haid' ? 'HAID' : mode === 'Keputrian' ? 'KEPUTRIAN' : 'IBADAH';
-            await presensiRef.set({
-                nama: dataSiswa.nama, kelas: dataSiswa.kelas, absen: dataSiswa.absen,
-                jk: dataSiswa.jk, agama: dataSiswa.agama, jam, status, totalHadir, timestamp: Date.now()
-            });
-            const feedbackMsg = mode === 'Haid' ? 'Tercatat Haid' : mode === 'Keputrian' ? 'Hadir Keputrian' : `Hadir ke-${totalHadir}`;
-            feedback('✅', nama, feedbackMsg, 'background:linear-gradient(135deg,#065f46,#059669)');
-            showToast(`${nama} — ${feedbackMsg}`, 'success');
+            await presensiRef.set({ nama, kelas, absen, jk, agama, jam, status, totalHadir, timestamp: Date.now() });
+
+            const msg = mode === 'Haid' ? 'Tercatat Haid' : mode === 'Keputrian' ? 'Hadir Keputrian' : `Hadir ke-${totalHadir}`;
+            feedback('✅', nama, msg, 'background:linear-gradient(135deg,#065f46,#059669)');
+            showToast(`${nama} — ${msg}`, 'success');
             playBeep('success');
             updateDashboard();
         } catch(e) {
@@ -2557,14 +1677,10 @@
 
     function feedback(icon, name, msg, bg) {
         const fb = document.getElementById('feedback');
-        const fbIcon = document.getElementById('fbIcon');
-        const fbNama = document.getElementById('fbNama');
-        const fbMsg = document.getElementById('fbMsg');
-        const fbBox = document.getElementById('fbBox');
-        if (fbIcon) fbIcon.innerText = icon;
-        if (fbNama) fbNama.innerText = name;
-        if (fbMsg) fbMsg.innerText = msg;
-        if (fbBox) fbBox.style = `text-align:center; padding:36px 48px; border-radius:18px; ${bg};`;
+        document.getElementById('fbIcon').innerText = icon;
+        document.getElementById('fbNama').innerText = name;
+        document.getElementById('fbMsg').innerText = msg;
+        document.getElementById('fbBox').style = `text-align:center; padding:28px 36px; border-radius:16px; ${bg};`;
         fb.classList.add('show');
         setTimeout(() => fb.classList.remove('show'), 2000);
     }
@@ -2575,375 +1691,306 @@
         const manualAbsen = document.getElementById('manualAbsen');
         const manualNama = document.getElementById('manualNama');
         if (!manualAbsen || !manualNama) return;
-        manualAbsen.innerHTML = `<option value="">Pilih No. Absen</option>`;
+        manualAbsen.innerHTML = '<option value="">Pilih</option>';
         manualNama.value = '';
         if (!kelas) return;
-        try {
-            const snap = await db.ref('siswa/' + kelas).once('value');
-            const data = snap.val() || {};
-            const daftar = Object.keys(data).map(Number).sort((a, b) => a - b);
-            daftar.forEach(no => {
-                const s = data[no];
-                manualAbsen.innerHTML += `<option value="${no}">${no} — ${s.nama || '-'}</option>`;
-            });
-            manualAbsen.onchange = async function() {
-                const absen = manualAbsen.value;
-                if (!absen) { manualNama.value = ''; return; }
-                const siswaSnap = await db.ref('siswa/' + kelas + '/' + absen).once('value');
-                const siswa = siswaSnap.val();
-                manualNama.value = siswa?.nama || '';
-            };
-        } catch(e) { showToast('Gagal load data siswa', 'error'); }
+        const snap = await db.ref('siswa/' + kelas).once('value');
+        const data = snap.val() || {};
+        Object.keys(data).map(Number).sort((a,b)=>a-b).forEach(no => {
+            manualAbsen.innerHTML += `<option value="${no}">${no} — ${data[no].nama || '-'}</option>`;
+        });
+        manualAbsen.onchange = async function() {
+            const absen = this.value;
+            if (!absen) { manualNama.value = ''; return; }
+            const s = await db.ref('siswa/' + kelas + '/' + absen).once('value');
+            manualNama.value = s.val()?.nama || '';
+        };
     }
 
     window.absenManualTidakHadir = async function() {
         const kelas = document.getElementById('manualKelas')?.value;
         const absen = document.getElementById('manualAbsen')?.value;
-        if (!kelas || !absen) { showToast('Pilih kelas dan no. absen!', 'error'); playBeep('error'); return; }
+        if (!kelas || !absen) { showToast('Pilih kelas & absen!', 'error'); return; }
         document.getElementById('loadingOverlay').classList.add('show');
         try {
             const siswaSnap = await db.ref('siswa/' + kelas + '/' + absen).once('value');
-            if (!siswaSnap.exists()) throw new Error('Data siswa tidak ditemukan');
+            if (!siswaSnap.exists()) throw new Error('Tidak ditemukan');
             const siswa = siswaSnap.val();
             const today = new Date().toLocaleDateString('id-ID').replace(/\//g, '-');
-            const presensiRef = db.ref('presensi/' + today + '/' + kelas + '_' + absen);
-            const presensiSnap = await presensiRef.once('value');
-            if (presensiSnap.exists()) throw new Error('Siswa ini sudah punya data presensi hari ini');
-            await presensiRef.set({
-                nama: siswa.nama, kelas: siswa.kelas || kelas, absen: siswa.absen || absen,
-                jk: siswa.jk || '', agama: siswa.agama || '', jam: 'TIDAK HADIR',
-                status: 'TIDAK HADIR', totalHadir: siswa.totalHadir || 0, timestamp: Date.now(), manual: true
+            const ref = db.ref('presensi/' + today + '/' + kelas + '_' + absen);
+            if ((await ref.once('value')).exists()) throw new Error('Sudah ada presensi');
+            await ref.set({
+                nama: siswa.nama, kelas, absen, jk: siswa.jk || '', agama: siswa.agama || '',
+                jam: 'TIDAK HADIR', status: 'TIDAK HADIR', totalHadir: siswa.totalHadir || 0,
+                timestamp: Date.now(), manual: true
             });
             showToast(`${siswa.nama} ditandai tidak hadir`, 'success');
-            playBeep('success');
             updateDashboard();
-        } catch(e) { showToast('Gagal: ' + e.message, 'error'); playBeep('error'); }
+        } catch(e) { showToast(e.message, 'error'); }
         document.getElementById('loadingOverlay').classList.remove('show');
     };
 
-    function getTanggalAlpaTarget() {
-        const selectedKey = document.getElementById('tanggalHarian')?.value;
-        if (selectedKey && selectedKey !== '__ALL__') return selectedKey;
-        return new Date().toLocaleDateString('id-ID').replace(/\//g, '-');
-    }
-
     window.alpakanSemuaKosong = async function() {
-        const tanggalTarget = getTanggalAlpaTarget();
-        if (!confirm(`⚠️ Tandai semua siswa yang belum absen pada ${tanggalTarget} sebagai TIDAK HADIR?\n\nYang sudah absen tidak akan diubah.`)) return;
+        const tanggalTarget = document.getElementById('tanggalHarian')?.value?.replace('__ALL__', '') || new Date().toLocaleDateString('id-ID').replace(/\//g, '-');
+        if (!confirm(`Alpakan semua yang belum absen di ${tanggalTarget}?`)) return;
         document.getElementById('loadingOverlay').classList.add('show');
         try {
             const siswaSnap = await db.ref('siswa').once('value');
-            const semuaSiswa = siswaSnap.val() || {};
+            const semua = siswaSnap.val() || {};
             const presensiSnap = await db.ref('presensi/' + tanggalTarget).once('value');
-            const presensiData = presensiSnap.val() || {};
+            const presensi = presensiSnap.val() || {};
             const updates = {};
-            let totalAlpa = 0;
-            for (let kelas in semuaSiswa) {
-                for (let absen in semuaSiswa[kelas]) {
-                    const siswa = semuaSiswa[kelas][absen] || {};
-                    const key = `${kelas}_${absen}`;
-                    if (presensiData[key]) continue;
-                    updates[`presensi/${tanggalTarget}/${key}`] = {
-                        nama: siswa.nama || '-', kelas: siswa.kelas || kelas, absen: siswa.absen || absen,
-                        jk: siswa.jk || '', agama: siswa.agama || '', jam: 'TIDAK HADIR',
-                        status: 'TIDAK HADIR', totalHadir: siswa.totalHadir || 0,
-                        timestamp: Date.now(), manual: true, autoAlpa: true
-                    };
-                    totalAlpa++;
-                }
+            let total = 0;
+            for (let k in semua) for (let a in semua[k]) {
+                if (presensi[`${k}_${a}`]) continue;
+                const s = semua[k][a] || {};
+                updates[`presensi/${tanggalTarget}/${k}_${a}`] = {
+                    nama: s.nama || '-', kelas: k, absen: a, jk: s.jk || '', agama: s.agama || '',
+                    jam: 'TIDAK HADIR', status: 'TIDAK HADIR', totalHadir: s.totalHadir || 0,
+                    timestamp: Date.now(), manual: true, autoAlpa: true
+                };
+                total++;
             }
-            if (totalAlpa === 0) { showToast('Semua siswa sudah punya presensi.', 'success'); }
-            else {
-                await db.ref().update(updates);
-                showToast(`${totalAlpa} siswa ditandai ALPA`, 'success');
-                playBeep('success');
-                updateDashboard();
-            }
-        } catch(e) { showToast('Gagal: ' + (e.message || e), 'error'); playBeep('error'); }
+            if (total === 0) showToast('Semua sudah absen', 'success');
+            else { await db.ref().update(updates); showToast(`${total} siswa ditandai ALPA`, 'success'); updateDashboard(); }
+        } catch(e) { showToast('Gagal: ' + e.message, 'error'); }
         document.getElementById('loadingOverlay').classList.remove('show');
     };
 
-    // ── Download Functions ───────────────────────────────
-    function agamaIsIslam(agama) { return String(agama || '').trim().toLowerCase() === 'islam'; }
-    function isHaidCell(h, s) { if (!h) return false; const st = String(h.status||'').toUpperCase(); const jm = String(h.jam||'').toUpperCase(); const jk = String((h.jk||s?.jk||'')).toUpperCase(); return (st==='HAID'||jm==='HAID') && agamaIsIslam(h.agama||s?.agama||'') && jk==='P'; }
-    function isKeputrianCell(h) { if (!h) return false; const st = String(h.status||'').toUpperCase(); const jm = String(h.jam||'').toUpperCase(); return st==='KEPUTRIAN'||jm==='KEPUTRIAN'; }
-    function isNonMuslimHadirCell(h, s) { if (!h) return false; const st = String(h.status||'').toUpperCase(); return st!=='TIDAK HADIR'&&st!=='HAID'&&st!=='KEPUTRIAN'&&!agamaIsIslam(h.agama||s?.agama||''); }
-    function isManualCell(h) { return !!h && h.manual === true; }
+    // ── Download ───────────────────────────────
+    function agamaIsIslam(a) { return String(a||'').trim().toLowerCase() === 'islam'; }
+    function isHaidCell(h, s) { return h && (String(h.status||'').toUpperCase()==='HAID'||String(h.jam||'').toUpperCase()==='HAID') && agamaIsIslam(h.agama||s?.agama||'') && String(h.jk||s?.jk||'').toUpperCase()==='P'; }
+    function isKeputrianCell(h) { return h && (String(h.status||'').toUpperCase()==='KEPUTRIAN'||String(h.jam||'').toUpperCase()==='KEPUTRIAN'); }
+    function isNonMuslimHadirCell(h, s) { return h && String(h.status||'').toUpperCase()!=='TIDAK HADIR' && String(h.status||'').toUpperCase()!=='HAID' && String(h.status||'').toUpperCase()!=='KEPUTRIAN' && !agamaIsIslam(h.agama||s?.agama||''); }
+    function isManualCell(h) { return !!h?.manual; }
 
-    function beriWarnaJam(ws, rowIndex, colIndex, warnaHex) {
-        const cellRef = XLSX.utils.encode_cell({ r: rowIndex, c: colIndex });
-        if (!ws[cellRef]) return;
-        ws[cellRef].s = {
-            fill: { patternType: 'solid', fgColor: { rgb: warnaHex } },
-            font: { bold: true, color: { rgb: '000000' } },
-            alignment: { horizontal: 'center', vertical: 'center' }
-        };
+    function beriWarnaJam(ws, r, c, color) {
+        const ref = XLSX.utils.encode_cell({r, c});
+        if (ws[ref]) ws[ref].s = { fill: { patternType: 'solid', fgColor: { rgb: color } }, font: { bold: true, color: { rgb: '000000' } }, alignment: { horizontal: 'center', vertical: 'center' } };
     }
 
     window.downloadHarian = async function() {
-        const selectedKey = document.getElementById('tanggalHarian')?.value;
-        if (!selectedKey) { showToast('Pilih tanggal dulu', 'error'); return; }
-        if (selectedKey === '__ALL__') { await downloadRekapBulananTerpilih(); return; }
-        await downloadHarianTanggal(selectedKey);
-    };
-
-    async function downloadHarianTanggal(selectedKey) {
+        const key = document.getElementById('tanggalHarian')?.value;
+        if (!key) { showToast('Pilih tanggal', 'error'); return; }
+        if (key === '__ALL__') { await downloadRekapBulanan(); return; }
         document.getElementById('loadingOverlay').classList.add('show');
         try {
-            const parts = selectedKey.split('-').map(Number);
-            if (parts.length !== 3 || parts.some(n => Number.isNaN(n))) throw new Error('Format tanggal tidak valid');
-            const [d, m, y] = parts;
-            const selectedDate = new Date(y, m - 1, d);
-            const today = selectedKey;
-            const namaHari = NAMA_HARI[selectedDate.getDay()];
-            const tglFormatted = selectedDate.toLocaleDateString('id-ID');
-            const headerTanggal = `${namaHari}, ${tglFormatted}`;
+            const [d, m, y] = key.split('-').map(Number);
+            const tgl = new Date(y, m-1, d);
+            const header = `${NAMA_HARI[tgl.getDay()]}, ${tgl.toLocaleDateString('id-ID')}`;
             const zip = new JSZip();
             const siswaSnap = await db.ref('siswa').once('value');
-            const semuaSiswa = siswaSnap.val() || {};
-            const presensiSnap = await db.ref('presensi/' + today).once('value');
-            const presensiData = presensiSnap.val() || {};
-            for (let kelas in semuaSiswa) {
-                const dataSiswaKelas = semuaSiswa[kelas] || {};
-                const daftarAbsen = Object.keys(dataSiswaKelas).map(Number).filter(n => !Number.isNaN(n)).sort((a,b)=>a-b);
-                const rows = [['NO. ABSEN', 'NAMA', headerTanggal, 'STATUS']];
-                const warnaHarian = [];
-                let totalHadirKelas = 0;
-                daftarAbsen.forEach(no => {
-                    const siswa = dataSiswaKelas[no] || {};
-                    const hadir = presensiData[`${kelas}_${no}`];
-                    const rowIndex = rows.length;
-                    if (hadir) {
-                        if (hadir.status === 'TIDAK HADIR') {
-                            rows.push([no, siswa.nama||hadir.nama||'-', 'TIDAK HADIR', '❌']);
-                            warnaHarian.push({ row: rowIndex, col: 2, color: 'FF0000' });
-                        } else {
-                            rows.push([no, siswa.nama||hadir.nama||'-', hadir.jam||'HADIR', '✅']);
-                            totalHadirKelas++;
-                            if (isManualCell(hadir)) warnaHarian.push({ row: rowIndex, col: 2, color: 'FF0000' });
-                            else if (isHaidCell(hadir, siswa)) warnaHarian.push({ row: rowIndex, col: 2, color: 'FFC0CB' });
-                            else if (isKeputrianCell(hadir)) warnaHarian.push({ row: rowIndex, col: 2, color: 'D8BFD8' });
-                            else if (isNonMuslimHadirCell(hadir, siswa)) warnaHarian.push({ row: rowIndex, col: 2, color: 'FFFF00' });
+            const semua = siswaSnap.val() || {};
+            const presensiSnap = await db.ref('presensi/' + key).once('value');
+            const presensi = presensiSnap.val() || {};
+            for (let kelas in semua) {
+                const daftar = Object.keys(semua[kelas]).map(Number).sort((a,b)=>a-b);
+                const rows = [['NO', 'NAMA', header, 'STATUS']];
+                const warna = [];
+                let hadir = 0;
+                daftar.forEach(no => {
+                    const s = semua[kelas][no] || {};
+                    const h = presensi[`${kelas}_${no}`];
+                    const ri = rows.length;
+                    if (h) {
+                        if (h.status === 'TIDAK HADIR') { rows.push([no, s.nama||h.nama||'-', 'TIDAK HADIR', '❌']); warna.push({r:ri, c:2, color:'FF0000'}); }
+                        else {
+                            rows.push([no, s.nama||h.nama||'-', h.jam||'HADIR', '✅']); hadir++;
+                            if (isManualCell(h)) warna.push({r:ri, c:2, color:'FF0000'});
+                            else if (isHaidCell(h,s)) warna.push({r:ri, c:2, color:'FFC0CB'});
+                            else if (isKeputrianCell(h)) warna.push({r:ri, c:2, color:'D8BFD8'});
+                            else if (isNonMuslimHadirCell(h,s)) warna.push({r:ri, c:2, color:'FFFF00'});
                         }
-                    } else {
-                        rows.push([no, siswa.nama||'-', '', '']);
-                    }
+                    } else rows.push([no, s.nama||'-', '', '']);
                 });
-                rows.push([]);
-                rows.push(['', `TOTAL HADIR: ${totalHadirKelas} orang`, '', '']);
+                rows.push([], ['', `TOTAL: ${hadir}`, '', '']);
                 const ws = XLSX.utils.aoa_to_sheet(rows);
-                warnaHarian.forEach(item => beriWarnaJam(ws, item.row, item.col, item.color));
-                ws['!cols'] = [{ wch: 12 }, { wch: 30 }, { wch: 22 }, { wch: 10 }];
+                warna.forEach(w => beriWarnaJam(ws, w.r, w.c, w.color));
+                ws['!cols'] = [{wch:8},{wch:28},{wch:20},{wch:8}];
                 const wb = XLSX.utils.book_new();
                 XLSX.utils.book_append_sheet(wb, ws, 'Presensi');
-                zip.file(`HARIAN_${kelas}_${today}.xlsx`, XLSX.write(wb, { bookType: 'xlsx', type: 'array' }));
+                zip.file(`HARIAN_${kelas}_${key}.xlsx`, XLSX.write(wb, { bookType: 'xlsx', type: 'array' }));
             }
-            const content = await zip.generateAsync({ type: 'blob' });
-            const link = document.createElement('a');
-            link.href = URL.createObjectURL(content);
-            link.download = `HARIAN_${today}.zip`;
-            link.click();
-            showToast('Download berhasil!', 'success');
-            playBeep('success');
-        } catch(error) { showToast('Gagal download: ' + (error?.message || error), 'error'); playBeep('error'); }
+            const blob = await zip.generateAsync({ type: 'blob' });
+            const a = document.createElement('a');
+            a.href = URL.createObjectURL(blob);
+            a.download = `HARIAN_${key}.zip`;
+            a.click();
+            showToast('Download selesai!', 'success');
+        } catch(e) { showToast('Gagal: ' + e.message, 'error'); }
         document.getElementById('loadingOverlay').classList.remove('show');
-    }
+    };
 
-    async function downloadRekapBulananTerpilih() {
+    async function downloadRekapBulanan() {
         document.getElementById('loadingOverlay').classList.add('show');
         try {
-            const selectBulan = document.getElementById('pilihBulan')?.value;
-            let targetDate = new Date();
-            if (selectBulan) { const parts = selectBulan.split('-'); targetDate = new Date(parts[0], parseInt(parts[1])-1, 1); }
-            const bulan = targetDate.getMonth();
-            const tahun = targetDate.getFullYear();
-            const formatTglFirebase = (d) => d.toLocaleDateString('id-ID').replace(/\//g, '-');
-            const formatTglHeader = (d) => `${NAMA_HARI[d.getDay()]} ${d.getDate()}/${d.getMonth()+1}`;
+            const bulanVal = document.getElementById('pilihBulan')?.value;
+            let tgl = new Date();
+            if (bulanVal) { const [y, m] = bulanVal.split('-'); tgl = new Date(y, m-1, 1); }
+            const bulan = tgl.getMonth(), tahun = tgl.getFullYear();
+            const ftgl = d => d.toLocaleDateString('id-ID').replace(/\//g, '-');
+            const fhdr = d => `${NAMA_HARI[d.getDay()]} ${d.getDate()}/${d.getMonth()+1}`;
             const semuaTanggal = [];
-            const jumlahHariBulan = new Date(tahun, bulan+1, 0).getDate();
-            for (let i = 1; i <= jumlahHariBulan; i++) {
-                const tgl = new Date(tahun, bulan, i);
-                if (tgl.getDay()>=1&&tgl.getDay()<=5) semuaTanggal.push(tgl);
+            for (let i = 1; i <= new Date(tahun, bulan+1, 0).getDate(); i++) {
+                const d = new Date(tahun, bulan, i);
+                if (d.getDay() >= 1 && d.getDay() <= 5) semuaTanggal.push(d);
             }
             const presensiBulanan = {};
-            for (let hariObj of semuaTanggal) {
-                const key = formatTglFirebase(hariObj);
-                const snap = await db.ref('presensi/' + key).once('value');
-                presensiBulanan[key] = snap.val() || {};
-            }
+            for (let d of semuaTanggal) { const k = ftgl(d); presensiBulanan[k] = (await db.ref('presensi/' + k).once('value')).val() || {}; }
             const siswaSnap = await db.ref('siswa').once('value');
-            const semuaSiswa = siswaSnap.val() || {};
+            const semua = siswaSnap.val() || {};
             const zip = new JSZip();
-            const namaBulan = targetDate.toLocaleDateString('id-ID', { month: 'long', year: 'numeric' }).replace(/\s/g, '_');
-            for (let kelas in semuaSiswa) {
-                const dataSiswaKelas = semuaSiswa[kelas] || {};
-                const daftarAbsen = Object.keys(dataSiswaKelas).map(Number).filter(n=>!Number.isNaN(n)).sort((a,b)=>a-b);
-                const headerRow = ['NO. ABSEN', 'NAMA'];
-                semuaTanggal.forEach(tgl => headerRow.push(formatTglHeader(tgl)));
-                headerRow.push('TOTAL HADIR');
-                const rows = [headerRow];
-                const warnaBulanan = [];
-                daftarAbsen.forEach(no => {
-                    const siswa = dataSiswaKelas[no] || {};
-                    const row = [no, siswa.nama||'-'];
-                    const rowIndex = rows.length;
-                    let totalHadirSiswa = 0;
-                    semuaTanggal.forEach((hariObj, tanggalIndex) => {
-                        const key = formatTglFirebase(hariObj);
-                        const hadirData = (presensiBulanan[key] || {})[`${kelas}_${no}`];
-                        const colIndex = 2 + tanggalIndex;
-                        if (hadirData) {
-                            if (hadirData.status === 'TIDAK HADIR') {
-                                row.push('TIDAK HADIR');
-                                warnaBulanan.push({ row: rowIndex, col: colIndex, color: 'FF0000' });
-                            } else {
-                                row.push(hadirData.jam||'HADIR');
-                                totalHadirSiswa++;
-                                if (isManualCell(hadirData)) warnaBulanan.push({ row: rowIndex, col: colIndex, color: 'FF0000' });
-                                else if (isHaidCell(hadirData, siswa)) warnaBulanan.push({ row: rowIndex, col: colIndex, color: 'FFC0CB' });
-                                else if (isKeputrianCell(hadirData)) warnaBulanan.push({ row: rowIndex, col: colIndex, color: 'D8BFD8' });
-                                else if (isNonMuslimHadirCell(hadirData, siswa)) warnaBulanan.push({ row: rowIndex, col: colIndex, color: 'FFFF00' });
+            const namaBulan = tgl.toLocaleDateString('id-ID', { month: 'long', year: 'numeric' }).replace(/\s/g, '_');
+            for (let kelas in semua) {
+                const daftar = Object.keys(semua[kelas]).map(Number).sort((a,b)=>a-b);
+                const header = ['NO', 'NAMA', ...semuaTanggal.map(fhdr), 'TOTAL'];
+                const rows = [header];
+                const warna = [];
+                daftar.forEach(no => {
+                    const s = semua[kelas][no] || {};
+                    const row = [no, s.nama||'-'];
+                    const ri = rows.length;
+                    let total = 0;
+                    semuaTanggal.forEach((d, i) => {
+                        const h = (presensiBulanan[ftgl(d)] || {})[`${kelas}_${no}`];
+                        const ci = 2 + i;
+                        if (h) {
+                            if (h.status === 'TIDAK HADIR') { row.push('TIDAK HADIR'); warna.push({r:ri, c:ci, color:'FF0000'}); }
+                            else {
+                                row.push(h.jam||'HADIR'); total++;
+                                if (isManualCell(h)) warna.push({r:ri, c:ci, color:'FF0000'});
+                                else if (isHaidCell(h,s)) warna.push({r:ri, c:ci, color:'FFC0CB'});
+                                else if (isKeputrianCell(h)) warna.push({r:ri, c:ci, color:'D8BFD8'});
+                                else if (isNonMuslimHadirCell(h,s)) warna.push({r:ri, c:ci, color:'FFFF00'});
                             }
-                        } else { row.push(''); }
+                        } else row.push('');
                     });
-                    row.push(totalHadirSiswa);
+                    row.push(total);
                     rows.push(row);
                 });
                 const ws = XLSX.utils.aoa_to_sheet(rows);
-                warnaBulanan.forEach(item => beriWarnaJam(ws, item.row, item.col, item.color));
-                const cols = [{ wch: 12 }, { wch: 30 }];
-                semuaTanggal.forEach(() => cols.push({ wch: 16 }));
-                cols.push({ wch: 14 });
+                warna.forEach(w => beriWarnaJam(ws, w.r, w.c, w.color));
+                const cols = [{wch:8},{wch:28}];
+                semuaTanggal.forEach(() => cols.push({wch:14}));
+                cols.push({wch:10});
                 ws['!cols'] = cols;
                 const wb = XLSX.utils.book_new();
-                XLSX.utils.book_append_sheet(wb, ws, 'Rekap Bulanan');
+                XLSX.utils.book_append_sheet(wb, ws, 'Rekap');
                 zip.file(`REKAP_${kelas}_${namaBulan}.xlsx`, XLSX.write(wb, { bookType: 'xlsx', type: 'array' }));
             }
-            const content = await zip.generateAsync({ type: 'blob' });
-            const link = document.createElement('a');
-            link.href = URL.createObjectURL(content);
-            link.download = `REKAP_BULANAN_${namaBulan}.zip`;
-            link.click();
-            showToast('Download rekap selesai!', 'success');
-            playBeep('success');
-        } catch(error) { showToast('Gagal download: ' + (error?.message || error), 'error'); playBeep('error'); }
+            const blob = await zip.generateAsync({ type: 'blob' });
+            const a = document.createElement('a');
+            a.href = URL.createObjectURL(blob);
+            a.download = `REKAP_${namaBulan}.zip`;
+            a.click();
+            showToast('Download selesai!', 'success');
+        } catch(e) { showToast('Gagal: ' + e.message, 'error'); }
         document.getElementById('loadingOverlay').classList.remove('show');
-    }
+    };
 
     // ── Import Excel ───────────────────────────────
     window.importExcel = async function() {
-        const fileInput = document.getElementById('fileExcel');
-        if (!fileInput.files[0]) { showToast('Pilih file Excel dulu!', 'error'); return; }
+        const file = document.getElementById('fileExcel')?.files[0];
+        if (!file) { showToast('Pilih file!', 'error'); return; }
         document.getElementById('loadingOverlay').classList.add('show');
         const progress = document.getElementById('importProgress');
         const result = document.getElementById('importResult');
         progress.style.display = '';
         result.style.display = 'none';
-        progress.innerText = 'Membaca file Excel...';
+        progress.innerText = 'Membaca file...';
         try {
-            const file = fileInput.files[0];
-            const arrayBuffer = await file.arrayBuffer();
-            const wb = XLSX.read(arrayBuffer, { type: 'array' });
-            const semuaSiswa = {};
-            for (let sheetName of wb.SheetNames) {
-                const kelas = sheetName.trim().replace(/\./g, '-');
-                if (!/^X/.test(kelas)) continue;
-                const ws = wb.Sheets[sheetName];
+            const wb = XLSX.read(await file.arrayBuffer(), { type: 'array' });
+            const semua = {};
+            wb.SheetNames.forEach(sn => {
+                const kelas = sn.trim().replace(/\./g, '-');
+                if (!/^X/.test(kelas)) return;
+                const ws = wb.Sheets[sn];
                 const rows = XLSX.utils.sheet_to_json(ws, { header: 1, defval: '' });
-                let headerIdx = -1;
+                let hi = -1;
                 for (let i = 0; i < rows.length; i++) {
                     const r = rows[i].map(c => String(c).toLowerCase());
-                    if (r.some(c => c.includes('nama')) && r.some(c => c === 'no' || c.includes('no'))) { headerIdx = i; break; }
+                    if (r.some(c => c.includes('nama')) && r.some(c => c === 'no' || c.includes('no'))) { hi = i; break; }
                 }
-                if (headerIdx === -1) continue;
-                const header = rows[headerIdx].map(c => String(c).toLowerCase().trim());
-                const idxNo = header.findIndex(h => h === 'no' || h === 'no.');
-                const idxNama = header.findIndex(h => h.includes('nama'));
-                const idxJK = header.findIndex(h => h === 'jk' || h === 'l/p' || h.includes('jenis'));
-                const idxAgama = header.findIndex(h => h.includes('agama'));
-                if (idxNama === -1) continue;
+                if (hi === -1) return;
+                const hdr = rows[hi].map(c => String(c).toLowerCase().trim());
+                const iNo = hdr.findIndex(h => h === 'no' || h === 'no.');
+                const iNama = hdr.findIndex(h => h.includes('nama'));
+                const iJK = hdr.findIndex(h => h === 'jk' || h === 'l/p' || h.includes('jenis'));
+                const iAgama = hdr.findIndex(h => h.includes('agama'));
+                if (iNama === -1) return;
                 const siswas = [];
-                for (let i = headerIdx + 1; i < rows.length; i++) {
+                for (let i = hi + 1; i < rows.length; i++) {
                     const row = rows[i];
-                    const nama = String(row[idxNama] || '').trim();
-                    if (!nama || nama.toLowerCase().includes('jumlah') || nama.toLowerCase().includes('total')) continue;
-                    const no = idxNo !== -1 ? String(row[idxNo] || '').trim() : String(i - headerIdx);
-                    const jk = idxJK !== -1 ? String(row[idxJK] || 'L').trim().toUpperCase() : 'L';
-                    const agama = idxAgama !== -1 ? String(row[idxAgama] || 'Islam').trim() : 'Islam';
-                    if (nama) siswas.push({ no, nama: nama.toUpperCase(), jk: jk === 'P' ? 'P' : 'L', agama });
+                    const nama = String(row[iNama] || '').trim();
+                    if (!nama || nama.toLowerCase().includes('jumlah')) continue;
+                    siswas.push({
+                        no: iNo !== -1 ? String(row[iNo] || '').trim() : String(i - hi),
+                        nama: nama.toUpperCase(),
+                        jk: iJK !== -1 ? String(row[iJK] || 'L').trim().toUpperCase() : 'L',
+                        agama: iAgama !== -1 ? String(row[iAgama] || 'Islam').trim() : 'Islam'
+                    });
                 }
-                if (siswas.length > 0) semuaSiswa[kelas] = siswas;
-            }
-            const kelasList = Object.keys(semuaSiswa);
-            if (kelasList.length === 0) throw new Error('Tidak ada data kelas yang terbaca.');
-            progress.innerText = `Ditemukan ${kelasList.length} kelas. Menyimpan & generate QR...`;
+                if (siswas.length > 0) semua[kelas] = siswas;
+            });
+            const kelasList = Object.keys(semua);
+            if (kelasList.length === 0) throw new Error('Tidak ada data');
             const zip = new JSZip();
-            let totalSiswa = 0;
+            let total = 0;
             for (let kelas of kelasList) {
-                const siswas = semuaSiswa[kelas];
-                const folderQR = zip.folder(kelas);
-                for (let s of siswas) {
+                const folder = zip.folder(kelas);
+                for (let s of semua[kelas]) {
                     await db.ref('siswa/' + kelas + '/' + s.no).set({
-                        nama: s.nama, kelas, absen: s.no, jk: s.jk, agama: s.agama,
+                        nama: s.nama, kelas, absen: s.no, jk: s.jk === 'P' ? 'P' : 'L', agama: s.agama,
                         totalHadir: 0, terdaftar: Date.now()
                     });
-                    const qrText = `${s.nama}|${kelas}|${s.no}|${s.jk}|${s.agama}`;
                     const canvas = document.createElement('canvas');
                     canvas.width = 300; canvas.height = 350;
                     const ctx = canvas.getContext('2d');
-                    ctx.fillStyle = '#ffffff'; ctx.fillRect(0, 0, 300, 350);
-                    const tempDiv = document.createElement('div');
-                    tempDiv.style.cssText = 'position:absolute;left:-9999px;';
-                    document.body.appendChild(tempDiv);
-                    await new Promise(resolve => {
-                        new QRCode(tempDiv, { text: qrText, width: 250, height: 250, correctLevel: QRCode.CorrectLevel.M });
-                        setTimeout(resolve, 200);
-                    });
-                    const qrImg = tempDiv.querySelector('img') || tempDiv.querySelector('canvas');
-                    if (qrImg) {
-                        const img = new Image();
-                        img.src = qrImg.tagName === 'CANVAS' ? qrImg.toDataURL() : qrImg.src;
-                        await new Promise(r => { img.onload = r; });
-                        ctx.drawImage(img, 25, 10, 250, 250);
+                    ctx.fillStyle = '#fff'; ctx.fillRect(0, 0, 300, 350);
+                    const div = document.createElement('div');
+                    div.style.cssText = 'position:absolute;left:-9999px;';
+                    document.body.appendChild(div);
+                    await new Promise(r => { new QRCode(div, { text: `${s.nama}|${kelas}|${s.no}|${s.jk}|${s.agama}`, width: 250, height: 250 }); setTimeout(r, 200); });
+                    const img = div.querySelector('img') || div.querySelector('canvas');
+                    if (img) {
+                        const i = new Image();
+                        i.src = img.tagName === 'CANVAS' ? img.toDataURL() : img.src;
+                        await new Promise(r => { i.onload = r; });
+                        ctx.drawImage(i, 25, 10, 250, 250);
                     }
-                    document.body.removeChild(tempDiv);
-                    ctx.fillStyle = '#000000'; ctx.font = 'bold 11px Arial'; ctx.textAlign = 'center';
-                    ctx.fillText(s.nama.length > 30 ? s.nama.substring(0,28)+'...' : s.nama, 150, 275);
+                    document.body.removeChild(div);
+                    ctx.fillStyle = '#000'; ctx.font = 'bold 11px Arial'; ctx.textAlign = 'center';
+                    ctx.fillText(s.nama.substring(0, 28), 150, 275);
                     ctx.font = '10px Arial'; ctx.fillText(`${kelas} | Absen ${s.no} | ${s.jk} | ${s.agama}`, 150, 295);
-                    folderQR.file(`QR_${s.no}_${s.nama.replace(/[^a-zA-Z0-9]/g,'_')}.png`, canvas.toDataURL('image/png').split(',')[1], { base64: true });
-                    totalSiswa++;
+                    folder.file(`QR_${s.no}.png`, canvas.toDataURL('image/png').split(',')[1], { base64: true });
+                    total++;
                 }
-                progress.innerText = `Generate QR: ${totalSiswa} siswa selesai...`;
+                progress.innerText = `Generate: ${total} siswa...`;
             }
-            const content = await zip.generateAsync({ type: 'blob' });
-            const link = document.createElement('a');
-            link.href = URL.createObjectURL(content);
-            link.download = `BULK_QR_${new Date().toLocaleDateString('id-ID').replace(/\//g,'-')}.zip`;
-            link.click();
+            const blob = await zip.generateAsync({ type: 'blob' });
+            const a = document.createElement('a');
+            a.href = URL.createObjectURL(blob);
+            a.download = `BULK_QR_${new Date().toLocaleDateString('id-ID').replace(/\//g,'-')}.zip`;
+            a.click();
             result.style.display = '';
-            result.innerHTML = `
-                <div style="background:rgba(16,185,129,0.1); border:1px solid rgba(16,185,129,0.25); border-radius:12px; padding:16px 20px; font-size:13px; font-weight:600; color:#34d399; text-align:center;">
-                    <i class="fas fa-check-circle"></i> Berhasil! ${totalSiswa} siswa dari ${kelasList.length} kelas<br>
-                    <span style="font-size:11px; color:#64748b;">QR tersimpan di Firebase & ZIP sudah didownload</span>
-                </div>`;
+            result.innerHTML = `<div style="background:rgba(16,185,129,0.1); border:1px solid rgba(16,185,129,0.2); border-radius:10px; padding:12px; font-size:12px; color:#34d399; text-align:center;">✅ ${total} siswa dari ${kelasList.length} kelas</div>`;
             progress.style.display = 'none';
-            showToast(`${totalSiswa} QR berhasil digenerate!`, 'success');
-            playBeep('success');
+            showToast(`${total} QR berhasil!`, 'success');
             updateDashboard();
             loadManualAbsenOptions();
-        } catch(err) { showToast('Gagal: ' + err.message, 'error'); progress.innerText = '❌ Error: ' + err.message; playBeep('error'); }
+        } catch(e) { showToast('Gagal: ' + e.message, 'error'); progress.innerText = '❌ ' + e.message; }
         document.getElementById('loadingOverlay').classList.remove('show');
     };
 
-    // ── Naik Kelas Functions ───────────────────────────────
+    // ── Naik Kelas ───────────────────────────────
     window.startScanNaikKelas = function() {
         document.getElementById('btnStartNaik').style.display = 'none';
         document.getElementById('btnStopNaik').style.display = '';
         scannerNaik = new Html5Qrcode("readerNaik");
-        scannerNaik.start({ facingMode: "environment" }, { fps: 10, qrbox: 200 },
+        scannerNaik.start({ facingMode: "environment" }, { fps: 10, qrbox: 180 },
             (text) => { scannerNaik.pause(); prosesQRNaik(text); }, () => {}
         ).catch(e => {
-            showToast('Kamera gagal: ' + e, 'error');
+            showToast('Gagal: ' + e, 'error');
             document.getElementById('btnStartNaik').style.display = '';
             document.getElementById('btnStopNaik').style.display = 'none';
         });
@@ -2957,19 +2004,19 @@
 
     async function prosesQRNaik(text) {
         try {
-            let { nama, kelas: kelasLama, absen: absenLama } = parseQRPresensi(text);
+            let { nama, kelas: kl, absen: al } = parseQRPresensi(text);
             if (listSiswaScanned.find(s => s.nama.toUpperCase() === nama.toUpperCase())) {
                 showFeedbackNaik('⚠️', nama, 'Sudah discan!', 'background:linear-gradient(135deg,#78350f,#d97706)');
                 setTimeout(() => scannerNaik?.resume(), 1500);
                 return;
             }
-            const snap = await db.ref('siswa/' + kelasLama + '/' + absenLama).once('value');
-            if (!snap.exists()) throw 'Siswa tidak ditemukan';
-            const siswaData = { ...snap.val(), kelasLama, absenLama };
-            if (siswaData.nama && normalisasiNamaQR(siswaData.nama) !== normalisasiNamaQR(nama)) throw 'Data QR tidak cocok';
-            listSiswaScanned.push(siswaData);
+            const snap = await db.ref('siswa/' + kl + '/' + al).once('value');
+            if (!snap.exists()) throw 'Tidak ditemukan';
+            const data = { ...snap.val(), kelasLama: kl, absenLama: al };
+            if (data.nama && normalisasiNamaQR(data.nama) !== normalisasiNamaQR(nama)) throw 'Data tidak cocok';
+            listSiswaScanned.push(data);
             renderListNaik();
-            showFeedbackNaik('✅', siswaData.nama || nama, `Ditambahkan (${listSiswaScanned.length} siswa)`, 'background:linear-gradient(135deg,#065f46,#059669)');
+            showFeedbackNaik('✅', data.nama || nama, `Ditambahkan (${listSiswaScanned.length})`, 'background:linear-gradient(135deg,#065f46,#059669)');
             playBeep('success');
         } catch(e) {
             showFeedbackNaik('❌', 'GAGAL', e.toString(), 'background:linear-gradient(135deg,#991b1b,#dc2626)');
@@ -2980,97 +2027,78 @@
 
     function showFeedbackNaik(icon, nama, msg, bg) {
         const fb = document.getElementById('feedbackNaik');
-        const fbIcon = document.getElementById('fbNaikIcon');
-        const fbNama = document.getElementById('fbNaikNama');
-        const fbMsg = document.getElementById('fbNaikMsg');
-        const fbBox = document.getElementById('fbNaikBox');
-        if (fbIcon) fbIcon.innerText = icon;
-        if (fbNama) fbNama.innerText = nama;
-        if (fbMsg) fbMsg.innerText = msg;
-        if (fbBox) fbBox.style = `text-align:center; padding:28px 36px; border-radius:14px; ${bg};`;
+        document.getElementById('fbNaikIcon').innerText = icon;
+        document.getElementById('fbNaikNama').innerText = nama;
+        document.getElementById('fbNaikMsg').innerText = msg;
+        document.getElementById('fbNaikBox').style = `text-align:center; padding:24px 32px; border-radius:14px; ${bg};`;
         fb.classList.add('show');
         setTimeout(() => fb.classList.remove('show'), 1800);
     }
 
     function renderListNaik() {
-        const container = document.getElementById('listScanNaik');
-        if (!container) return;
+        const c = document.getElementById('listScanNaik');
+        if (!c) return;
         if (listSiswaScanned.length === 0) {
-            container.innerHTML = `
-                <div class="empty-state">
-                    <div class="empty-state-icon"><i class="fas fa-user-plus"></i></div>
-                    <div class="empty-state-text">Belum ada siswa yang discan</div>
-                </div>`;
+            c.innerHTML = '<div class="empty-state"><i class="fas fa-user-plus"></i><p>Belum ada scan</p></div>';
             return;
         }
-        container.innerHTML = listSiswaScanned.map((s, i) => `
-            <div style="display:flex; justify-content:space-between; align-items:center; padding:10px 14px; background:rgba(10,22,40,0.4); border:1px solid rgba(6,182,212,0.08); border-radius:10px;">
+        c.innerHTML = listSiswaScanned.map((s, i) => `
+            <div class="naik-item">
                 <div>
-                    <div style="font-size:13px; font-weight:700; color:#e2e8f0;">${s.nama}</div>
-                    <div style="font-size:10px; color:#64748b; margin-top:2px;">${s.kelasLama || '?'} → Akan dipindah</div>
+                    <div style="font-size:12px; font-weight:700; color:#e2e8f0;">${s.nama}</div>
+                    <div style="font-size:10px; color:#64748b;">${s.kelasLama || '?'} → dipindah</div>
                 </div>
-                <button onclick="hapusScanNaik(${i})" style="background:rgba(239,68,68,0.1); color:#f87171; border:none; border-radius:8px; padding:5px 10px; font-size:11px; font-weight:700; cursor:pointer; transition:all 0.2s;" onmouseover="this.style.background='rgba(239,68,68,0.2)'" onmouseout="this.style.background='rgba(239,68,68,0.1)'">
-                    <i class="fas fa-times"></i>
-                </button>
+                <button onclick="hapusScanNaik(${i})" style="background:rgba(239,68,68,0.1); color:#f87171; border:none; border-radius:6px; padding:4px 8px; cursor:pointer;">✕</button>
             </div>
         `).join('');
     }
 
-    window.hapusScanNaik = function(idx) { listSiswaScanned.splice(idx, 1); renderListNaik(); };
-    window.resetNaikKelas = function() { listSiswaScanned = []; renderListNaik(); showToast('List direset', 'success'); };
+    window.hapusScanNaik = function(i) { listSiswaScanned.splice(i, 1); renderListNaik(); };
+    window.resetNaikKelas = function() { listSiswaScanned = []; renderListNaik(); showToast('Reset', 'success'); };
 
     window.simpanNaikKelas = async function() {
-        if (listSiswaScanned.length === 0) { showToast('Belum ada siswa yang discan!', 'error'); return; }
-        const kelasTujuan = document.getElementById('kelasTujuan')?.value;
-        if (!kelasTujuan) { showToast('Pilih kelas tujuan dulu!', 'error'); return; }
+        if (listSiswaScanned.length === 0) { showToast('Kosong!', 'error'); return; }
+        const tujuan = document.getElementById('kelasTujuan')?.value;
+        if (!tujuan) { showToast('Pilih kelas tujuan!', 'error'); return; }
         document.getElementById('loadingOverlay').classList.add('show');
         try {
-            const sorted = [...listSiswaScanned].sort((a, b) => a.nama.localeCompare(b.nama));
+            const sorted = [...listSiswaScanned].sort((a,b) => a.nama.localeCompare(b.nama));
             for (let i = 0; i < sorted.length; i++) {
                 const s = sorted[i];
-                const absenBaru = String(i + 1);
                 if (s.kelasLama && s.absenLama) await db.ref('siswa/' + s.kelasLama + '/' + s.absenLama).remove();
-                await db.ref('siswa/' + kelasTujuan + '/' + absenBaru).set({
-                    nama: s.nama, kelas: kelasTujuan, absen: absenBaru,
+                await db.ref('siswa/' + tujuan + '/' + (i + 1)).set({
+                    nama: s.nama, kelas: tujuan, absen: String(i + 1),
                     jk: s.jk || 'L', agama: s.agama || 'Islam',
                     totalHadir: s.totalHadir || 0, terdaftar: s.terdaftar || Date.now()
                 });
             }
-            showToast(`${sorted.length} siswa dipindah ke ${kelasTujuan}!`, 'success');
-            playBeep('success');
-            listSiswaScanned = [];
-            renderListNaik();
-            updateDashboard();
-            loadManualAbsenOptions();
-        } catch(e) { showToast('Gagal: ' + e.message, 'error'); playBeep('error'); }
+            showToast(`${sorted.length} siswa dipindah ke ${tujuan}!`, 'success');
+            listSiswaScanned = []; renderListNaik(); updateDashboard(); loadManualAbsenOptions();
+        } catch(e) { showToast('Gagal: ' + e.message, 'error'); }
         document.getElementById('loadingOverlay').classList.remove('show');
     };
 
     // ── Reset Total Hadir ───────────────────────────────
     window.resetTotalHadir = async function() {
-        if (!confirm('⚠️ YAKIN mau reset semua total hadir jadi 0?\n\nAksi ini tidak bisa dibatalkan!')) return;
+        if (!confirm('Reset semua total hadir ke 0? Tidak bisa dibatalkan!')) return;
         document.getElementById('loadingOverlay').classList.add('show');
         try {
-            const siswaSnap = await db.ref('siswa').once('value');
-            const semuaSiswa = siswaSnap.val() || {};
+            const snap = await db.ref('siswa').once('value');
+            const data = snap.val() || {};
             const updates = {};
-            for (let kelas in semuaSiswa) for (let absen in semuaSiswa[kelas]) updates[`siswa/${kelas}/${absen}/totalHadir`] = 0;
+            for (let k in data) for (let a in data[k]) updates[`siswa/${k}/${a}/totalHadir`] = 0;
             await db.ref().update(updates);
-            showToast('Semua total hadir berhasil direset!', 'success');
-            playBeep('success');
+            showToast('Berhasil direset!', 'success');
             updateDashboard();
-        } catch(e) { showToast('Gagal reset: ' + e.message, 'error'); playBeep('error'); }
+        } catch(e) { showToast('Gagal: ' + e.message, 'error'); }
         document.getElementById('loadingOverlay').classList.remove('show');
     };
 
     // ── Service Worker Cleanup ───────────────────────────────
     if ('serviceWorker' in navigator) {
-        navigator.serviceWorker.getRegistrations()
-            .then(registrations => registrations.forEach(reg => reg.unregister()))
-            .catch(err => {});
+        navigator.serviceWorker.getRegistrations().then(r => r.forEach(reg => reg.unregister())).catch(() => {});
     }
 
-    // ── Initial Render ───────────────────────────────
     renderListNaik();
 </script>
 </body>
