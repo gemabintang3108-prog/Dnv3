@@ -6,8 +6,8 @@
     <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
     <meta http-equiv="Pragma" content="no-cache">
     <meta http-equiv="Expires" content="0">
-    <title>Kerohanian SMAN 12</title>
-    <meta name="theme-color" content="#0a1628">
+    <title>Kerohanian SMAN 12 • Divine Presence</title>
+    <meta name="theme-color" content="#0a0a1a">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="apple-mobile-web-app-title" content="Kerohanian 12">
@@ -19,34 +19,39 @@
     <script src="https://cdn.jsdelivr.net/npm/xlsx-js-style@1.2.0/dist/xlsx.bundle.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Orbitron:wght@400;500;600;700;800;900&family=Space+Grotesk:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
 
     <style>
         :root {
-            --navy-950: #020617;
-            --navy-900: #0a1628;
-            --navy-850: #0f1d3a;
-            --navy-800: #13284c;
-            --navy-700: #1a3565;
-            --cyan-500: #06b6d4;
-            --cyan-400: #22d3ee;
-            --cyan-300: #67e8f9;
-            --emerald-500: #10b981;
-            --emerald-400: #34d399;
-            --red-500: #ef4444;
-            --red-400: #f87171;
-            --amber-500: #f59e0b;
-            --amber-400: #fbbf24;
-            --violet-500: #8b5cf6;
-            --violet-400: #a78bfa;
+            --bg-deep: #06060f;
+            --bg-card: rgba(15, 15, 40, 0.6);
+            --glass: rgba(255, 255, 255, 0.03);
+            --glass-border: rgba(255, 255, 255, 0.06);
+            --cyan: #00f0ff;
+            --cyan-glow: rgba(0, 240, 255, 0.4);
+            --magenta: #ff00ff;
+            --magenta-glow: rgba(255, 0, 255, 0.4);
+            --gold: #ffd700;
+            --gold-glow: rgba(255, 215, 0, 0.4);
+            --emerald: #00ff88;
+            --emerald-glow: rgba(0, 255, 136, 0.4);
+            --violet: #7b2fff;
+            --violet-glow: rgba(123, 47, 255, 0.4);
+            --coral: #ff6b6b;
+            --coral-glow: rgba(255, 107, 107, 0.4);
             --safe-bottom: env(safe-area-inset-bottom, 16px);
         }
 
-        * { font-family: 'Inter', sans-serif; box-sizing: border-box; margin: 0; padding: 0; }
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
 
         body {
-            background: var(--navy-950);
+            font-family: 'Inter', 'Space Grotesk', sans-serif;
+            background: var(--bg-deep);
             min-height: 100vh;
             min-height: 100dvh;
             overscroll-behavior: none;
@@ -55,6 +60,76 @@
             -webkit-tap-highlight-color: transparent;
             overflow: hidden;
             position: relative;
+            cursor: default;
+        }
+
+        /* ── ANIMATED BACKGROUND ─────────────────────────────── */
+        .bg-universe {
+            position: fixed;
+            inset: 0;
+            z-index: 0;
+            pointer-events: none;
+            overflow: hidden;
+        }
+
+        .bg-universe::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background:
+                radial-gradient(ellipse at 20% 20%, rgba(0, 240, 255, 0.08) 0%, transparent 60%),
+                radial-gradient(ellipse at 80% 60%, rgba(255, 0, 255, 0.06) 0%, transparent 60%),
+                radial-gradient(ellipse at 50% 80%, rgba(123, 47, 255, 0.08) 0%, transparent 60%),
+                radial-gradient(ellipse at 10% 90%, rgba(0, 255, 136, 0.05) 0%, transparent 50%),
+                radial-gradient(ellipse at 90% 10%, rgba(255, 215, 0, 0.04) 0%, transparent 50%);
+            animation: bgPulse 8s ease-in-out infinite alternate;
+        }
+
+        @keyframes bgPulse {
+            0% {
+                background:
+                    radial-gradient(ellipse at 20% 20%, rgba(0, 240, 255, 0.08) 0%, transparent 60%),
+                    radial-gradient(ellipse at 80% 60%, rgba(255, 0, 255, 0.06) 0%, transparent 60%),
+                    radial-gradient(ellipse at 50% 80%, rgba(123, 47, 255, 0.08) 0%, transparent 60%);
+            }
+            100% {
+                background:
+                    radial-gradient(ellipse at 30% 30%, rgba(0, 240, 255, 0.12) 0%, transparent 60%),
+                    radial-gradient(ellipse at 70% 50%, rgba(255, 0, 255, 0.1) 0%, transparent 60%),
+                    radial-gradient(ellipse at 40% 70%, rgba(123, 47, 255, 0.12) 0%, transparent 60%);
+            }
+        }
+
+        /* ── FLOATING PARTICLES ─────────────────────────────── */
+        .particles-container {
+            position: fixed;
+            inset: 0;
+            z-index: 1;
+            pointer-events: none;
+        }
+
+        .particle {
+            position: absolute;
+            border-radius: 50%;
+            animation: float linear infinite;
+            opacity: 0;
+        }
+
+        @keyframes float {
+            0% {
+                transform: translateY(100vh) scale(0);
+                opacity: 0;
+            }
+            10% {
+                opacity: 1;
+            }
+            90% {
+                opacity: 1;
+            }
+            100% {
+                transform: translateY(-100vh) scale(1.5);
+                opacity: 0;
+            }
         }
 
         /* ── APP CONTAINER ─────────────────────────────── */
@@ -65,6 +140,7 @@
             display: flex;
             flex-direction: column;
             position: relative;
+            z-index: 10;
             overflow: hidden;
         }
 
@@ -77,9 +153,9 @@
             overflow-y: auto;
             overflow-x: hidden;
             -webkit-overflow-scrolling: touch;
-            background: var(--navy-950);
-            transform: translateX(100%);
-            transition: transform 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+            background: transparent;
+            transform: translateX(120%);
+            transition: transform 0.5s cubic-bezier(0.22, 0.61, 0.36, 1);
             z-index: 1;
             padding-bottom: var(--safe-bottom);
         }
@@ -90,25 +166,19 @@
         }
 
         .screen.prev {
-            transform: translateX(-30%);
+            transform: translateX(-40%);
             z-index: 0;
-        }
-
-        .screen.home-screen {
-            transform: translateX(0);
-            z-index: 2;
-        }
-
-        .screen.home-screen.prev {
-            transform: translateX(-30%);
-            z-index: 0;
+            opacity: 0.3;
+            filter: blur(4px);
         }
 
         /* ── TOP BAR ─────────────────────────────── */
         .topbar {
-            height: 56px;
-            background: var(--navy-900);
-            border-bottom: 1px solid rgba(6,182,212,0.15);
+            height: 60px;
+            background: rgba(15, 15, 40, 0.7);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.08);
             display: flex;
             align-items: center;
             padding: 0 16px;
@@ -117,52 +187,64 @@
             position: sticky;
             top: 0;
             z-index: 50;
-            backdrop-filter: blur(10px);
         }
 
         .topbar-back {
-            width: 36px;
-            height: 36px;
-            border-radius: 10px;
-            background: rgba(255,255,255,0.04);
-            border: 1px solid rgba(255,255,255,0.08);
-            color: #94a3b8;
+            width: 40px;
+            height: 40px;
+            border-radius: 12px;
+            background: rgba(255, 255, 255, 0.04);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            color: #aaa;
             display: flex;
             align-items: center;
             justify-content: center;
             cursor: pointer;
             font-size: 16px;
             flex-shrink: 0;
-            transition: all 0.2s;
+            transition: all 0.3s;
         }
 
-        .topbar-back:active { background: rgba(255,255,255,0.1); scale: 0.95; }
+        .topbar-back:hover {
+            background: rgba(255, 255, 255, 0.1);
+            color: #fff;
+            border-color: var(--cyan);
+            box-shadow: 0 0 20px var(--cyan-glow);
+        }
+
+        .topbar-back:active {
+            scale: 0.9;
+        }
 
         .topbar-title {
-            font-size: 15px;
+            font-family: 'Orbitron', 'Space Grotesk', sans-serif;
+            font-size: 14px;
             font-weight: 700;
-            color: #e2e8f0;
-            letter-spacing: 0.02em;
+            background: linear-gradient(135deg, var(--cyan), var(--magenta));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            letter-spacing: 0.06em;
             flex: 1;
-            min-width: 0;
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
+            text-transform: uppercase;
         }
 
-        .topbar-action {
-            width: 36px;
-            height: 36px;
-            border-radius: 10px;
-            background: transparent;
-            border: none;
-            color: #94a3b8;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            cursor: pointer;
-            font-size: 16px;
-            flex-shrink: 0;
+        .topbar-glow {
+            width: 8px;
+            height: 8px;
+            background: var(--emerald);
+            border-radius: 50%;
+            box-shadow: 0 0 10px var(--emerald-glow), 0 0 20px var(--emerald-glow);
+            animation: glowPulse 2s infinite;
+        }
+
+        @keyframes glowPulse {
+            0%, 100% {
+                box-shadow: 0 0 10px var(--emerald-glow), 0 0 20px var(--emerald-glow);
+            }
+            50% {
+                box-shadow: 0 0 20px var(--emerald-glow), 0 0 40px var(--emerald-glow);
+            }
         }
 
         /* ── SCREEN CONTENT ─────────────────────────────── */
@@ -173,75 +255,148 @@
             flex-direction: column;
         }
 
-        .screen-content.center {
-            justify-content: center;
-            align-items: center;
-            text-align: center;
-        }
-
         /* ── HOME SCREEN ─────────────────────────────── */
         .home-header {
             text-align: center;
-            padding: 32px 16px 24px;
+            padding: 20px 16px 16px;
+            position: relative;
+        }
+
+        .home-logo-wrapper {
+            position: relative;
+            display: inline-block;
+            margin-bottom: 12px;
         }
 
         .home-logo {
-            width: 72px;
-            height: 72px;
-            background: linear-gradient(135deg, #0891b2, #06b6d4);
-            border-radius: 20px;
+            width: 80px;
+            height: 80px;
+            background: linear-gradient(135deg, var(--cyan), var(--magenta), var(--violet));
+            border-radius: 22px;
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 32px;
-            margin: 0 auto 16px;
-            box-shadow: 0 8px 30px rgba(6,182,212,0.3);
+            font-size: 36px;
+            position: relative;
+            z-index: 2;
+            animation: logoFloat 3s ease-in-out infinite;
+            box-shadow: 0 0 30px var(--cyan-glow), 0 0 60px var(--magenta-glow);
+        }
+
+        @keyframes logoFloat {
+            0%, 100% {
+                transform: translateY(0);
+            }
+            50% {
+                transform: translateY(-8px);
+            }
+        }
+
+        .home-logo-ring {
+            position: absolute;
+            inset: -8px;
+            border-radius: 28px;
+            border: 2px solid transparent;
+            background: linear-gradient(135deg, var(--cyan), var(--magenta), var(--violet), var(--cyan)) border-box;
+            -webkit-mask: linear-gradient(#fff 0 0) padding-box, linear-gradient(#fff 0 0);
+            mask: linear-gradient(#fff 0 0) padding-box, linear-gradient(#fff 0 0);
+            -webkit-mask-composite: xor;
+            mask-composite: exclude;
+            animation: ringRotate 3s linear infinite;
+            z-index: 1;
+        }
+
+        @keyframes ringRotate {
+            0% {
+                transform: rotate(0deg);
+            }
+            100% {
+                transform: rotate(360deg);
+            }
         }
 
         .home-title {
-            font-size: 24px;
-            font-weight: 800;
-            color: #f1f5f9;
-            letter-spacing: -0.02em;
+            font-family: 'Orbitron', 'Space Grotesk', sans-serif;
+            font-size: 26px;
+            font-weight: 900;
+            background: linear-gradient(135deg, #fff, var(--cyan), var(--magenta));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            letter-spacing: 0.04em;
+            margin-bottom: 4px;
         }
 
         .home-subtitle {
-            font-size: 12px;
-            color: #64748b;
-            margin-top: 4px;
+            font-size: 11px;
+            color: #666;
             font-weight: 500;
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
         }
 
+        /* ── STAT CARDS ─────────────────────────────── */
         .home-stats-row {
             display: grid;
             grid-template-columns: 1fr 1fr;
             gap: 10px;
-            margin-bottom: 24px;
+            margin-bottom: 16px;
         }
 
         .home-stat-card {
-            background: rgba(19,40,76,0.4);
-            border: 1px solid rgba(6,182,212,0.1);
-            border-radius: 14px;
-            padding: 14px 16px;
+            background: rgba(20, 20, 50, 0.5);
+            backdrop-filter: blur(15px);
+            -webkit-backdrop-filter: blur(15px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 16px;
+            padding: 16px;
             text-align: center;
+            position: relative;
+            overflow: hidden;
+            transition: all 0.3s;
+        }
+
+        .home-stat-card::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: radial-gradient(circle, rgba(0, 240, 255, 0.1) 0%, transparent 60%);
+            animation: statShine 4s ease-in-out infinite;
+        }
+
+        @keyframes statShine {
+            0%, 100% {
+                transform: translate(0, 0);
+            }
+            50% {
+                transform: translate(10%, -10%);
+            }
         }
 
         .home-stat-value {
-            font-size: 28px;
-            font-weight: 800;
+            font-family: 'Orbitron', monospace;
+            font-size: 32px;
+            font-weight: 900;
+            position: relative;
+            z-index: 1;
             line-height: 1;
         }
 
         .home-stat-label {
             font-size: 10px;
-            color: #64748b;
+            color: #666;
             font-weight: 600;
             text-transform: uppercase;
-            letter-spacing: 0.06em;
-            margin-top: 4px;
+            letter-spacing: 0.08em;
+            margin-top: 6px;
+            position: relative;
+            z-index: 1;
         }
 
+        /* ── MENU GRID ─────────────────────────────── */
         .home-menu-grid {
             display: grid;
             grid-template-columns: 1fr 1fr;
@@ -249,84 +404,201 @@
         }
 
         .home-menu-card {
-            background: linear-gradient(135deg, rgba(19,40,76,0.5), rgba(15,29,58,0.5));
-            border: 1px solid rgba(6,182,212,0.12);
-            border-radius: 16px;
+            background: rgba(20, 20, 50, 0.4);
+            backdrop-filter: blur(15px);
+            -webkit-backdrop-filter: blur(15px);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: 18px;
             padding: 20px 16px;
             cursor: pointer;
-            transition: all 0.2s;
+            transition: all 0.4s cubic-bezier(0.22, 0.61, 0.36, 1);
             text-align: center;
             position: relative;
             overflow: hidden;
+            transform-style: preserve-3d;
+            perspective: 1000px;
+        }
+
+        .home-menu-card:hover {
+            transform: translateY(-4px) scale(1.02);
+            border-color: rgba(0, 240, 255, 0.4);
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.4), 0 0 30px var(--cyan-glow);
         }
 
         .home-menu-card:active {
-            scale: 0.97;
-            border-color: rgba(6,182,212,0.3);
+            scale: 0.95;
+            transition: all 0.1s;
         }
 
-        .home-menu-card .menu-icon {
-            width: 48px;
-            height: 48px;
+        .home-menu-card::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.05), transparent);
+            transition: left 0.6s;
+        }
+
+        .home-menu-card:hover::after {
+            left: 100%;
+        }
+
+        .menu-icon {
+            width: 50px;
+            height: 50px;
             border-radius: 14px;
             display: flex;
             align-items: center;
             justify-content: center;
             font-size: 22px;
-            margin: 0 auto 12px;
+            margin: 0 auto 10px;
+            position: relative;
+            z-index: 1;
         }
 
-        .home-menu-card .menu-icon.cyan { background: rgba(6,182,212,0.12); color: #22d3ee; }
-        .home-menu-card .menu-icon.emerald { background: rgba(16,185,129,0.12); color: #34d399; }
-        .home-menu-card .menu-icon.amber { background: rgba(245,158,11,0.12); color: #fbbf24; }
-        .home-menu-card .menu-icon.violet { background: rgba(139,92,246,0.12); color: #a78bfa; }
-        .home-menu-card .menu-icon.red { background: rgba(239,68,68,0.12); color: #f87171; }
-        .home-menu-card .menu-icon.rose { background: rgba(244,63,94,0.12); color: #fb7185; }
+        .menu-icon.cyan {
+            background: rgba(0, 240, 255, 0.12);
+            color: var(--cyan);
+            box-shadow: 0 0 20px var(--cyan-glow);
+        }
+        .menu-icon.magenta {
+            background: rgba(255, 0, 255, 0.12);
+            color: var(--magenta);
+            box-shadow: 0 0 20px var(--magenta-glow);
+        }
+        .menu-icon.gold {
+            background: rgba(255, 215, 0, 0.12);
+            color: var(--gold);
+            box-shadow: 0 0 20px var(--gold-glow);
+        }
+        .menu-icon.emerald {
+            background: rgba(0, 255, 136, 0.12);
+            color: var(--emerald);
+            box-shadow: 0 0 20px var(--emerald-glow);
+        }
+        .menu-icon.violet {
+            background: rgba(123, 47, 255, 0.12);
+            color: var(--violet);
+            box-shadow: 0 0 20px var(--violet-glow);
+        }
+        .menu-icon.coral {
+            background: rgba(255, 107, 107, 0.12);
+            color: var(--coral);
+            box-shadow: 0 0 20px var(--coral-glow);
+        }
 
-        .home-menu-card .menu-title {
-            font-size: 13px;
+        .menu-title {
+            font-family: 'Orbitron', 'Space Grotesk', sans-serif;
+            font-size: 12px;
             font-weight: 700;
-            color: #e2e8f0;
+            color: #eee;
             margin-bottom: 4px;
+            letter-spacing: 0.04em;
+            position: relative;
+            z-index: 1;
         }
 
-        .home-menu-card .menu-desc {
+        .menu-desc {
             font-size: 10px;
-            color: #64748b;
+            color: #555;
             font-weight: 500;
             line-height: 1.4;
+            position: relative;
+            z-index: 1;
         }
 
-        /* ── USER BADGE HOME ─────────────────────────────── */
-        .home-user-badge {
+        /* ── MUSIC PLAYER ─────────────────────────────── */
+        .music-player {
+            background: rgba(20, 20, 50, 0.5);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 16px;
+            padding: 12px 16px;
             display: flex;
             align-items: center;
-            justify-content: center;
-            gap: 8px;
-            padding: 10px;
-            margin-top: 20px;
+            gap: 12px;
+            margin-top: 16px;
+            transition: all 0.3s;
         }
 
-        .home-user-avatar {
+        .music-btn {
             width: 36px;
             height: 36px;
-            background: linear-gradient(135deg, #0891b2, #06b6d4);
             border-radius: 50%;
+            background: linear-gradient(135deg, var(--cyan), var(--violet));
+            border: none;
+            color: #fff;
+            font-size: 14px;
+            cursor: pointer;
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 14px;
-            color: white;
+            box-shadow: 0 0 15px var(--cyan-glow);
+            transition: all 0.3s;
+            flex-shrink: 0;
         }
 
-        .home-user-info {
-            font-size: 12px;
-            color: #64748b;
-            font-weight: 600;
+        .music-btn:active {
+            scale: 0.9;
         }
 
-        .home-user-info strong {
-            color: #e2e8f0;
+        .music-btn.playing {
+            animation: musicPulse 1s ease-in-out infinite;
+        }
+
+        @keyframes musicPulse {
+            0%, 100% {
+                box-shadow: 0 0 15px var(--cyan-glow);
+            }
+            50% {
+                box-shadow: 0 0 30px var(--magenta-glow), 0 0 50px var(--cyan-glow);
+            }
+        }
+
+        .music-info {
+            flex: 1;
+            min-width: 0;
+        }
+
+        .music-title {
+            font-family: 'Orbitron', monospace;
+            font-size: 10px;
+            font-weight: 700;
+            color: #aaa;
+            letter-spacing: 0.06em;
+        }
+
+        .music-bar {
+            height: 3px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 2px;
+            margin-top: 4px;
+            overflow: hidden;
+        }
+
+        .music-progress {
+            height: 100%;
+            background: linear-gradient(90deg, var(--cyan), var(--magenta));
+            border-radius: 2px;
+            width: 0%;
+            animation: musicProgress 30s linear infinite;
+            animation-play-state: paused;
+        }
+
+        .music-progress.playing {
+            animation-play-state: running;
+        }
+
+        @keyframes musicProgress {
+            0% {
+                width: 0%;
+            }
+            100% {
+                width: 100%;
+            }
         }
 
         /* ── FORM ELEMENTS ─────────────────────────────── */
@@ -338,47 +610,55 @@
         }
 
         .form-label {
-            font-size: 11px;
+            font-family: 'Orbitron', 'Space Grotesk', sans-serif;
+            font-size: 10px;
             font-weight: 700;
             text-transform: uppercase;
-            letter-spacing: 0.06em;
-            color: #64748b;
+            letter-spacing: 0.1em;
+            color: #666;
         }
 
         .form-input {
-            background: rgba(5,12,26,0.6);
-            border: 1px solid rgba(6,182,212,0.15);
+            background: rgba(15, 15, 40, 0.6);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
             border-radius: 12px;
-            color: #e2e8f0;
+            color: #eee;
             padding: 12px 16px;
-            font-size: 14px;
+            font-size: 13px;
             font-family: 'Inter', sans-serif;
             width: 100%;
-            transition: all 0.2s;
+            transition: all 0.3s;
             -webkit-appearance: none;
             appearance: none;
         }
 
         .form-input:focus {
             outline: none;
-            border-color: var(--cyan-500);
-            box-shadow: 0 0 0 3px rgba(6,182,212,0.1);
+            border-color: var(--cyan);
+            box-shadow: 0 0 20px var(--cyan-glow), 0 0 40px rgba(0, 240, 255, 0.1);
         }
 
-        .form-input::placeholder { color: #334155; }
-        .form-input:read-only { opacity: 0.5; }
+        .form-input::placeholder {
+            color: #333;
+        }
+
+        .form-input:read-only {
+            opacity: 0.5;
+        }
 
         select.form-input {
             cursor: pointer;
-            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%2364748b' d='M6 8L1 3h10z'/%3E%3C/svg%3E");
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%23666' d='M6 8L1 3h10z'/%3E%3C/svg%3E");
             background-repeat: no-repeat;
             background-position: right 14px center;
             padding-right: 36px;
         }
 
         select.form-input option {
-            background: #0a1628;
-            color: #e2e8f0;
+            background: #111;
+            color: #eee;
         }
 
         .form-row {
@@ -395,99 +675,171 @@
             gap: 8px;
             padding: 13px 20px;
             border-radius: 12px;
-            font-size: 13px;
+            font-family: 'Orbitron', 'Space Grotesk', sans-serif;
+            font-size: 11px;
             font-weight: 700;
             cursor: pointer;
             border: none;
-            transition: all 0.15s;
-            letter-spacing: 0.03em;
+            transition: all 0.3s cubic-bezier(0.22, 0.61, 0.36, 1);
+            letter-spacing: 0.06em;
             width: 100%;
             -webkit-tap-highlight-color: transparent;
+            text-transform: uppercase;
+            position: relative;
+            overflow: hidden;
         }
 
-        .btn:active { scale: 0.97; }
+        .btn::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.1), transparent);
+            transition: left 0.6s;
+        }
+
+        .btn:hover::after {
+            left: 100%;
+        }
+
+        .btn:active {
+            scale: 0.95;
+        }
 
         .btn-primary {
-            background: linear-gradient(135deg, #0e7490, #06b6d4);
-            color: white;
-            box-shadow: 0 4px 15px rgba(6,182,212,0.25);
+            background: linear-gradient(135deg, #0066cc, var(--cyan));
+            color: #fff;
+            box-shadow: 0 4px 20px var(--cyan-glow);
+        }
+
+        .btn-primary:hover {
+            box-shadow: 0 8px 30px var(--cyan-glow), 0 0 50px rgba(0, 240, 255, 0.2);
+            transform: translateY(-2px);
         }
 
         .btn-success {
-            background: linear-gradient(135deg, #059669, #10b981);
-            color: white;
-            box-shadow: 0 4px 15px rgba(16,185,129,0.25);
+            background: linear-gradient(135deg, #006644, var(--emerald));
+            color: #fff;
+            box-shadow: 0 4px 20px var(--emerald-glow);
+        }
+
+        .btn-success:hover {
+            box-shadow: 0 8px 30px var(--emerald-glow);
+            transform: translateY(-2px);
         }
 
         .btn-danger {
-            background: linear-gradient(135deg, #dc2626, #ef4444);
-            color: white;
-            box-shadow: 0 4px 15px rgba(239,68,68,0.25);
+            background: linear-gradient(135deg, #cc0000, var(--coral));
+            color: #fff;
+            box-shadow: 0 4px 20px var(--coral-glow);
+        }
+
+        .btn-danger:hover {
+            box-shadow: 0 8px 30px var(--coral-glow);
+            transform: translateY(-2px);
         }
 
         .btn-warning {
-            background: linear-gradient(135deg, #d97706, #f59e0b);
-            color: white;
-            box-shadow: 0 4px 15px rgba(245,158,11,0.25);
+            background: linear-gradient(135deg, #cc8800, var(--gold));
+            color: #000;
+            box-shadow: 0 4px 20px var(--gold-glow);
+        }
+
+        .btn-warning:hover {
+            box-shadow: 0 8px 30px var(--gold-glow);
+            transform: translateY(-2px);
         }
 
         .btn-secondary {
-            background: rgba(255,255,255,0.04);
-            color: #94a3b8;
-            border: 1px solid rgba(255,255,255,0.1);
+            background: rgba(255, 255, 255, 0.04);
+            color: #888;
+            border: 1px solid rgba(255, 255, 255, 0.15);
+        }
+
+        .btn-secondary:hover {
+            background: rgba(255, 255, 255, 0.08);
+            color: #fff;
+            border-color: rgba(255, 255, 255, 0.3);
         }
 
         .btn-sm {
             padding: 9px 14px;
-            font-size: 11px;
+            font-size: 10px;
         }
 
         .btn-row {
             display: flex;
             gap: 8px;
         }
-        .btn-row .btn { flex: 1; }
+
+        .btn-row .btn {
+            flex: 1;
+        }
 
         /* ── MODE SWITCHER ─────────────────────────────── */
         .mode-bar {
             display: flex;
-            background: rgba(10,22,40,0.6);
-            border: 1px solid rgba(6,182,212,0.1);
-            border-radius: 12px;
+            background: rgba(20, 20, 50, 0.5);
+            backdrop-filter: blur(15px);
+            -webkit-backdrop-filter: blur(15px);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: 14px;
             padding: 4px;
             gap: 3px;
-            margin-bottom: 16px;
+            margin-bottom: 14px;
         }
 
         .mode-btn {
             flex: 1;
-            padding: 10px 6px;
-            border-radius: 9px;
-            font-size: 10px;
+            padding: 10px 4px;
+            border-radius: 10px;
+            font-family: 'Orbitron', monospace;
+            font-size: 9px;
             font-weight: 700;
             text-transform: uppercase;
-            letter-spacing: 0.04em;
+            letter-spacing: 0.06em;
             cursor: pointer;
             border: none;
             background: transparent;
-            color: #475569;
-            transition: all 0.2s;
+            color: #555;
+            transition: all 0.3s;
             text-align: center;
         }
 
-        .mode-btn.active-islam { background: linear-gradient(135deg, #065f46, #059669); color: white; }
-        .mode-btn.active-nonislam { background: linear-gradient(135deg, #1e3a8a, #3b82f6); color: white; }
-        .mode-btn.active-haid { background: linear-gradient(135deg, #9f1239, #e11d48); color: white; }
-        .mode-btn.active-keputrian { background: linear-gradient(135deg, #6b21a8, #9333ea); color: white; }
+        .mode-btn.active-islam {
+            background: linear-gradient(135deg, #006644, var(--emerald));
+            color: #fff;
+            box-shadow: 0 0 20px var(--emerald-glow);
+        }
+
+        .mode-btn.active-nonislam {
+            background: linear-gradient(135deg, #0033cc, #0066ff);
+            color: #fff;
+            box-shadow: 0 0 20px rgba(0, 102, 255, 0.4);
+        }
+
+        .mode-btn.active-haid {
+            background: linear-gradient(135deg, #cc0044, var(--coral));
+            color: #fff;
+            box-shadow: 0 0 20px var(--coral-glow);
+        }
+
+        .mode-btn.active-keputrian {
+            background: linear-gradient(135deg, #4400cc, var(--violet));
+            color: #fff;
+            box-shadow: 0 0 20px var(--violet-glow);
+        }
 
         /* ── CAMERA ─────────────────────────────── */
         .camera-box {
-            background: rgba(5,12,26,0.8);
-            border: 1px solid rgba(6,182,212,0.15);
-            border-radius: 16px;
+            background: rgba(10, 10, 25, 0.8);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 18px;
             overflow: hidden;
             position: relative;
-            min-height: 280px;
+            min-height: 260px;
             flex-shrink: 0;
         }
 
@@ -498,23 +850,32 @@
             flex-direction: column;
             align-items: center;
             justify-content: center;
-            background: rgba(5,12,26,0.9);
+            background: rgba(10, 10, 25, 0.95);
             z-index: 10;
             gap: 10px;
         }
 
         .camera-placeholder i {
-            font-size: 40px;
-            opacity: 0.2;
-            color: #64748b;
+            font-size: 44px;
+            color: #333;
+            animation: iconPulse 2s ease-in-out infinite;
+        }
+
+        @keyframes iconPulse {
+            0%, 100% {
+                opacity: 0.3;
+            }
+            50% {
+                opacity: 0.6;
+            }
         }
 
         .camera-placeholder p {
-            font-size: 11px;
-            color: #334155;
+            font-family: 'Orbitron', monospace;
+            font-size: 10px;
+            color: #444;
             font-weight: 600;
-            text-transform: uppercase;
-            letter-spacing: 0.06em;
+            letter-spacing: 0.1em;
         }
 
         .scan-feedback {
@@ -523,24 +884,54 @@
             display: none;
             align-items: center;
             justify-content: center;
-            background: rgba(5,12,26,0.95);
-            backdrop-filter: blur(12px);
+            background: rgba(10, 10, 25, 0.98);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
             z-index: 20;
-            border-radius: 16px;
+            border-radius: 18px;
         }
 
-        .scan-feedback.show { display: flex; }
+        .scan-feedback.show {
+            display: flex;
+        }
 
         .feedback-card {
             text-align: center;
             padding: 32px 40px;
-            border-radius: 18px;
+            border-radius: 20px;
             min-width: 220px;
+            animation: feedbackPop 0.5s cubic-bezier(0.22, 0.61, 0.36, 1);
         }
 
-        .feedback-card .fb-icon { font-size: 48px; margin-bottom: 10px; }
-        .feedback-card .fb-name { font-size: 18px; font-weight: 800; color: white; }
-        .feedback-card .fb-msg { font-size: 11px; color: rgba(255,255,255,0.7); font-weight: 600; text-transform: uppercase; margin-top: 4px; }
+        @keyframes feedbackPop {
+            0% {
+                transform: scale(0.5);
+                opacity: 0;
+            }
+            100% {
+                transform: scale(1);
+                opacity: 1;
+            }
+        }
+
+        .feedback-card .fb-icon {
+            font-size: 52px;
+            margin-bottom: 12px;
+        }
+        .feedback-card .fb-name {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 18px;
+            font-weight: 800;
+            color: #fff;
+        }
+        .feedback-card .fb-msg {
+            font-size: 11px;
+            color: rgba(255, 255, 255, 0.7);
+            font-weight: 600;
+            text-transform: uppercase;
+            margin-top: 6px;
+            letter-spacing: 0.06em;
+        }
 
         /* ── LOG LIST ─────────────────────────────── */
         .log-list {
@@ -550,35 +941,78 @@
         }
 
         .log-item {
-            background: rgba(10,22,40,0.4);
-            border: 1px solid rgba(6,182,212,0.08);
-            border-left: 3px solid var(--cyan-500);
+            background: rgba(20, 20, 50, 0.4);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.06);
+            border-left: 3px solid var(--cyan);
             border-radius: 10px;
-            padding: 12px 16px;
+            padding: 12px 14px;
             display: flex;
             justify-content: space-between;
             align-items: center;
+            animation: logSlideIn 0.3s ease;
         }
 
-        .log-item.alpa { border-left-color: #ef4444; }
-        .log-item.haid { border-left-color: #e11d48; }
-        .log-item.keputrian { border-left-color: #9333ea; }
-        .log-item.nonislam { border-left-color: #3b82f6; }
+        @keyframes logSlideIn {
+            from {
+                transform: translateX(-20px);
+                opacity: 0;
+            }
+            to {
+                transform: translateX(0);
+                opacity: 1;
+            }
+        }
 
-        .log-nama { font-size: 13px; font-weight: 700; color: #e2e8f0; }
-        .log-meta { font-size: 10px; color: #64748b; margin-top: 2px; }
+        .log-item.alpa {
+            border-left-color: var(--coral);
+        }
+        .log-item.haid {
+            border-left-color: #ff6b9d;
+        }
+        .log-item.keputrian {
+            border-left-color: var(--violet);
+        }
+        .log-item.nonislam {
+            border-left-color: #4488ff;
+        }
+
+        .log-nama {
+            font-weight: 700;
+            color: #eee;
+            font-size: 13px;
+        }
+        .log-meta {
+            font-size: 10px;
+            color: #555;
+            margin-top: 2px;
+        }
 
         .badge {
-            font-size: 10px;
+            font-family: 'Orbitron', monospace;
+            font-size: 9px;
             font-weight: 700;
             padding: 4px 10px;
             border-radius: 8px;
-            letter-spacing: 0.04em;
+            letter-spacing: 0.06em;
         }
 
-        .badge-hadir { background: rgba(6,182,212,0.12); color: #22d3ee; border: 1px solid rgba(6,182,212,0.2); }
-        .badge-alpa { background: rgba(239,68,68,0.12); color: #f87171; border: 1px solid rgba(239,68,68,0.2); }
-        .badge-haid { background: rgba(225,29,72,0.12); color: #fb7185; border: 1px solid rgba(225,29,72,0.2); }
+        .badge-hadir {
+            background: rgba(0, 240, 255, 0.12);
+            color: var(--cyan);
+            border: 1px solid rgba(0, 240, 255, 0.2);
+        }
+        .badge-alpa {
+            background: rgba(255, 107, 107, 0.12);
+            color: var(--coral);
+            border: 1px solid rgba(255, 107, 107, 0.2);
+        }
+        .badge-haid {
+            background: rgba(255, 107, 157, 0.12);
+            color: #ff6b9d;
+            border: 1px solid rgba(255, 107, 157, 0.2);
+        }
 
         /* ── EMPTY STATE ─────────────────────────────── */
         .empty-state {
@@ -590,44 +1024,15 @@
             text-align: center;
         }
 
-        .empty-state i { font-size: 40px; color: #334155; margin-bottom: 10px; }
-        .empty-state p { font-size: 12px; color: #475569; font-weight: 500; }
-
-        /* ── QR RESULT ─────────────────────────────── */
-        .qr-result-card {
-            background: rgba(19,40,76,0.4);
-            border: 1px solid rgba(6,182,212,0.12);
-            border-radius: 16px;
-            padding: 24px;
-            text-align: center;
-            margin-top: 16px;
+        .empty-state i {
+            font-size: 44px;
+            color: #222;
+            margin-bottom: 10px;
         }
-
-        .qr-result-card .qr-white-box {
-            background: white;
-            padding: 12px;
-            border-radius: 12px;
-            display: inline-block;
-            margin-bottom: 12px;
-        }
-
-        /* ── NAIK KELAS ITEM ─────────────────────────────── */
-        .naik-item {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 10px 14px;
-            background: rgba(10,22,40,0.4);
-            border: 1px solid rgba(6,182,212,0.08);
-            border-radius: 10px;
-        }
-
-        /* ── LAPORAN CARD ─────────────────────────────── */
-        .laporan-card {
-            background: rgba(10,22,40,0.4);
-            border: 1px solid rgba(6,182,212,0.08);
-            border-radius: 12px;
-            padding: 14px 16px;
+        .empty-state p {
+            font-size: 11px;
+            color: #444;
+            font-weight: 500;
         }
 
         /* ── TOAST ─────────────────────────────── */
@@ -646,103 +1051,165 @@
         }
 
         .toast {
-            background: rgba(19,40,76,0.95);
-            border: 1px solid rgba(6,182,212,0.2);
-            border-radius: 12px;
+            background: rgba(20, 20, 50, 0.9);
+            backdrop-filter: blur(30px);
+            -webkit-backdrop-filter: blur(30px);
+            border: 1px solid rgba(0, 240, 255, 0.3);
+            border-radius: 14px;
             padding: 12px 16px;
             font-size: 12px;
             font-weight: 600;
-            color: #e2e8f0;
+            color: #eee;
             display: flex;
             align-items: center;
             gap: 10px;
-            animation: slideUp 0.3s ease;
-            backdrop-filter: blur(20px);
+            animation: toastSlide 0.4s cubic-bezier(0.22, 0.61, 0.36, 1);
             pointer-events: auto;
+            box-shadow: 0 8px 30px rgba(0, 0, 0, 0.5);
         }
 
-        .toast.error { border-color: rgba(239,68,68,0.25); }
+        .toast.error {
+            border-color: rgba(255, 107, 107, 0.4);
+        }
+
+        @keyframes toastSlide {
+            from {
+                transform: translateY(20px);
+                opacity: 0;
+            }
+            to {
+                transform: translateY(0);
+                opacity: 1;
+            }
+        }
 
         /* ── LOADING ─────────────────────────────── */
         .loading-overlay {
             position: fixed;
             inset: 0;
-            background: rgba(2,6,23,0.9);
+            background: rgba(6, 6, 15, 0.95);
             z-index: 9998;
             display: none;
             align-items: center;
             justify-content: center;
             flex-direction: column;
-            gap: 14px;
+            gap: 16px;
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
         }
 
-        .loading-overlay.show { display: flex; }
+        .loading-overlay.show {
+            display: flex;
+        }
 
-        .spinner {
-            width: 40px;
-            height: 40px;
-            border: 3px solid rgba(6,182,212,0.15);
-            border-top-color: #06b6d4;
+        .spinner-ring {
+            width: 50px;
+            height: 50px;
+            border: 3px solid transparent;
+            border-top-color: var(--cyan);
+            border-right-color: var(--magenta);
             border-radius: 50%;
-            animation: spin 0.8s linear infinite;
+            animation: spinRing 1s linear infinite;
+        }
+
+        @keyframes spinRing {
+            to {
+                transform: rotate(360deg);
+            }
         }
 
         .loading-text {
+            font-family: 'Orbitron', monospace;
             font-size: 10px;
             font-weight: 700;
-            color: #22d3ee;
-            letter-spacing: 0.1em;
+            color: var(--cyan);
+            letter-spacing: 0.2em;
+            animation: loadingPulse 1.5s ease-in-out infinite;
+        }
+
+        @keyframes loadingPulse {
+            0%, 100% {
+                opacity: 0.5;
+            }
+            50% {
+                opacity: 1;
+            }
         }
 
         /* ── LOGIN OVERLAY ─────────────────────────────── */
         .login-overlay {
             position: fixed;
             inset: 0;
-            background: rgba(2,6,23,0.98);
+            background: rgba(6, 6, 15, 0.98);
             z-index: 9999;
             display: flex;
             align-items: center;
             justify-content: center;
             padding: 20px;
+            backdrop-filter: blur(30px);
+            -webkit-backdrop-filter: blur(30px);
         }
 
         .login-card {
-            background: var(--navy-900);
-            border: 1px solid rgba(6,182,212,0.2);
-            border-radius: 20px;
+            background: rgba(20, 20, 50, 0.6);
+            backdrop-filter: blur(30px);
+            -webkit-backdrop-filter: blur(30px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 24px;
             width: 100%;
             max-width: 380px;
             overflow: hidden;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.6), 0 0 80px rgba(0, 240, 255, 0.05);
+            animation: loginAppear 0.6s cubic-bezier(0.22, 0.61, 0.36, 1);
+        }
+
+        @keyframes loginAppear {
+            from {
+                transform: translateY(30px) scale(0.9);
+                opacity: 0;
+            }
+            to {
+                transform: translateY(0) scale(1);
+                opacity: 1;
+            }
         }
 
         .login-card-header {
             padding: 28px 24px 20px;
             text-align: center;
-            border-bottom: 1px solid rgba(6,182,212,0.1);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+            position: relative;
         }
 
         .login-logo {
-            width: 60px;
-            height: 60px;
-            background: linear-gradient(135deg, #0891b2, #06b6d4);
-            border-radius: 16px;
+            width: 64px;
+            height: 64px;
+            background: linear-gradient(135deg, var(--cyan), var(--magenta), var(--violet));
+            border-radius: 18px;
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 26px;
+            font-size: 28px;
             margin: 0 auto 12px;
+            box-shadow: 0 0 40px var(--cyan-glow), 0 0 80px var(--magenta-glow);
+            animation: logoFloat 3s ease-in-out infinite;
         }
 
         .login-title {
-            font-size: 20px;
-            font-weight: 800;
-            color: #e2e8f0;
+            font-family: 'Orbitron', 'Space Grotesk', sans-serif;
+            font-size: 22px;
+            font-weight: 900;
+            background: linear-gradient(135deg, #fff, var(--cyan));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
         }
 
         .login-sub {
-            font-size: 11px;
-            color: #64748b;
+            font-size: 10px;
+            color: #555;
             margin-top: 4px;
+            letter-spacing: 0.06em;
         }
 
         .login-card-body {
@@ -750,9 +1217,9 @@
         }
 
         .login-scan-box {
-            background: rgba(5,12,26,0.6);
-            border: 1px solid rgba(6,182,212,0.12);
-            border-radius: 14px;
+            background: rgba(10, 10, 25, 0.6);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: 16px;
             overflow: hidden;
             position: relative;
             min-height: 200px;
@@ -769,69 +1236,98 @@
             gap: 8px;
         }
 
-        .login-scan-placeholder i { font-size: 32px; opacity: 0.2; color: #64748b; }
-        .login-scan-placeholder p { font-size: 11px; color: #475569; font-weight: 600; }
+        .login-scan-placeholder i {
+            font-size: 36px;
+            color: #333;
+        }
+        .login-scan-placeholder p {
+            font-family: 'Orbitron', monospace;
+            font-size: 10px;
+            color: #444;
+            letter-spacing: 0.1em;
+        }
 
         .login-error {
             display: none;
             font-size: 11px;
-            color: #f87171;
+            color: var(--coral);
             font-weight: 700;
             text-align: center;
             margin-top: 10px;
             padding: 10px;
-            background: rgba(239,68,68,0.08);
-            border: 1px solid rgba(239,68,68,0.2);
-            border-radius: 8px;
+            background: rgba(255, 107, 107, 0.08);
+            border: 1px solid rgba(255, 107, 107, 0.2);
+            border-radius: 10px;
         }
 
         .login-footer {
             text-align: center;
             padding: 16px;
-            border-top: 1px solid rgba(6,182,212,0.06);
+            border-top: 1px solid rgba(255, 255, 255, 0.04);
         }
 
         .login-footer p {
-            font-size: 10px;
-            color: #334155;
-            font-weight: 500;
+            font-size: 9px;
+            color: #333;
+            letter-spacing: 0.06em;
         }
 
         /* ── SCROLLBAR ─────────────────────────────── */
-        ::-webkit-scrollbar { width: 3px; }
-        ::-webkit-scrollbar-track { background: transparent; }
-        ::-webkit-scrollbar-thumb { background: rgba(6,182,212,0.2); border-radius: 10px; }
-
-        /* ── ANIMATIONS ─────────────────────────────── */
-        @keyframes spin { to { transform: rotate(360deg); } }
-        @keyframes slideUp { from { transform: translateY(10px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
-        @keyframes pulse { 0%,100% { opacity:1; } 50% { opacity:0.4; } }
-
-        /* ── UPLOAD AREA ─────────────────────────────── */
-        .upload-area {
-            background: rgba(5,12,26,0.4);
-            border: 1.5px dashed rgba(6,182,212,0.2);
-            border-radius: 14px;
-            padding: 20px;
-            text-align: center;
-            margin-bottom: 14px;
+        ::-webkit-scrollbar {
+            width: 3px;
+        }
+        ::-webkit-scrollbar-track {
+            background: transparent;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: rgba(0, 240, 255, 0.2);
+            border-radius: 10px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: rgba(0, 240, 255, 0.4);
         }
 
         /* ── READER RESET ─────────────────────────────── */
-        #reader, #readerLogin, #readerNaik { border: none !important; }
-        #reader video, #readerLogin video, #readerNaik video { border-radius: 14px; }
+        #reader, #readerLogin, #readerNaik {
+            border: none !important;
+        }
+        #reader video, #readerLogin video, #readerNaik video {
+            border-radius: 16px;
+        }
+
+        /* ── RESPONSIVE ─────────────────────────────── */
+        @media (min-width: 768px) {
+            .home-menu-grid {
+                grid-template-columns: 1fr 1fr 1fr;
+            }
+            .screen-content {
+                max-width: 600px;
+                margin: 0 auto;
+            }
+        }
     </style>
 </head>
 <body>
 
+<!-- BACKGROUND UNIVERSE -->
+<div class="bg-universe"></div>
+
+<!-- FLOATING PARTICLES -->
+<div class="particles-container" id="particlesContainer"></div>
+
 <!-- LOADING -->
 <div id="loadingOverlay" class="loading-overlay">
-    <div class="spinner"></div>
-    <div class="loading-text">Memproses...</div>
+    <div class="spinner-ring"></div>
+    <div class="loading-text">Processing...</div>
 </div>
 
 <!-- TOAST -->
 <div class="toast-container" id="toastContainer"></div>
+
+<!-- BACKGROUND MUSIC (AUDIO ELEMENT) -->
+<audio id="bgMusic" loop preload="auto" style="display:none;">
+    <source src="data:audio/wav;base64,UklGRiQAAABXQVZFZm10IBAAAAABAAEARKwAAIhYAQACABAAZGF0YQAAAAA=" type="audio/wav">
+</audio>
 
 <!-- LOGIN OVERLAY -->
 <div id="loginOverlay" class="login-overlay">
@@ -839,14 +1335,14 @@
         <div class="login-card-header">
             <div class="login-logo">🕌</div>
             <div class="login-title">DZUHUR 12</div>
-            <div class="login-sub">Sistem Presensi Kerohanian SMAN 12<br>Scan QR untuk masuk</div>
+            <div class="login-sub">DIVINE PRESENCE SYSTEM</div>
         </div>
         <div class="login-card-body">
             <div class="login-scan-box">
                 <div id="readerLogin"></div>
                 <div id="loginScanPlaceholder" class="login-scan-placeholder">
                     <i class="fas fa-qrcode"></i>
-                    <p>SCAN QR LOGIN</p>
+                    <p>SCAN TO ENTER</p>
                 </div>
             </div>
             <button onclick="startLoginScan()" id="btnLoginStart" class="btn btn-primary">
@@ -856,11 +1352,11 @@
                 <i class="fas fa-stop"></i> STOP
             </button>
             <div id="loginError" class="login-error">
-                <i class="fas fa-exclamation-triangle"></i> QR tidak valid!
+                <i class="fas fa-exclamation-triangle"></i> Invalid QR Code!
             </div>
         </div>
         <div class="login-footer">
-            <p>© Gema Bintang • Kerohanian SMAN 12</p>
+            <p>© GEMA BINTANG • KEROHANIAN SMAN 12 • v3.0</p>
         </div>
     </div>
 </div>
@@ -869,21 +1365,24 @@
 <div class="app-container" id="appContainer">
 
     <!-- ═══════════════ HOME SCREEN ═══════════════ -->
-    <div class="screen home-screen active" id="screenHome">
+    <div class="screen active" id="screenHome">
         <div class="screen-content">
             <div class="home-header">
-                <div class="home-logo">🕌</div>
+                <div class="home-logo-wrapper">
+                    <div class="home-logo-ring"></div>
+                    <div class="home-logo">🕌</div>
+                </div>
                 <div class="home-title">Kerohanian 12</div>
-                <div class="home-subtitle">Sistem Presensi Dzuhur Terintegrasi</div>
+                <div class="home-subtitle">Divine Presence • Enterprise System</div>
             </div>
 
             <div class="home-stats-row">
                 <div class="home-stat-card">
-                    <div class="home-stat-value" style="color:#22d3ee;" id="homeHadir">0</div>
+                    <div class="home-stat-value" style="color:var(--cyan);" id="homeHadir">0</div>
                     <div class="home-stat-label">Hadir Hari Ini</div>
                 </div>
                 <div class="home-stat-card">
-                    <div class="home-stat-value" style="color:#fbbf24;" id="homeTotal">0</div>
+                    <div class="home-stat-value" style="color:var(--gold);" id="homeTotal">0</div>
                     <div class="home-stat-label">Total Siswa</div>
                 </div>
             </div>
@@ -892,40 +1391,57 @@
                 <div class="home-menu-card" onclick="navigateTo('scan')">
                     <div class="menu-icon cyan"><i class="fas fa-camera"></i></div>
                     <div class="menu-title">Scan Presensi</div>
-                    <div class="menu-desc">Scan QR Code siswa untuk presensi</div>
+                    <div class="menu-desc">QR Code Scanner</div>
                 </div>
                 <div class="home-menu-card" onclick="navigateTo('admin')">
-                    <div class="menu-icon amber"><i class="fas fa-crown"></i></div>
+                    <div class="menu-icon gold"><i class="fas fa-crown"></i></div>
                     <div class="menu-title">Admin Panel</div>
-                    <div class="menu-desc">Tambah siswa & generate QR</div>
+                    <div class="menu-desc">Kelola Data Siswa</div>
                 </div>
                 <div class="home-menu-card" onclick="navigateTo('naikkelas')">
                     <div class="menu-icon violet"><i class="fas fa-graduation-cap"></i></div>
                     <div class="menu-title">Naik Kelas</div>
-                    <div class="menu-desc">Migrasi siswa ke kelas baru</div>
+                    <div class="menu-desc">Migrasi Siswa</div>
                 </div>
                 <div class="home-menu-card" onclick="navigateTo('laporan')">
                     <div class="menu-icon emerald"><i class="fas fa-chart-bar"></i></div>
                     <div class="menu-title">Data & Laporan</div>
-                    <div class="menu-desc">Lihat & download data</div>
+                    <div class="menu-desc">Database Siswa</div>
+                </div>
+                <div class="home-menu-card" onclick="navigateTo('import')">
+                    <div class="menu-icon magenta"><i class="fas fa-file-excel"></i></div>
+                    <div class="menu-title">Import Excel</div>
+                    <div class="menu-desc">Bulk QR Generator</div>
+                </div>
+                <div class="home-menu-card" onclick="navigateTo('reset')">
+                    <div class="menu-icon coral"><i class="fas fa-rotate-left"></i></div>
+                    <div class="menu-title">Reset Data</div>
+                    <div class="menu-desc">Reset Kehadiran</div>
                 </div>
             </div>
 
-            <div style="margin-top:16px;">
-                <div class="home-menu-card" onclick="navigateTo('import')" style="display:flex; align-items:center; gap:12px; text-align:left; padding:14px 16px;">
-                    <div class="menu-icon emerald" style="margin:0;"><i class="fas fa-file-excel"></i></div>
-                    <div>
-                        <div class="menu-title">Import Excel</div>
-                        <div class="menu-desc">Upload data massal & generate QR</div>
+            <!-- MUSIC PLAYER -->
+            <div class="music-player">
+                <button class="music-btn" id="musicBtn" onclick="toggleMusic()">
+                    <i class="fas fa-play"></i>
+                </button>
+                <div class="music-info">
+                    <div class="music-title">🎵 Divine Ambience • Background Music</div>
+                    <div class="music-bar">
+                        <div class="music-progress" id="musicProgress"></div>
                     </div>
                 </div>
+                <span style="font-size:10px; color:#555; font-family:'Orbitron',monospace;" id="musicVol">50%</span>
             </div>
 
-            <div class="home-user-badge">
-                <div class="home-user-avatar"><i class="fas fa-user"></i></div>
-                <div class="home-user-info">Login sebagai <strong>Administrator</strong></div>
-                <button onclick="logout()" style="margin-left:auto; background:rgba(239,68,68,0.1); color:#f87171; border:1px solid rgba(239,68,68,0.2); border-radius:8px; padding:6px 12px; font-size:10px; font-weight:700; cursor:pointer;">
-                    <i class="fas fa-sign-out-alt"></i> Keluar
+            <!-- USER INFO -->
+            <div style="display:flex; align-items:center; justify-content:center; gap:8px; margin-top:12px; padding:10px;">
+                <div style="width:32px; height:32px; background:linear-gradient(135deg, var(--cyan), var(--violet)); border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:12px; color:#fff;">
+                    <i class="fas fa-user"></i>
+                </div>
+                <span style="font-size:11px; color:#555; font-weight:600;">ADMINISTRATOR</span>
+                <button onclick="logout()" style="margin-left:8px; background:rgba(255,107,107,0.1); color:var(--coral); border:1px solid rgba(255,107,107,0.2); border-radius:8px; padding:5px 10px; font-size:10px; font-weight:700; cursor:pointer; font-family:'Orbitron',monospace;">
+                    EXIT
                 </button>
             </div>
         </div>
@@ -936,22 +1452,21 @@
         <div class="topbar">
             <div class="topbar-back" onclick="navigateTo('home')"><i class="fas fa-arrow-left"></i></div>
             <div class="topbar-title">Scan Presensi</div>
+            <div class="topbar-glow"></div>
         </div>
         <div class="screen-content">
-            <!-- Mode -->
             <div class="mode-bar">
                 <button onclick="setMode('Islam')" id="modeIslam" class="mode-btn active-islam">☪️ Islam</button>
                 <button onclick="setMode('NonIslam')" id="modeKristen" class="mode-btn">✝️ Non Islam</button>
                 <button onclick="setMode('Haid')" id="modeHaid" class="mode-btn">🩸 Haid</button>
-                <button onclick="setMode('Keputrian')" id="modeKeputrian" class="mode-btn">🌸 Keputrian</button>
+                <button onclick="setMode('Keputrian')" id="modeKeputrian" class="mode-btn">🌸 Putri</button>
             </div>
 
-            <!-- Camera -->
-            <div class="camera-box" style="margin-bottom:14px;">
+            <div class="camera-box" style="margin-bottom:12px;">
                 <div id="reader"></div>
                 <div id="cameraPlaceholder" class="camera-placeholder">
                     <i class="fas fa-camera"></i>
-                    <p>Kamera belum aktif</p>
+                    <p>Camera Offline</p>
                 </div>
                 <div class="scan-feedback" id="feedback">
                     <div class="feedback-card" id="fbBox">
@@ -962,55 +1477,41 @@
                 </div>
             </div>
 
-            <div class="btn-row" style="margin-bottom:14px;">
-                <button onclick="startCam()" id="btnStart" class="btn btn-primary btn-sm"><i class="fas fa-play"></i> Aktifkan</button>
+            <div class="btn-row" style="margin-bottom:12px;">
+                <button onclick="startCam()" id="btnStart" class="btn btn-primary btn-sm"><i class="fas fa-play"></i> Start</button>
                 <button onclick="flipCam()" id="btnFlip" class="btn btn-secondary btn-sm" style="display:none;"><i class="fas fa-sync"></i></button>
                 <button onclick="stopCam()" id="btnStop" class="btn btn-danger btn-sm" style="display:none;"><i class="fas fa-stop"></i></button>
             </div>
 
             <!-- Manual Absen -->
-            <div style="background:rgba(19,40,76,0.3); border:1px solid rgba(6,182,212,0.1); border-radius:14px; padding:16px; margin-bottom:14px;">
-                <div style="font-size:12px; font-weight:700; color:#e2e8f0; margin-bottom:10px;">
-                    <i class="fas fa-pen-to-square" style="color:#fbbf24;"></i> Absen Manual
+            <div style="background:rgba(20,20,50,0.3); backdrop-filter:blur(15px); -webkit-backdrop-filter:blur(15px); border:1px solid rgba(255,255,255,0.06); border-radius:14px; padding:14px; margin-bottom:12px;">
+                <div style="font-family:'Orbitron',monospace; font-size:10px; font-weight:700; color:var(--gold); margin-bottom:8px;">
+                    <i class="fas fa-pen-to-square"></i> MANUAL ABSEN
                 </div>
                 <div class="form-row" style="margin-bottom:8px;">
-                    <div class="form-group" style="margin-bottom:0;">
-                        <label class="form-label">Kelas</label>
-                        <select id="manualKelas" class="form-input"></select>
-                    </div>
-                    <div class="form-group" style="margin-bottom:0;">
-                        <label class="form-label">No. Absen</label>
-                        <select id="manualAbsen" class="form-input"><option value="">Pilih</option></select>
-                    </div>
+                    <select id="manualKelas" class="form-input"></select>
+                    <select id="manualAbsen" class="form-input"><option value="">Absen</option></select>
                 </div>
-                <div class="form-group" style="margin-bottom:8px;">
-                    <label class="form-label">Nama</label>
-                    <input type="text" id="manualNama" readonly class="form-input" placeholder="Otomatis">
-                </div>
+                <input type="text" id="manualNama" readonly class="form-input" placeholder="Nama otomatis" style="margin-bottom:8px;">
                 <div class="btn-row">
-                    <button onclick="absenManualTidakHadir()" class="btn btn-danger btn-sm">❌ Tidak Hadir</button>
-                    <button onclick="alpakanSemuaKosong()" class="btn btn-warning btn-sm">🚨 Alpakan Semua</button>
+                    <button onclick="absenManualTidakHadir()" class="btn btn-danger btn-sm">❌ TIDAK HADIR</button>
+                    <button onclick="alpakanSemuaKosong()" class="btn btn-warning btn-sm">🚨 ALPAKAN</button>
                 </div>
             </div>
 
             <!-- Log -->
-            <div>
-                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
-                    <div style="font-size:12px; font-weight:700; color:#e2e8f0;">
-                        <i class="fas fa-list" style="color:#22d3ee;"></i> Log Presensi
-                    </div>
-                    <div style="font-size:13px; font-weight:800; color:#22d3ee;" id="totalHadir">0 Hadir</div>
-                </div>
-                <div class="form-row" style="margin-bottom:10px;">
-                    <select id="pilihBulan" class="form-input" onchange="initTanggalHarian(this.value)"></select>
-                    <select id="tanggalHarian" class="form-input" onchange="gantiTanggalUI()"></select>
-                </div>
-                <button onclick="downloadHarian()" class="btn btn-primary btn-sm" style="margin-bottom:10px;">
-                    <i class="fas fa-download"></i> Download
-                </button>
-                <div id="logPresensi" class="log-list">
-                    <div class="empty-state"><i class="fas fa-inbox"></i><p>Belum ada presensi</p></div>
-                </div>
+            <div style="font-family:'Orbitron',monospace; font-size:10px; font-weight:700; color:var(--cyan); margin-bottom:8px;">
+                <i class="fas fa-list"></i> LOG PRESENSI • <span id="totalHadir" style="color:var(--emerald);">0</span> HADIR
+            </div>
+            <div class="form-row" style="margin-bottom:8px;">
+                <select id="pilihBulan" class="form-input" onchange="initTanggalHarian(this.value)"></select>
+                <select id="tanggalHarian" class="form-input" onchange="gantiTanggalUI()"></select>
+            </div>
+            <button onclick="downloadHarian()" class="btn btn-primary btn-sm" style="margin-bottom:8px;">
+                <i class="fas fa-download"></i> DOWNLOAD
+            </button>
+            <div id="logPresensi" class="log-list">
+                <div class="empty-state"><i class="fas fa-inbox"></i><p>Belum ada presensi</p></div>
             </div>
         </div>
     </div>
@@ -1022,10 +1523,9 @@
             <div class="topbar-title">Admin Panel</div>
         </div>
         <div class="screen-content">
-            <!-- Tambah Siswa -->
-            <div style="background:rgba(19,40,76,0.3); border:1px solid rgba(6,182,212,0.1); border-radius:16px; padding:16px; margin-bottom:14px;">
-                <div style="font-size:13px; font-weight:700; color:#e2e8f0; margin-bottom:12px;">
-                    <i class="fas fa-user-plus" style="color:#22d3ee;"></i> Registrasi Siswa
+            <div style="background:rgba(20,20,50,0.3); backdrop-filter:blur(15px); -webkit-backdrop-filter:blur(15px); border:1px solid rgba(255,255,255,0.06); border-radius:16px; padding:16px;">
+                <div style="font-family:'Orbitron',monospace; font-size:11px; font-weight:700; color:var(--cyan); margin-bottom:12px;">
+                    <i class="fas fa-user-plus"></i> REGISTRASI SISWA
                 </div>
                 <div class="form-group">
                     <label class="form-label">Nama Lengkap</label>
@@ -1043,7 +1543,7 @@
                 </div>
                 <div class="form-row">
                     <div class="form-group">
-                        <label class="form-label">Jenis Kelamin</label>
+                        <label class="form-label">Gender</label>
                         <select id="jk" class="form-input">
                             <option value="L">Laki-laki</option>
                             <option value="P">Perempuan</option>
@@ -1061,19 +1561,8 @@
                         </select>
                     </div>
                 </div>
-                <button onclick="buatQR()" class="btn btn-primary"><i class="fas fa-qrcode"></i> Generate QR</button>
+                <button onclick="buatQR()" class="btn btn-primary"><i class="fas fa-qrcode"></i> GENERATE QR</button>
                 <div id="qrArea"></div>
-            </div>
-
-            <!-- Reset -->
-            <div style="background:rgba(19,40,76,0.3); border:1px solid rgba(239,68,68,0.15); border-radius:16px; padding:16px;">
-                <div style="font-size:13px; font-weight:700; color:#e2e8f0; margin-bottom:8px;">
-                    <i class="fas fa-rotate-left" style="color:#f87171;"></i> Reset Total Hadir
-                </div>
-                <p style="font-size:11px; color:#64748b; margin-bottom:12px;">Reset semua kehadiran ke 0. Tidak bisa dibatalkan.</p>
-                <button onclick="resetTotalHadir()" class="btn btn-danger btn-sm">
-                    <i class="fas fa-exclamation-triangle"></i> Reset Semua
-                </button>
             </div>
         </div>
     </div>
@@ -1089,8 +1578,7 @@
                 <label class="form-label">Kelas Tujuan</label>
                 <select id="kelasTujuan" class="form-input"></select>
             </div>
-
-            <div class="camera-box" style="margin-bottom:14px;">
+            <div class="camera-box" style="margin-bottom:12px;">
                 <div id="readerNaik"></div>
                 <div class="scan-feedback" id="feedbackNaik">
                     <div class="feedback-card" id="fbNaikBox">
@@ -1100,17 +1588,14 @@
                     </div>
                 </div>
             </div>
-
-            <div class="btn-row" style="margin-bottom:14px;">
+            <div class="btn-row" style="margin-bottom:12px;">
                 <button onclick="startScanNaikKelas()" id="btnStartNaik" class="btn btn-warning btn-sm"><i class="fas fa-play"></i> Scan</button>
-                <button onclick="stopScanNaikKelas()" id="btnStopNaik" class="btn btn-danger btn-sm" style="display:none;"><i class="fas fa-stop"></i> Stop</button>
+                <button onclick="stopScanNaikKelas()" id="btnStopNaik" class="btn btn-danger btn-sm" style="display:none;"><i class="fas fa-stop"></i></button>
             </div>
-
-            <div style="font-size:12px; font-weight:700; color:#e2e8f0; margin-bottom:8px;">
-                <i class="fas fa-list-ul" style="color:#22d3ee;"></i> Daftar Scan
+            <div style="font-family:'Orbitron',monospace; font-size:10px; font-weight:700; color:var(--cyan); margin-bottom:8px;">
+                <i class="fas fa-list-ul"></i> DAFTAR SCAN
             </div>
-            <div id="listScanNaik" style="display:flex; flex-direction:column; gap:6px; margin-bottom:14px; max-height:250px; overflow-y:auto;"></div>
-
+            <div id="listScanNaik" style="display:flex; flex-direction:column; gap:6px; margin-bottom:12px; max-height:220px; overflow-y:auto;"></div>
             <div class="btn-row">
                 <button onclick="simpanNaikKelas()" class="btn btn-primary btn-sm"><i class="fas fa-save"></i> Simpan</button>
                 <button onclick="resetNaikKelas()" class="btn btn-secondary btn-sm"><i class="fas fa-trash"></i> Reset</button>
@@ -1125,28 +1610,26 @@
             <div class="topbar-title">Data & Laporan</div>
         </div>
         <div class="screen-content">
-            <div class="home-stats-row" style="margin-bottom:14px;">
+            <div class="home-stats-row" style="margin-bottom:12px;">
                 <div class="home-stat-card">
-                    <div class="home-stat-value" style="color:#22d3ee;" id="dashTotalSiswa">0</div>
+                    <div class="home-stat-value" style="color:var(--cyan);" id="dashTotalSiswa">0</div>
                     <div class="home-stat-label">Total Siswa</div>
                 </div>
                 <div class="home-stat-card">
-                    <div class="home-stat-value" style="color:#34d399;" id="dashHadirHari">0</div>
+                    <div class="home-stat-value" style="color:var(--emerald);" id="dashHadirHari">0</div>
                     <div class="home-stat-label">Hadir Hari Ini</div>
                 </div>
             </div>
-
-            <div style="display:flex; gap:8px; margin-bottom:12px;">
+            <div style="display:flex; gap:8px; margin-bottom:10px;">
                 <div style="flex:1; position:relative;">
-                    <i class="fas fa-search" style="position:absolute; left:12px; top:50%; transform:translateY(-50%); color:#475569; font-size:12px;"></i>
+                    <i class="fas fa-search" style="position:absolute; left:12px; top:50%; transform:translateY(-50%); color:#444; font-size:12px;"></i>
                     <input type="text" id="searchSiswa" placeholder="Cari nama..." oninput="filterLaporan()" class="form-input" style="padding-left:34px;">
                 </div>
-                <select id="filterKelas" onchange="filterLaporan()" class="form-input" style="width:130px;">
+                <select id="filterKelas" onchange="filterLaporan()" class="form-input" style="width:120px;">
                     <option value="">Semua</option>
                 </select>
             </div>
-
-            <div id="listLaporan" style="display:flex; flex-direction:column; gap:8px;"></div>
+            <div id="listLaporan" style="display:flex; flex-direction:column; gap:6px;"></div>
         </div>
     </div>
 
@@ -1157,18 +1640,40 @@
             <div class="topbar-title">Import Excel</div>
         </div>
         <div class="screen-content">
-            <div style="background:rgba(19,40,76,0.3); border:1px solid rgba(6,182,212,0.1); border-radius:16px; padding:16px;">
-                <div style="font-size:13px; font-weight:700; color:#e2e8f0; margin-bottom:12px;">
-                    <i class="fas fa-file-excel" style="color:#34d399;"></i> Upload File Excel
+            <div style="background:rgba(20,20,50,0.3); backdrop-filter:blur(15px); -webkit-backdrop-filter:blur(15px); border:1px solid rgba(255,255,255,0.06); border-radius:16px; padding:16px;">
+                <div style="font-family:'Orbitron',monospace; font-size:11px; font-weight:700; color:var(--magenta); margin-bottom:12px;">
+                    <i class="fas fa-file-excel"></i> UPLOAD EXCEL
                 </div>
-                <div class="upload-area">
-                    <i class="fas fa-cloud-upload-alt" style="font-size:36px; color:#475569; margin-bottom:8px; display:block;"></i>
+                <div style="background:rgba(10,10,25,0.4); border:2px dashed rgba(255,255,255,0.1); border-radius:14px; padding:20px; text-align:center; margin-bottom:14px;">
+                    <i class="fas fa-cloud-upload-alt" style="font-size:40px; color:#333; margin-bottom:8px; display:block;"></i>
                     <input type="file" id="fileExcel" accept=".xlsx,.xls" class="form-input" style="background:transparent; border:none; padding:8px; text-align:center;">
-                    <p style="font-size:10px; color:#475569; margin-top:4px;">Format .xlsx / .xls — Multi-sheet</p>
+                    <p style="font-size:10px; color:#444; margin-top:4px;">.xlsx / .xls • Multi-sheet</p>
                 </div>
-                <button onclick="importExcel()" class="btn btn-success"><i class="fas fa-upload"></i> Proses & Generate QR</button>
-                <div id="importProgress" style="display:none; text-align:center; font-size:12px; font-weight:600; color:#22d3ee; margin-top:12px;"></div>
-                <div id="importResult" style="display:none; margin-top:12px;"></div>
+                <button onclick="importExcel()" class="btn btn-success"><i class="fas fa-upload"></i> PROSES</button>
+                <div id="importProgress" style="display:none; text-align:center; font-size:11px; font-weight:600; color:var(--emerald); margin-top:10px;"></div>
+                <div id="importResult" style="display:none; margin-top:10px;"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ═══════════════ RESET SCREEN ═══════════════ -->
+    <div class="screen" id="screenReset">
+        <div class="topbar">
+            <div class="topbar-back" onclick="navigateTo('home')"><i class="fas fa-arrow-left"></i></div>
+            <div class="topbar-title">Reset Data</div>
+        </div>
+        <div class="screen-content">
+            <div style="background:rgba(20,20,50,0.3); backdrop-filter:blur(15px); -webkit-backdrop-filter:blur(15px); border:1px solid rgba(255,107,107,0.2); border-radius:16px; padding:16px;">
+                <div style="font-family:'Orbitron',monospace; font-size:11px; font-weight:700; color:var(--coral); margin-bottom:8px;">
+                    <i class="fas fa-rotate-left"></i> RESET TOTAL HADIR
+                </div>
+                <p style="font-size:11px; color:#555; margin-bottom:12px; line-height:1.6;">
+                    ⚠️ Reset semua total kehadiran siswa menjadi 0. Gunakan di awal tahun ajaran baru.
+                    <strong style="color:var(--coral);">Tidak bisa dibatalkan!</strong>
+                </p>
+                <button onclick="resetTotalHadir()" class="btn btn-danger">
+                    <i class="fas fa-exclamation-triangle"></i> RESET SEMUA
+                </button>
             </div>
         </div>
     </div>
@@ -1203,9 +1708,96 @@
     let listSiswaScanned = [];
     let currentPresensiRef = null;
     let currentScreen = 'home';
-    let screenHistory = ['home'];
+    let musicPlaying = false;
+    let audioCtx = null;
+    let musicGain = null;
+    let musicOsc = null;
 
-    // ── Navigation ───────────────────────────────
+    // ── PARTICLES ───────────────────────────────
+    function createParticles() {
+        const container = document.getElementById('particlesContainer');
+        const colors = ['#00f0ff', '#ff00ff', '#ffd700', '#00ff88', '#7b2fff', '#ff6b6b'];
+        for (let i = 0; i < 30; i++) {
+            const particle = document.createElement('div');
+            particle.className = 'particle';
+            const size = Math.random() * 4 + 2;
+            particle.style.cssText = `
+                width: ${size}px;
+                height: ${size}px;
+                left: ${Math.random() * 100}%;
+                background: ${colors[Math.floor(Math.random() * colors.length)]};
+                box-shadow: 0 0 ${size * 3}px currentColor;
+                animation-duration: ${Math.random() * 10 + 10}s;
+                animation-delay: ${Math.random() * 10}s;
+            `;
+            container.appendChild(particle);
+        }
+    }
+
+    // ── MUSIC ───────────────────────────────
+    function initMusic() {
+        try {
+            audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+            musicGain = audioCtx.createGain();
+            musicGain.gain.value = 0.03;
+            musicGain.connect(audioCtx.destination);
+
+            musicOsc = audioCtx.createOscillator();
+            musicOsc.type = 'sine';
+            musicOsc.frequency.value = 220;
+            musicOsc.connect(musicGain);
+
+            const osc2 = audioCtx.createOscillator();
+            osc2.type = 'sine';
+            osc2.frequency.value = 330;
+            const gain2 = audioCtx.createGain();
+            gain2.gain.value = 0.02;
+            osc2.connect(gain2);
+            gain2.connect(audioCtx.destination);
+
+            const osc3 = audioCtx.createOscillator();
+            osc3.type = 'triangle';
+            osc3.frequency.value = 440;
+            const gain3 = audioCtx.createGain();
+            gain3.gain.value = 0.015;
+            osc3.connect(gain3);
+            gain3.connect(audioCtx.destination);
+
+            musicOsc.start();
+            osc2.start();
+            osc3.start();
+
+            // Slow modulation
+            setInterval(() => {
+                if (musicPlaying) {
+                    musicOsc.frequency.value = 220 + Math.sin(Date.now() / 4000) * 50;
+                    osc2.frequency.value = 330 + Math.sin(Date.now() / 3000) * 40;
+                    osc3.frequency.value = 440 + Math.sin(Date.now() / 5000) * 30;
+                }
+            }, 100);
+        } catch(e) {}
+    }
+
+    window.toggleMusic = function() {
+        if (!audioCtx) initMusic();
+        musicPlaying = !musicPlaying;
+        const btn = document.getElementById('musicBtn');
+        const progress = document.getElementById('musicProgress');
+        if (musicPlaying) {
+            if (audioCtx.state === 'suspended') audioCtx.resume();
+            musicGain.gain.value = 0.03;
+            btn.innerHTML = '<i class="fas fa-pause"></i>';
+            btn.classList.add('playing');
+            if (progress) progress.classList.add('playing');
+        } else {
+            musicGain.gain.value = 0;
+            btn.innerHTML = '<i class="fas fa-play"></i>';
+            btn.classList.remove('playing');
+            if (progress) progress.classList.remove('playing');
+        }
+    };
+
+    // ── NAVIGATION ───────────────────────────────
     window.navigateTo = function(screenName) {
         if (!isLogin && screenName !== 'home') {
             document.getElementById('loginOverlay').style.display = '';
@@ -1213,22 +1805,17 @@
         }
         stopCam();
         stopScanNaikKelas();
-        
-        const allScreens = ['home', 'scan', 'admin', 'naikkelas', 'laporan', 'import'];
+
+        const allScreens = ['home', 'scan', 'admin', 'naikkelas', 'laporan', 'import', 'reset'];
         allScreens.forEach(s => {
-            const el = document.getElementById('screen' + s.charAt(0).toUpperCase() + s.slice(1).replace('laporan', 'Laporan').replace('naikkelas', 'NaikKelas').replace('import', 'Import'));
-            if (el) {
-                el.classList.remove('active', 'prev');
-            }
+            const el = document.getElementById('screen' + s.charAt(0).toUpperCase() + s.slice(1).replace('laporan', 'Laporan').replace('naikkelas', 'NaikKelas').replace('import', 'Import').replace('reset', 'Reset'));
+            if (el) el.classList.remove('active', 'prev');
         });
 
         const targetMap = {
-            'home': 'screenHome',
-            'scan': 'screenScan',
-            'admin': 'screenAdmin',
-            'naikkelas': 'screenNaikKelas',
-            'laporan': 'screenLaporan',
-            'import': 'screenImport'
+            'home': 'screenHome', 'scan': 'screenScan', 'admin': 'screenAdmin',
+            'naikkelas': 'screenNaikKelas', 'laporan': 'screenLaporan',
+            'import': 'screenImport', 'reset': 'screenReset'
         };
 
         const targetId = targetMap[screenName];
@@ -1242,19 +1829,17 @@
         if (target) {
             target.classList.add('active');
             target.classList.remove('prev');
+            target.scrollTop = 0;
         }
 
-        screenHistory.push(screenName);
         currentScreen = screenName;
 
         if (screenName === 'home') updateHomeStats();
         if (screenName === 'laporan') updateDashboard();
-        if (screenName === 'scan') {
-            if (isLogin) listenPresensi();
-        }
+        if (screenName === 'scan' && isLogin) listenPresensi();
     };
 
-    // ── Toast ───────────────────────────────
+    // ── TOAST ───────────────────────────────
     function showToast(message, type = 'success') {
         const container = document.getElementById('toastContainer');
         const t = document.createElement('div');
@@ -1271,15 +1856,15 @@
             const gain = ctx.createGain();
             osc.connect(gain); gain.connect(ctx.destination);
             osc.type = 'sine';
-            osc.frequency.value = type === 'success' ? 880 : 440;
-            gain.gain.value = 0.3;
+            osc.frequency.value = type === 'success' ? 880 : 330;
+            gain.gain.value = 0.2;
             osc.start();
-            gain.gain.exponentialRampToValueAtTime(0.00001, ctx.currentTime + 0.4);
-            osc.stop(ctx.currentTime + 0.4);
+            gain.gain.exponentialRampToValueAtTime(0.00001, ctx.currentTime + 0.3);
+            osc.stop(ctx.currentTime + 0.3);
         } catch(e) {}
     }
 
-    // ── Init ───────────────────────────────
+    // ── INIT ───────────────────────────────
     function initDropdownBulan() {
         const select = document.getElementById('pilihBulan');
         if (!select) return;
@@ -1319,11 +1904,12 @@
         const todayKey = new Date().toLocaleDateString('id-ID').replace(/\//g, '-');
         if (!monthStr && [...selectHari.options].some(o => o.value === todayKey)) selectHari.value = todayKey;
         else if (selectHari.options.length > 0) selectHari.selectedIndex = 0;
-        selectHari.innerHTML += `<option value="__ALL__">📦 Rekap ${targetDate.toLocaleDateString('id-ID', { month: 'long', year: 'numeric' }).toUpperCase()}</option>`;
-        if (isLogin && typeof gantiTanggalUI === 'function') gantiTanggalUI();
+        selectHari.innerHTML += `<option value="__ALL__">📦 REKAP ${targetDate.toLocaleDateString('id-ID', { month: 'long', year: 'numeric' }).toUpperCase()}</option>`;
+        if (isLogin) gantiTanggalUI();
     };
 
     window.onload = function() {
+        createParticles();
         ['kelas', 'kelasTujuan', 'manualKelas'].forEach(id => {
             const el = document.getElementById(id);
             if (el) KELAS_LIST.forEach(k => el.innerHTML += `<option value="${k}">${k}</option>`);
@@ -1344,9 +1930,11 @@
             updateHomeStats();
             updateDashboard();
         }
+        // Auto-init music on first user interaction
+        document.addEventListener('click', () => { if (!audioCtx) initMusic(); }, { once: true });
     };
 
-    // ── Login ───────────────────────────────
+    // ── LOGIN ───────────────────────────────
     window.startLoginScan = function() {
         document.getElementById('btnLoginStart').style.display = 'none';
         document.getElementById('btnLoginStop').style.display = '';
@@ -1389,48 +1977,45 @@
         listenPresensi();
         updateHomeStats();
         updateDashboard();
-        showToast('Login berhasil!', 'success');
+        showToast('✨ Login berhasil!', 'success');
         playBeep('success');
+        if (!musicPlaying) toggleMusic();
     }
 
     window.logout = function() {
         if (confirm('Yakin keluar?')) {
+            if (musicPlaying) toggleMusic();
             isLogin = false;
             localStorage.removeItem('login');
             location.reload();
         }
     };
 
-    // ── Mode ───────────────────────────────
+    // ── MODE ───────────────────────────────
     window.setMode = function(m) {
         mode = m;
         document.getElementById('modeIslam').className = 'mode-btn' + (m === 'Islam' ? ' active-islam' : '');
         document.getElementById('modeKristen').className = 'mode-btn' + (m === 'NonIslam' ? ' active-nonislam' : '');
         document.getElementById('modeHaid').className = 'mode-btn' + (m === 'Haid' ? ' active-haid' : '');
         document.getElementById('modeKeputrian').className = 'mode-btn' + (m === 'Keputrian' ? ' active-keputrian' : '');
-        showToast(`Mode: ${m === 'Islam' ? 'Islam' : m === 'NonIslam' ? 'Non Islam' : m === 'Haid' ? 'Haid' : 'Keputrian'}`, 'success');
+        showToast(`Mode: ${m}`, 'success');
         playBeep('success');
     };
 
-    // ── Home Stats ───────────────────────────────
+    // ── HOME STATS ───────────────────────────────
     async function updateHomeStats() {
         const siswaSnap = await db.ref('siswa').once('value');
         let total = 0;
         const data = siswaSnap.val() || {};
         for (let k in data) total += Object.keys(data[k] || {}).length;
         document.getElementById('homeTotal').innerText = total;
-        document.getElementById('statSiswa') && (document.getElementById('statSiswa').innerText = total);
-        
         const today = new Date().toLocaleDateString('id-ID').replace(/\//g, '-');
         const presensiSnap = await db.ref('presensi/' + today).once('value');
         const presensi = presensiSnap.val() || {};
         const hadir = Object.values(presensi).filter(e => e.status !== 'TIDAK HADIR').length;
         document.getElementById('homeHadir').innerText = hadir;
-        document.getElementById('statHadir') && (document.getElementById('statHadir').innerText = hadir);
         document.getElementById('dashHadirHari') && (document.getElementById('dashHadirHari').innerText = hadir);
-        
-        const persen = total > 0 ? Math.round((hadir / total) * 100) : 0;
-        document.getElementById('statPersen') && (document.getElementById('statPersen').innerText = persen + '%');
+        document.getElementById('statHadir') && (document.getElementById('statHadir').innerText = hadir);
     }
 
     async function updateDashboard() {
@@ -1468,19 +2053,19 @@
             return;
         }
         container.innerHTML = filtered.map(s => `
-            <div class="laporan-card">
+            <div style="background:rgba(20,20,50,0.3); backdrop-filter:blur(10px); -webkit-backdrop-filter:blur(10px); border:1px solid rgba(255,255,255,0.04); border-radius:12px; padding:12px 14px;">
                 <div style="display:flex; justify-content:space-between; align-items:flex-start;">
                     <div>
-                        <div style="font-size:13px; font-weight:700; color:#e2e8f0;">${s.nama || '-'}</div>
-                        <div style="font-size:10px; color:#22d3ee; font-weight:600; margin-top:2px;">${s.kelas} • Absen ${s.absen} • ${s.jk === 'L' ? 'L' : 'P'} • ${s.agama || '-'}</div>
+                        <div style="font-size:13px; font-weight:700; color:#eee;">${s.nama || '-'}</div>
+                        <div style="font-size:10px; color:var(--cyan); font-weight:600; margin-top:2px;">${s.kelas} • Absen ${s.absen} • ${s.jk === 'L' ? 'L' : 'P'} • ${s.agama || '-'}</div>
                     </div>
-                    <div style="background:rgba(6,182,212,0.1); color:#22d3ee; font-size:13px; font-weight:800; padding:4px 10px; border-radius:8px;">${s.totalHadir || 0}x</div>
+                    <div style="background:rgba(0,240,255,0.1); color:var(--cyan); font-family:'Orbitron',monospace; font-size:12px; font-weight:800; padding:4px 10px; border-radius:8px;">${s.totalHadir || 0}x</div>
                 </div>
             </div>
         `).join('');
     };
 
-    // ── Presensi Listener ───────────────────────────────
+    // ── PRESENSI LISTENER ───────────────────────────────
     window.gantiTanggalUI = function() {
         const val = document.getElementById('tanggalHarian')?.value;
         if (val && val !== '__ALL__') listenPresensi(val);
@@ -1494,11 +2079,10 @@
             const data = snap.val() || {};
             const entries = Object.values(data);
             const totalHadir = entries.filter(e => e.status !== 'TIDAK HADIR').length;
-            const el = document.getElementById('totalHadir');
-            if (el) el.innerText = totalHadir + ' Hadir';
-            document.getElementById('statHadir') && (document.getElementById('statHadir').innerText = totalHadir);
-            document.getElementById('dashHadirHari') && (document.getElementById('dashHadirHari').innerText = totalHadir);
+            document.getElementById('totalHadir') && (document.getElementById('totalHadir').innerText = totalHadir);
             document.getElementById('homeHadir') && (document.getElementById('homeHadir').innerText = totalHadir);
+            document.getElementById('dashHadirHari') && (document.getElementById('dashHadirHari').innerText = totalHadir);
+            document.getElementById('statHadir') && (document.getElementById('statHadir').innerText = totalHadir);
 
             const logContainer = document.getElementById('logPresensi');
             if (!logContainer) return;
@@ -1508,12 +2092,10 @@
             }
             entries.sort((a, b) => (b.timestamp || 0) - (a.timestamp || 0));
             logContainer.innerHTML = entries.map(e => {
-                let cls = '';
-                let badgeCls = 'badge-hadir';
-                let badgeTxt = `#${e.totalHadir}`;
+                let cls = '', badgeCls = 'badge-hadir', badgeTxt = `#${e.totalHadir}`;
                 if (e.status === 'TIDAK HADIR') { cls = 'alpa'; badgeCls = 'badge-alpa'; badgeTxt = 'ALPA'; }
                 else if (e.jam === 'HAID') { cls = 'haid'; badgeCls = 'badge-haid'; badgeTxt = 'HAID'; }
-                else if (e.jam === 'KEPUTRIAN') { cls = 'keputrian'; badgeTxt = 'KEPUTRIAN'; }
+                else if (e.jam === 'KEPUTRIAN') { cls = 'keputrian'; badgeTxt = 'PUTRI'; }
                 else if (e.status === 'IBADAH') { cls = 'nonislam'; badgeTxt = 'IBADAH'; }
                 return `
                     <div class="log-item ${cls}">
@@ -1527,7 +2109,7 @@
         });
     };
 
-    // ── QR Generation ───────────────────────────────
+    // ── QR GENERATION ───────────────────────────────
     window.buatQR = async function() {
         const nama = document.getElementById('nama').value.trim();
         const kelas = document.getElementById('kelas').value;
@@ -1541,22 +2123,22 @@
         });
         const area = document.getElementById('qrArea');
         area.innerHTML = `
-            <div class="qr-result-card">
-                <div class="qr-white-box" id="qrImg"></div>
-                <div style="font-size:15px; font-weight:800; color:#e2e8f0;">${nama.toUpperCase()}</div>
-                <div style="font-size:10px; color:#22d3ee; font-weight:600; margin-top:4px;">${kelas} • ${jk === 'L' ? 'Laki-laki' : 'Perempuan'} • ${agama} • Absen ${absen}</div>
+            <div style="background:rgba(20,20,50,0.4); backdrop-filter:blur(15px); -webkit-backdrop-filter:blur(15px); border:1px solid rgba(0,240,255,0.2); border-radius:16px; padding:20px; text-align:center; margin-top:12px; box-shadow:0 0 30px var(--cyan-glow);">
+                <div style="background:white; padding:10px; border-radius:10px; display:inline-block;" id="qrImg"></div>
+                <div style="font-size:15px; font-weight:800; color:#eee; margin-top:8px;">${nama.toUpperCase()}</div>
+                <div style="font-size:10px; color:var(--cyan); font-weight:600; margin-top:4px;">${kelas} • ${jk === 'L' ? 'Laki-laki' : 'Perempuan'} • ${agama} • Absen ${absen}</div>
             </div>`;
         new QRCode(document.getElementById("qrImg"), {
-            text: `${nama.toUpperCase()}|${kelas}|${absen}|${jk}|${agama}`, width: 180, height: 180
+            text: `${nama.toUpperCase()}|${kelas}|${absen}|${jk}|${agama}`, width: 160, height: 160
         });
         document.getElementById('loadingOverlay').classList.remove('show');
-        showToast('QR berhasil dibuat!', 'success');
+        showToast('✨ QR berhasil dibuat!', 'success');
         playBeep('success');
         updateDashboard();
         loadManualAbsenOptions();
     };
 
-    // ── Camera ───────────────────────────────
+    // ── CAMERA ───────────────────────────────
     window.startCam = async function() {
         document.getElementById('btnStart').style.display = 'none';
         document.getElementById('btnFlip').style.display = '';
@@ -1564,13 +2146,9 @@
         document.getElementById('cameraPlaceholder').style.display = 'none';
         scanner = new Html5Qrcode("reader");
         try {
-            await scanner.start(
-                { facingMode: "environment" },
-                { fps: 5, qrbox: { width: 240, height: 240 }, aspectRatio: 1.333 },
-                (text) => { scanner.pause(); prosesQR(text); },
-                () => {}
-            );
-            showToast('Kamera aktif', 'success');
+            await scanner.start({ facingMode: "environment" }, { fps: 5, qrbox: { width: 240, height: 240 }, aspectRatio: 1.333 },
+                (text) => { scanner.pause(); prosesQR(text); }, () => {});
+            showToast('📷 Kamera aktif', 'success');
         } catch(e) {
             showToast('Gagal: ' + e, 'error');
             document.getElementById('btnStart').style.display = '';
@@ -1587,7 +2165,6 @@
         try {
             await scanner.start({ facingMode }, { fps: 5, qrbox: { width: 240, height: 240 }, aspectRatio: 1.333 },
                 (text) => { scanner.pause(); prosesQR(text); }, () => {});
-            showToast(facingMode === 'environment' ? 'Kamera belakang' : 'Kamera depan', 'success');
         } catch(e) { showToast('Gagal', 'error'); }
     };
 
@@ -1618,14 +2195,10 @@
             const [nama, kelasRaw, absenRaw, jkRaw, agamaRaw] = parts;
             const kelas = kelasRaw.toUpperCase();
             const absen = absenRaw.replace(/\D/g, '');
-            const jk = jkRaw.toUpperCase();
-            if (!nama || !kelas || !absen || !jk || !agamaRaw) throw 'Data tidak lengkap';
-            if (!/^(X|XI|XII)-\d+$/i.test(kelas)) throw 'Format kelas salah';
-            if (!/^\d+$/.test(absen)) throw 'Absen salah';
-            if (!/^(L|P)$/i.test(jk)) throw 'JK salah';
-            return { nama: nama.trim(), kelas, absen, jk, agama: agamaRaw.trim() };
+            if (!nama || !kelas || !absen || !jkRaw || !agamaRaw) throw 'Data tidak lengkap';
+            return { nama: nama.trim(), kelas, absen, jk: jkRaw.toUpperCase(), agama: agamaRaw.trim() };
         }
-        throw 'Format QR tidak dikenal';
+        throw 'Format tidak dikenal';
     }
 
     async function prosesQR(text) {
@@ -1637,7 +2210,7 @@
             const siswaSnap = await siswaRef.once('value');
             if (!siswaSnap.exists()) throw 'Siswa tidak ditemukan';
             let dataSiswa = siswaSnap.val() || {};
-            if (dataSiswa.nama && normalisasiNamaQR(dataSiswa.nama) !== normalisasiNamaQR(nama)) throw 'Data QR tidak cocok';
+            if (dataSiswa.nama && normalisasiNamaQR(dataSiswa.nama) !== normalisasiNamaQR(nama)) throw 'QR tidak cocok';
             nama = dataSiswa.nama || nama;
             jk = (dataSiswa.jk || jk || 'L').toUpperCase();
             agama = dataSiswa.agama || agama || 'Islam';
@@ -1646,28 +2219,26 @@
                 if (jk !== 'P') throw `Mode ${mode} hanya untuk perempuan!`;
             } else {
                 const agamaMode = agama === 'Islam' ? 'Islam' : 'NonIslam';
-                if (agamaMode !== mode) throw agama === 'Islam' ? 'Gunakan mode Islam' : `Gunakan mode Non Islam (${agama})`;
+                if (agamaMode !== mode) throw agama === 'Islam' ? 'Gunakan mode Islam' : 'Gunakan mode Non Islam';
             }
 
             const today = new Date().toLocaleDateString('id-ID').replace(/\//g, '-');
             const presensiRef = db.ref('presensi/' + today + '/' + kelas + '_' + absen);
-            const presensiSnap = await presensiRef.once('value');
-            if (presensiSnap.exists()) throw `Sudah absen jam ${presensiSnap.val().jam}`;
+            if ((await presensiRef.once('value')).exists()) throw 'Sudah absen!';
 
             let totalHadir = (dataSiswa.totalHadir || 0) + 1;
             await siswaRef.set({ ...dataSiswa, nama, kelas, absen, jk, agama, totalHadir, lastUpdate: Date.now() });
-
             const jam = (mode === 'Haid' || mode === 'Keputrian') ? mode.toUpperCase() : new Date().toLocaleTimeString('id-ID');
             const status = mode === 'Islam' ? 'DZUHUR' : mode === 'Haid' ? 'HAID' : mode === 'Keputrian' ? 'KEPUTRIAN' : 'IBADAH';
             await presensiRef.set({ nama, kelas, absen, jk, agama, jam, status, totalHadir, timestamp: Date.now() });
 
             const msg = mode === 'Haid' ? 'Tercatat Haid' : mode === 'Keputrian' ? 'Hadir Keputrian' : `Hadir ke-${totalHadir}`;
-            feedback('✅', nama, msg, 'background:linear-gradient(135deg,#065f46,#059669)');
-            showToast(`${nama} — ${msg}`, 'success');
+            feedback('✅', nama, msg, 'background:linear-gradient(135deg,#006644,#00ff88)');
+            showToast(`✨ ${nama} — ${msg}`, 'success');
             playBeep('success');
             updateDashboard();
         } catch(e) {
-            feedback('❌', 'GAGAL', e.toString(), 'background:linear-gradient(135deg,#991b1b,#dc2626)');
+            feedback('❌', 'GAGAL', e.toString(), 'background:linear-gradient(135deg,#990000,#ff4444)');
             showToast(e.toString(), 'error');
             playBeep('error');
         }
@@ -1680,12 +2251,12 @@
         document.getElementById('fbIcon').innerText = icon;
         document.getElementById('fbNama').innerText = name;
         document.getElementById('fbMsg').innerText = msg;
-        document.getElementById('fbBox').style = `text-align:center; padding:28px 36px; border-radius:16px; ${bg};`;
+        document.getElementById('fbBox').style = `text-align:center; padding:28px 36px; border-radius:18px; ${bg};`;
         fb.classList.add('show');
         setTimeout(() => fb.classList.remove('show'), 2000);
     }
 
-    // ── Manual Absen ───────────────────────────────
+    // ── MANUAL ABSEN ───────────────────────────────
     async function loadManualAbsenOptions() {
         const kelas = document.getElementById('manualKelas')?.value;
         const manualAbsen = document.getElementById('manualAbsen');
@@ -1752,12 +2323,12 @@
                 total++;
             }
             if (total === 0) showToast('Semua sudah absen', 'success');
-            else { await db.ref().update(updates); showToast(`${total} siswa ditandai ALPA`, 'success'); updateDashboard(); }
-        } catch(e) { showToast('Gagal: ' + e.message, 'error'); }
+            else { await db.ref().update(updates); showToast(`${total} siswa ALPA`, 'success'); updateDashboard(); }
+        } catch(e) { showToast('Gagal', 'error'); }
         document.getElementById('loadingOverlay').classList.remove('show');
     };
 
-    // ── Download ───────────────────────────────
+    // ── DOWNLOAD ───────────────────────────────
     function agamaIsIslam(a) { return String(a||'').trim().toLowerCase() === 'islam'; }
     function isHaidCell(h, s) { return h && (String(h.status||'').toUpperCase()==='HAID'||String(h.jam||'').toUpperCase()==='HAID') && agamaIsIslam(h.agama||s?.agama||'') && String(h.jk||s?.jk||'').toUpperCase()==='P'; }
     function isKeputrianCell(h) { return h && (String(h.status||'').toUpperCase()==='KEPUTRIAN'||String(h.jam||'').toUpperCase()==='KEPUTRIAN'); }
@@ -1816,8 +2387,8 @@
             a.href = URL.createObjectURL(blob);
             a.download = `HARIAN_${key}.zip`;
             a.click();
-            showToast('Download selesai!', 'success');
-        } catch(e) { showToast('Gagal: ' + e.message, 'error'); }
+            showToast('✅ Download selesai!', 'success');
+        } catch(e) { showToast('Gagal', 'error'); }
         document.getElementById('loadingOverlay').classList.remove('show');
     };
 
@@ -1865,15 +2436,11 @@
                             }
                         } else row.push('');
                     });
-                    row.push(total);
-                    rows.push(row);
+                    row.push(total); rows.push(row);
                 });
                 const ws = XLSX.utils.aoa_to_sheet(rows);
                 warna.forEach(w => beriWarnaJam(ws, w.r, w.c, w.color));
-                const cols = [{wch:8},{wch:28}];
-                semuaTanggal.forEach(() => cols.push({wch:14}));
-                cols.push({wch:10});
-                ws['!cols'] = cols;
+                ws['!cols'] = [{wch:8},{wch:28},...semuaTanggal.map(() => ({wch:14})),{wch:10}];
                 const wb = XLSX.utils.book_new();
                 XLSX.utils.book_append_sheet(wb, ws, 'Rekap');
                 zip.file(`REKAP_${kelas}_${namaBulan}.xlsx`, XLSX.write(wb, { bookType: 'xlsx', type: 'array' }));
@@ -1883,12 +2450,12 @@
             a.href = URL.createObjectURL(blob);
             a.download = `REKAP_${namaBulan}.zip`;
             a.click();
-            showToast('Download selesai!', 'success');
-        } catch(e) { showToast('Gagal: ' + e.message, 'error'); }
+            showToast('✅ Download rekap selesai!', 'success');
+        } catch(e) { showToast('Gagal', 'error'); }
         document.getElementById('loadingOverlay').classList.remove('show');
     };
 
-    // ── Import Excel ───────────────────────────────
+    // ── IMPORT EXCEL ───────────────────────────────
     window.importExcel = async function() {
         const file = document.getElementById('fileExcel')?.files[0];
         if (!file) { showToast('Pilih file!', 'error'); return; }
@@ -1973,16 +2540,16 @@
             a.download = `BULK_QR_${new Date().toLocaleDateString('id-ID').replace(/\//g,'-')}.zip`;
             a.click();
             result.style.display = '';
-            result.innerHTML = `<div style="background:rgba(16,185,129,0.1); border:1px solid rgba(16,185,129,0.2); border-radius:10px; padding:12px; font-size:12px; color:#34d399; text-align:center;">✅ ${total} siswa dari ${kelasList.length} kelas</div>`;
+            result.innerHTML = `<div style="background:rgba(0,255,136,0.1); border:1px solid rgba(0,255,136,0.2); border-radius:10px; padding:12px; font-size:12px; color:var(--emerald); text-align:center;">✅ ${total} siswa dari ${kelasList.length} kelas</div>`;
             progress.style.display = 'none';
-            showToast(`${total} QR berhasil!`, 'success');
+            showToast(`✨ ${total} QR berhasil!`, 'success');
             updateDashboard();
             loadManualAbsenOptions();
         } catch(e) { showToast('Gagal: ' + e.message, 'error'); progress.innerText = '❌ ' + e.message; }
         document.getElementById('loadingOverlay').classList.remove('show');
     };
 
-    // ── Naik Kelas ───────────────────────────────
+    // ── NAIK KELAS ───────────────────────────────
     window.startScanNaikKelas = function() {
         document.getElementById('btnStartNaik').style.display = 'none';
         document.getElementById('btnStopNaik').style.display = '';
@@ -2006,7 +2573,7 @@
         try {
             let { nama, kelas: kl, absen: al } = parseQRPresensi(text);
             if (listSiswaScanned.find(s => s.nama.toUpperCase() === nama.toUpperCase())) {
-                showFeedbackNaik('⚠️', nama, 'Sudah discan!', 'background:linear-gradient(135deg,#78350f,#d97706)');
+                showFeedbackNaik('⚠️', nama, 'Sudah discan!', 'background:linear-gradient(135deg,#664400,#ffaa00)');
                 setTimeout(() => scannerNaik?.resume(), 1500);
                 return;
             }
@@ -2016,10 +2583,10 @@
             if (data.nama && normalisasiNamaQR(data.nama) !== normalisasiNamaQR(nama)) throw 'Data tidak cocok';
             listSiswaScanned.push(data);
             renderListNaik();
-            showFeedbackNaik('✅', data.nama || nama, `Ditambahkan (${listSiswaScanned.length})`, 'background:linear-gradient(135deg,#065f46,#059669)');
+            showFeedbackNaik('✅', data.nama || nama, `Ditambahkan (${listSiswaScanned.length})`, 'background:linear-gradient(135deg,#006644,#00ff88)');
             playBeep('success');
         } catch(e) {
-            showFeedbackNaik('❌', 'GAGAL', e.toString(), 'background:linear-gradient(135deg,#991b1b,#dc2626)');
+            showFeedbackNaik('❌', 'GAGAL', e.toString(), 'background:linear-gradient(135deg,#990000,#ff4444)');
             playBeep('error');
         }
         setTimeout(() => { try { scannerNaik?.resume(); } catch(e) {} }, 1800);
@@ -2043,12 +2610,12 @@
             return;
         }
         c.innerHTML = listSiswaScanned.map((s, i) => `
-            <div class="naik-item">
+            <div style="display:flex; justify-content:space-between; align-items:center; padding:10px 14px; background:rgba(20,20,50,0.3); border:1px solid rgba(255,255,255,0.04); border-radius:10px;">
                 <div>
-                    <div style="font-size:12px; font-weight:700; color:#e2e8f0;">${s.nama}</div>
-                    <div style="font-size:10px; color:#64748b;">${s.kelasLama || '?'} → dipindah</div>
+                    <div style="font-size:12px; font-weight:700; color:#eee;">${s.nama}</div>
+                    <div style="font-size:10px; color:#555;">${s.kelasLama || '?'} → dipindah</div>
                 </div>
-                <button onclick="hapusScanNaik(${i})" style="background:rgba(239,68,68,0.1); color:#f87171; border:none; border-radius:6px; padding:4px 8px; cursor:pointer;">✕</button>
+                <button onclick="hapusScanNaik(${i})" style="background:rgba(255,107,107,0.1); color:var(--coral); border:none; border-radius:6px; padding:4px 8px; cursor:pointer;">✕</button>
             </div>
         `).join('');
     }
@@ -2059,7 +2626,7 @@
     window.simpanNaikKelas = async function() {
         if (listSiswaScanned.length === 0) { showToast('Kosong!', 'error'); return; }
         const tujuan = document.getElementById('kelasTujuan')?.value;
-        if (!tujuan) { showToast('Pilih kelas tujuan!', 'error'); return; }
+        if (!tujuan) { showToast('Pilih kelas!', 'error'); return; }
         document.getElementById('loadingOverlay').classList.add('show');
         try {
             const sorted = [...listSiswaScanned].sort((a,b) => a.nama.localeCompare(b.nama));
@@ -2072,15 +2639,15 @@
                     totalHadir: s.totalHadir || 0, terdaftar: s.terdaftar || Date.now()
                 });
             }
-            showToast(`${sorted.length} siswa dipindah ke ${tujuan}!`, 'success');
+            showToast(`✨ ${sorted.length} siswa ke ${tujuan}!`, 'success');
             listSiswaScanned = []; renderListNaik(); updateDashboard(); loadManualAbsenOptions();
-        } catch(e) { showToast('Gagal: ' + e.message, 'error'); }
+        } catch(e) { showToast('Gagal', 'error'); }
         document.getElementById('loadingOverlay').classList.remove('show');
     };
 
-    // ── Reset Total Hadir ───────────────────────────────
+    // ── RESET ───────────────────────────────
     window.resetTotalHadir = async function() {
-        if (!confirm('Reset semua total hadir ke 0? Tidak bisa dibatalkan!')) return;
+        if (!confirm('⚠️ Reset semua total hadir ke 0? Tidak bisa dibatalkan!')) return;
         document.getElementById('loadingOverlay').classList.add('show');
         try {
             const snap = await db.ref('siswa').once('value');
@@ -2088,13 +2655,13 @@
             const updates = {};
             for (let k in data) for (let a in data[k]) updates[`siswa/${k}/${a}/totalHadir`] = 0;
             await db.ref().update(updates);
-            showToast('Berhasil direset!', 'success');
+            showToast('✅ Berhasil direset!', 'success');
             updateDashboard();
-        } catch(e) { showToast('Gagal: ' + e.message, 'error'); }
+        } catch(e) { showToast('Gagal', 'error'); }
         document.getElementById('loadingOverlay').classList.remove('show');
     };
 
-    // ── Service Worker Cleanup ───────────────────────────────
+    // ── SW CLEANUP ───────────────────────────────
     if ('serviceWorker' in navigator) {
         navigator.serviceWorker.getRegistrations().then(r => r.forEach(reg => reg.unregister())).catch(() => {});
     }
