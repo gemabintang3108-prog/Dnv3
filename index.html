@@ -6,8 +6,8 @@
     <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
     <meta http-equiv="Pragma" content="no-cache">
     <meta http-equiv="Expires" content="0">
-    <title>Kerohanian SMAN 12 • Divine Presence</title>
-    <meta name="theme-color" content="#0a0a1a">
+    <title>Kerohanian SMAN 12</title>
+    <meta name="theme-color" content="#0f1923">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="apple-mobile-web-app-title" content="Kerohanian 12">
@@ -19,145 +19,141 @@
     <script src="https://cdn.jsdelivr.net/npm/xlsx-js-style@1.2.0/dist/xlsx.bundle.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Orbitron:wght@400;500;600;700;800;900&family=Space+Grotesk:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
 
     <style>
         :root {
-            --bg-deep: #06060f;
-            --bg-card: rgba(15, 15, 40, 0.6);
-            --glass: rgba(255, 255, 255, 0.03);
-            --glass-border: rgba(255, 255, 255, 0.06);
-            --cyan: #00f0ff;
-            --cyan-glow: rgba(0, 240, 255, 0.4);
-            --magenta: #ff00ff;
-            --magenta-glow: rgba(255, 0, 255, 0.4);
-            --gold: #ffd700;
-            --gold-glow: rgba(255, 215, 0, 0.4);
-            --emerald: #00ff88;
-            --emerald-glow: rgba(0, 255, 136, 0.4);
-            --violet: #7b2fff;
-            --violet-glow: rgba(123, 47, 255, 0.4);
-            --coral: #ff6b6b;
-            --coral-glow: rgba(255, 107, 107, 0.4);
+            --bg-primary: #0f1923;
+            --bg-secondary: #1a2733;
+            --bg-card: #1e2d3a;
+            --border: #2a3a48;
+            --text-primary: #e8edf2;
+            --text-secondary: #8899a6;
+            --text-muted: #5c6e7d;
+            --accent-blue: #3b82f6;
+            --accent-teal: #14b8a6;
+            --accent-green: #10b981;
+            --accent-amber: #f59e0b;
+            --accent-red: #ef4444;
+            --accent-purple: #8b5cf6;
+            --accent-rose: #f43f5e;
             --safe-bottom: env(safe-area-inset-bottom, 16px);
         }
 
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
 
         body {
-            font-family: 'Inter', 'Space Grotesk', sans-serif;
-            background: var(--bg-deep);
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: var(--bg-primary);
+            color: var(--text-primary);
             min-height: 100vh;
             min-height: 100dvh;
-            overscroll-behavior: none;
             -webkit-user-select: none;
             user-select: none;
             -webkit-tap-highlight-color: transparent;
             overflow: hidden;
-            position: relative;
-            cursor: default;
+            -webkit-font-smoothing: antialiased;
         }
 
-        /* ── ANIMATED BACKGROUND ─────────────────────────────── */
-        .bg-universe {
-            position: fixed;
-            inset: 0;
-            z-index: 0;
-            pointer-events: none;
-            overflow: hidden;
-        }
-
-        .bg-universe::before {
-            content: '';
-            position: absolute;
-            inset: 0;
-            background:
-                radial-gradient(ellipse at 20% 20%, rgba(0, 240, 255, 0.08) 0%, transparent 60%),
-                radial-gradient(ellipse at 80% 60%, rgba(255, 0, 255, 0.06) 0%, transparent 60%),
-                radial-gradient(ellipse at 50% 80%, rgba(123, 47, 255, 0.08) 0%, transparent 60%),
-                radial-gradient(ellipse at 10% 90%, rgba(0, 255, 136, 0.05) 0%, transparent 50%),
-                radial-gradient(ellipse at 90% 10%, rgba(255, 215, 0, 0.04) 0%, transparent 50%);
-            animation: bgPulse 8s ease-in-out infinite alternate;
-        }
-
-        @keyframes bgPulse {
-            0% {
-                background:
-                    radial-gradient(ellipse at 20% 20%, rgba(0, 240, 255, 0.08) 0%, transparent 60%),
-                    radial-gradient(ellipse at 80% 60%, rgba(255, 0, 255, 0.06) 0%, transparent 60%),
-                    radial-gradient(ellipse at 50% 80%, rgba(123, 47, 255, 0.08) 0%, transparent 60%);
-            }
-            100% {
-                background:
-                    radial-gradient(ellipse at 30% 30%, rgba(0, 240, 255, 0.12) 0%, transparent 60%),
-                    radial-gradient(ellipse at 70% 50%, rgba(255, 0, 255, 0.1) 0%, transparent 60%),
-                    radial-gradient(ellipse at 40% 70%, rgba(123, 47, 255, 0.12) 0%, transparent 60%);
-            }
-        }
-
-        /* ── FLOATING PARTICLES ─────────────────────────────── */
-        .particles-container {
-            position: fixed;
-            inset: 0;
-            z-index: 1;
-            pointer-events: none;
-        }
-
-        .particle {
-            position: absolute;
-            border-radius: 50%;
-            animation: float linear infinite;
-            opacity: 0;
-        }
-
-        @keyframes float {
-            0% {
-                transform: translateY(100vh) scale(0);
-                opacity: 0;
-            }
-            10% {
-                opacity: 1;
-            }
-            90% {
-                opacity: 1;
-            }
-            100% {
-                transform: translateY(-100vh) scale(1.5);
-                opacity: 0;
-            }
-        }
-
-        /* ── APP CONTAINER ─────────────────────────────── */
-        .app-container {
+        .app-shell {
             width: 100%;
             height: 100vh;
             height: 100dvh;
             display: flex;
             flex-direction: column;
             position: relative;
-            z-index: 10;
             overflow: hidden;
         }
 
-        /* ── SCREEN STACK ─────────────────────────────── */
+        /* ── TOP BAR ─────────────────────────────── */
+        .navbar {
+            height: 56px;
+            background: var(--bg-secondary);
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            align-items: center;
+            padding: 0 16px;
+            gap: 12px;
+            flex-shrink: 0;
+            z-index: 100;
+        }
+
+        .navbar-brand {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            flex-shrink: 0;
+        }
+
+        .navbar-logo {
+            width: 34px;
+            height: 34px;
+            background: var(--accent-blue);
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 16px;
+            color: #fff;
+        }
+
+        .navbar-title {
+            font-size: 16px;
+            font-weight: 700;
+            color: var(--text-primary);
+            letter-spacing: -0.01em;
+        }
+
+        .navbar-subtitle {
+            font-size: 11px;
+            color: var(--text-muted);
+            font-weight: 500;
+        }
+
+        .navbar-actions {
+            margin-left: auto;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .btn-icon {
+            width: 34px;
+            height: 34px;
+            border-radius: 8px;
+            border: 1px solid var(--border);
+            background: transparent;
+            color: var(--text-secondary);
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 14px;
+            transition: all 0.15s;
+        }
+
+        .btn-icon:hover { background: rgba(255,255,255,0.04); color: var(--text-primary); }
+        .btn-icon.danger { color: var(--accent-red); border-color: rgba(239,68,68,0.3); }
+        .btn-icon.danger:hover { background: rgba(239,68,68,0.1); }
+
+        /* ── SCREEN CONTAINER ─────────────────────────────── */
+        .screen-stack {
+            flex: 1;
+            position: relative;
+            overflow: hidden;
+        }
+
         .screen {
             position: absolute;
             inset: 0;
             display: flex;
             flex-direction: column;
-            overflow-y: auto;
-            overflow-x: hidden;
-            -webkit-overflow-scrolling: touch;
-            background: transparent;
-            transform: translateX(120%);
-            transition: transform 0.5s cubic-bezier(0.22, 0.61, 0.36, 1);
+            background: var(--bg-primary);
+            transform: translateX(100%);
+            transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
             z-index: 1;
-            padding-bottom: var(--safe-bottom);
+            overflow: hidden;
         }
 
         .screen.active {
@@ -165,501 +161,239 @@
             z-index: 2;
         }
 
-        .screen.prev {
-            transform: translateX(-40%);
-            z-index: 0;
-            opacity: 0.3;
-            filter: blur(4px);
-        }
-
-        /* ── TOP BAR ─────────────────────────────── */
-        .topbar {
-            height: 60px;
-            background: rgba(15, 15, 40, 0.7);
-            backdrop-filter: blur(20px);
-            -webkit-backdrop-filter: blur(20px);
-            border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+        .screen-header {
+            height: 52px;
+            background: var(--bg-secondary);
+            border-bottom: 1px solid var(--border);
             display: flex;
             align-items: center;
             padding: 0 16px;
             gap: 12px;
             flex-shrink: 0;
-            position: sticky;
-            top: 0;
-            z-index: 50;
         }
 
-        .topbar-back {
-            width: 40px;
-            height: 40px;
-            border-radius: 12px;
-            background: rgba(255, 255, 255, 0.04);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            color: #aaa;
+        .btn-back {
+            width: 34px;
+            height: 34px;
+            border-radius: 8px;
+            border: 1px solid var(--border);
+            background: transparent;
+            color: var(--text-secondary);
+            cursor: pointer;
             display: flex;
             align-items: center;
             justify-content: center;
-            cursor: pointer;
-            font-size: 16px;
-            flex-shrink: 0;
-            transition: all 0.3s;
-        }
-
-        .topbar-back:hover {
-            background: rgba(255, 255, 255, 0.1);
-            color: #fff;
-            border-color: var(--cyan);
-            box-shadow: 0 0 20px var(--cyan-glow);
-        }
-
-        .topbar-back:active {
-            scale: 0.9;
-        }
-
-        .topbar-title {
-            font-family: 'Orbitron', 'Space Grotesk', sans-serif;
             font-size: 14px;
+            transition: all 0.15s;
+            flex-shrink: 0;
+        }
+
+        .btn-back:hover { background: rgba(255,255,255,0.04); }
+
+        .screen-title {
+            font-size: 15px;
             font-weight: 700;
-            background: linear-gradient(135deg, var(--cyan), var(--magenta));
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
-            letter-spacing: 0.06em;
+            color: var(--text-primary);
             flex: 1;
-            text-transform: uppercase;
         }
 
-        .topbar-glow {
-            width: 8px;
-            height: 8px;
-            background: var(--emerald);
-            border-radius: 50%;
-            box-shadow: 0 0 10px var(--emerald-glow), 0 0 20px var(--emerald-glow);
-            animation: glowPulse 2s infinite;
-        }
-
-        @keyframes glowPulse {
-            0%, 100% {
-                box-shadow: 0 0 10px var(--emerald-glow), 0 0 20px var(--emerald-glow);
-            }
-            50% {
-                box-shadow: 0 0 20px var(--emerald-glow), 0 0 40px var(--emerald-glow);
-            }
-        }
-
-        /* ── SCREEN CONTENT ─────────────────────────────── */
-        .screen-content {
+        .screen-body {
             flex: 1;
-            padding: 20px 16px;
-            display: flex;
-            flex-direction: column;
+            overflow-y: auto;
+            -webkit-overflow-scrolling: touch;
+            padding: 16px;
+            padding-bottom: var(--safe-bottom);
         }
 
         /* ── HOME SCREEN ─────────────────────────────── */
-        .home-header {
+        .home-content {
+            padding: 24px 16px;
+        }
+
+        .welcome-section {
             text-align: center;
-            padding: 20px 16px 16px;
-            position: relative;
+            margin-bottom: 28px;
         }
 
-        .home-logo-wrapper {
-            position: relative;
-            display: inline-block;
-            margin-bottom: 12px;
-        }
-
-        .home-logo {
-            width: 80px;
-            height: 80px;
-            background: linear-gradient(135deg, var(--cyan), var(--magenta), var(--violet));
-            border-radius: 22px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 36px;
-            position: relative;
-            z-index: 2;
-            animation: logoFloat 3s ease-in-out infinite;
-            box-shadow: 0 0 30px var(--cyan-glow), 0 0 60px var(--magenta-glow);
-        }
-
-        @keyframes logoFloat {
-            0%, 100% {
-                transform: translateY(0);
-            }
-            50% {
-                transform: translateY(-8px);
-            }
-        }
-
-        .home-logo-ring {
-            position: absolute;
-            inset: -8px;
-            border-radius: 28px;
-            border: 2px solid transparent;
-            background: linear-gradient(135deg, var(--cyan), var(--magenta), var(--violet), var(--cyan)) border-box;
-            -webkit-mask: linear-gradient(#fff 0 0) padding-box, linear-gradient(#fff 0 0);
-            mask: linear-gradient(#fff 0 0) padding-box, linear-gradient(#fff 0 0);
-            -webkit-mask-composite: xor;
-            mask-composite: exclude;
-            animation: ringRotate 3s linear infinite;
-            z-index: 1;
-        }
-
-        @keyframes ringRotate {
-            0% {
-                transform: rotate(0deg);
-            }
-            100% {
-                transform: rotate(360deg);
-            }
-        }
-
-        .home-title {
-            font-family: 'Orbitron', 'Space Grotesk', sans-serif;
-            font-size: 26px;
-            font-weight: 900;
-            background: linear-gradient(135deg, #fff, var(--cyan), var(--magenta));
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
-            letter-spacing: 0.04em;
-            margin-bottom: 4px;
-        }
-
-        .home-subtitle {
-            font-size: 11px;
-            color: #666;
-            font-weight: 500;
-            letter-spacing: 0.08em;
-            text-transform: uppercase;
-        }
-
-        /* ── STAT CARDS ─────────────────────────────── */
-        .home-stats-row {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 10px;
-            margin-bottom: 16px;
-        }
-
-        .home-stat-card {
-            background: rgba(20, 20, 50, 0.5);
-            backdrop-filter: blur(15px);
-            -webkit-backdrop-filter: blur(15px);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            border-radius: 16px;
-            padding: 16px;
-            text-align: center;
-            position: relative;
-            overflow: hidden;
-            transition: all 0.3s;
-        }
-
-        .home-stat-card::before {
-            content: '';
-            position: absolute;
-            top: -50%;
-            left: -50%;
-            width: 200%;
-            height: 200%;
-            background: radial-gradient(circle, rgba(0, 240, 255, 0.1) 0%, transparent 60%);
-            animation: statShine 4s ease-in-out infinite;
-        }
-
-        @keyframes statShine {
-            0%, 100% {
-                transform: translate(0, 0);
-            }
-            50% {
-                transform: translate(10%, -10%);
-            }
-        }
-
-        .home-stat-value {
-            font-family: 'Orbitron', monospace;
-            font-size: 32px;
-            font-weight: 900;
-            position: relative;
-            z-index: 1;
-            line-height: 1;
-        }
-
-        .home-stat-label {
-            font-size: 10px;
-            color: #666;
-            font-weight: 600;
-            text-transform: uppercase;
-            letter-spacing: 0.08em;
-            margin-top: 6px;
-            position: relative;
-            z-index: 1;
-        }
-
-        /* ── MENU GRID ─────────────────────────────── */
-        .home-menu-grid {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 10px;
-        }
-
-        .home-menu-card {
-            background: rgba(20, 20, 50, 0.4);
-            backdrop-filter: blur(15px);
-            -webkit-backdrop-filter: blur(15px);
-            border: 1px solid rgba(255, 255, 255, 0.08);
-            border-radius: 18px;
-            padding: 20px 16px;
-            cursor: pointer;
-            transition: all 0.4s cubic-bezier(0.22, 0.61, 0.36, 1);
-            text-align: center;
-            position: relative;
-            overflow: hidden;
-            transform-style: preserve-3d;
-            perspective: 1000px;
-        }
-
-        .home-menu-card:hover {
-            transform: translateY(-4px) scale(1.02);
-            border-color: rgba(0, 240, 255, 0.4);
-            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.4), 0 0 30px var(--cyan-glow);
-        }
-
-        .home-menu-card:active {
-            scale: 0.95;
-            transition: all 0.1s;
-        }
-
-        .home-menu-card::after {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: -100%;
-            width: 100%;
-            height: 100%;
-            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.05), transparent);
-            transition: left 0.6s;
-        }
-
-        .home-menu-card:hover::after {
-            left: 100%;
-        }
-
-        .menu-icon {
-            width: 50px;
-            height: 50px;
+        .welcome-icon {
+            width: 56px;
+            height: 56px;
+            background: var(--accent-blue);
             border-radius: 14px;
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 22px;
-            margin: 0 auto 10px;
-            position: relative;
-            z-index: 1;
-        }
-
-        .menu-icon.cyan {
-            background: rgba(0, 240, 255, 0.12);
-            color: var(--cyan);
-            box-shadow: 0 0 20px var(--cyan-glow);
-        }
-        .menu-icon.magenta {
-            background: rgba(255, 0, 255, 0.12);
-            color: var(--magenta);
-            box-shadow: 0 0 20px var(--magenta-glow);
-        }
-        .menu-icon.gold {
-            background: rgba(255, 215, 0, 0.12);
-            color: var(--gold);
-            box-shadow: 0 0 20px var(--gold-glow);
-        }
-        .menu-icon.emerald {
-            background: rgba(0, 255, 136, 0.12);
-            color: var(--emerald);
-            box-shadow: 0 0 20px var(--emerald-glow);
-        }
-        .menu-icon.violet {
-            background: rgba(123, 47, 255, 0.12);
-            color: var(--violet);
-            box-shadow: 0 0 20px var(--violet-glow);
-        }
-        .menu-icon.coral {
-            background: rgba(255, 107, 107, 0.12);
-            color: var(--coral);
-            box-shadow: 0 0 20px var(--coral-glow);
-        }
-
-        .menu-title {
-            font-family: 'Orbitron', 'Space Grotesk', sans-serif;
-            font-size: 12px;
-            font-weight: 700;
-            color: #eee;
-            margin-bottom: 4px;
-            letter-spacing: 0.04em;
-            position: relative;
-            z-index: 1;
-        }
-
-        .menu-desc {
-            font-size: 10px;
-            color: #555;
-            font-weight: 500;
-            line-height: 1.4;
-            position: relative;
-            z-index: 1;
-        }
-
-        /* ── MUSIC PLAYER ─────────────────────────────── */
-        .music-player {
-            background: rgba(20, 20, 50, 0.5);
-            backdrop-filter: blur(20px);
-            -webkit-backdrop-filter: blur(20px);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            border-radius: 16px;
-            padding: 12px 16px;
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            margin-top: 16px;
-            transition: all 0.3s;
-        }
-
-        .music-btn {
-            width: 36px;
-            height: 36px;
-            border-radius: 50%;
-            background: linear-gradient(135deg, var(--cyan), var(--violet));
-            border: none;
+            font-size: 24px;
+            margin: 0 auto 14px;
             color: #fff;
-            font-size: 14px;
+        }
+
+        .welcome-title {
+            font-size: 22px;
+            font-weight: 800;
+            color: var(--text-primary);
+            letter-spacing: -0.02em;
+        }
+
+        .welcome-subtitle {
+            font-size: 13px;
+            color: var(--text-muted);
+            margin-top: 4px;
+            font-weight: 500;
+        }
+
+        .stats-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            margin-bottom: 24px;
+        }
+
+        .stat-box {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 16px;
+            text-align: center;
+        }
+
+        .stat-value {
+            font-size: 28px;
+            font-weight: 800;
+            line-height: 1;
+            letter-spacing: -0.02em;
+        }
+
+        .stat-label {
+            font-size: 11px;
+            color: var(--text-muted);
+            font-weight: 600;
+            margin-top: 4px;
+            text-transform: uppercase;
+            letter-spacing: 0.04em;
+        }
+
+        .menu-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+        }
+
+        .menu-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 14px;
+            padding: 18px 14px;
             cursor: pointer;
+            transition: all 0.15s;
+            text-align: center;
+        }
+
+        .menu-card:active {
+            background: var(--bg-secondary);
+            border-color: var(--accent-blue);
+        }
+
+        .menu-card-icon {
+            width: 42px;
+            height: 42px;
+            border-radius: 10px;
             display: flex;
             align-items: center;
             justify-content: center;
-            box-shadow: 0 0 15px var(--cyan-glow);
-            transition: all 0.3s;
-            flex-shrink: 0;
+            font-size: 18px;
+            margin: 0 auto 10px;
         }
 
-        .music-btn:active {
-            scale: 0.9;
-        }
+        .menu-card-icon.blue { background: rgba(59,130,246,0.12); color: var(--accent-blue); }
+        .menu-card-icon.teal { background: rgba(20,184,166,0.12); color: var(--accent-teal); }
+        .menu-card-icon.green { background: rgba(16,185,129,0.12); color: var(--accent-green); }
+        .menu-card-icon.amber { background: rgba(245,158,11,0.12); color: var(--accent-amber); }
+        .menu-card-icon.purple { background: rgba(139,92,246,0.12); color: var(--accent-purple); }
+        .menu-card-icon.rose { background: rgba(244,63,94,0.12); color: var(--accent-rose); }
 
-        .music-btn.playing {
-            animation: musicPulse 1s ease-in-out infinite;
-        }
-
-        @keyframes musicPulse {
-            0%, 100% {
-                box-shadow: 0 0 15px var(--cyan-glow);
-            }
-            50% {
-                box-shadow: 0 0 30px var(--magenta-glow), 0 0 50px var(--cyan-glow);
-            }
-        }
-
-        .music-info {
-            flex: 1;
-            min-width: 0;
-        }
-
-        .music-title {
-            font-family: 'Orbitron', monospace;
-            font-size: 10px;
+        .menu-card-title {
+            font-size: 13px;
             font-weight: 700;
-            color: #aaa;
-            letter-spacing: 0.06em;
+            color: var(--text-primary);
+            margin-bottom: 3px;
         }
 
-        .music-bar {
-            height: 3px;
-            background: rgba(255, 255, 255, 0.1);
-            border-radius: 2px;
-            margin-top: 4px;
-            overflow: hidden;
+        .menu-card-desc {
+            font-size: 11px;
+            color: var(--text-muted);
+            font-weight: 500;
         }
 
-        .music-progress {
-            height: 100%;
-            background: linear-gradient(90deg, var(--cyan), var(--magenta));
-            border-radius: 2px;
-            width: 0%;
-            animation: musicProgress 30s linear infinite;
-            animation-play-state: paused;
+        /* ── USER FOOTER ─────────────────────────────── */
+        .user-footer {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            margin-top: 20px;
+            padding: 10px;
         }
 
-        .music-progress.playing {
-            animation-play-state: running;
-        }
-
-        @keyframes musicProgress {
-            0% {
-                width: 0%;
-            }
-            100% {
-                width: 100%;
-            }
+        .user-avatar-mini {
+            width: 30px;
+            height: 30px;
+            background: var(--accent-blue);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 12px;
+            color: #fff;
         }
 
         /* ── FORM ELEMENTS ─────────────────────────────── */
         .form-group {
-            display: flex;
-            flex-direction: column;
-            gap: 6px;
             margin-bottom: 12px;
         }
 
         .form-label {
-            font-family: 'Orbitron', 'Space Grotesk', sans-serif;
-            font-size: 10px;
+            display: block;
+            font-size: 11px;
             font-weight: 700;
+            color: var(--text-muted);
             text-transform: uppercase;
-            letter-spacing: 0.1em;
-            color: #666;
+            letter-spacing: 0.04em;
+            margin-bottom: 6px;
         }
 
         .form-input {
-            background: rgba(15, 15, 40, 0.6);
-            backdrop-filter: blur(10px);
-            -webkit-backdrop-filter: blur(10px);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            border-radius: 12px;
-            color: #eee;
-            padding: 12px 16px;
+            width: 100%;
+            background: var(--bg-secondary);
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            color: var(--text-primary);
+            padding: 10px 14px;
             font-size: 13px;
             font-family: 'Inter', sans-serif;
-            width: 100%;
-            transition: all 0.3s;
+            transition: border-color 0.15s;
             -webkit-appearance: none;
             appearance: none;
         }
 
         .form-input:focus {
             outline: none;
-            border-color: var(--cyan);
-            box-shadow: 0 0 20px var(--cyan-glow), 0 0 40px rgba(0, 240, 255, 0.1);
+            border-color: var(--accent-blue);
+            box-shadow: 0 0 0 3px rgba(59,130,246,0.1);
         }
 
-        .form-input::placeholder {
-            color: #333;
-        }
-
-        .form-input:read-only {
-            opacity: 0.5;
-        }
+        .form-input::placeholder { color: var(--text-muted); }
+        .form-input:read-only { opacity: 0.6; }
 
         select.form-input {
             cursor: pointer;
-            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%23666' d='M6 8L1 3h10z'/%3E%3C/svg%3E");
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%238899a6' d='M6 8L1 3h10z'/%3E%3C/svg%3E");
             background-repeat: no-repeat;
-            background-position: right 14px center;
-            padding-right: 36px;
+            background-position: right 12px center;
+            padding-right: 34px;
         }
 
-        select.form-input option {
-            background: #111;
-            color: #eee;
-        }
+        select.form-input option { background: var(--bg-secondary); color: var(--text-primary); }
 
         .form-row {
             display: grid;
@@ -669,174 +403,86 @@
 
         /* ── BUTTONS ─────────────────────────────── */
         .btn {
-            display: flex;
+            display: inline-flex;
             align-items: center;
             justify-content: center;
-            gap: 8px;
-            padding: 13px 20px;
-            border-radius: 12px;
-            font-family: 'Orbitron', 'Space Grotesk', sans-serif;
-            font-size: 11px;
+            gap: 6px;
+            padding: 11px 18px;
+            border-radius: 10px;
+            font-size: 12px;
             font-weight: 700;
             cursor: pointer;
             border: none;
-            transition: all 0.3s cubic-bezier(0.22, 0.61, 0.36, 1);
-            letter-spacing: 0.06em;
+            transition: all 0.15s;
+            letter-spacing: 0.02em;
             width: 100%;
-            -webkit-tap-highlight-color: transparent;
-            text-transform: uppercase;
-            position: relative;
-            overflow: hidden;
+            font-family: 'Inter', sans-serif;
         }
 
-        .btn::after {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: -100%;
-            width: 100%;
-            height: 100%;
-            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.1), transparent);
-            transition: left 0.6s;
-        }
+        .btn:active { transform: scale(0.98); }
 
-        .btn:hover::after {
-            left: 100%;
-        }
+        .btn-primary { background: var(--accent-blue); color: #fff; }
+        .btn-primary:hover { background: #2563eb; }
 
-        .btn:active {
-            scale: 0.95;
-        }
+        .btn-success { background: var(--accent-green); color: #fff; }
+        .btn-success:hover { background: #059669; }
 
-        .btn-primary {
-            background: linear-gradient(135deg, #0066cc, var(--cyan));
-            color: #fff;
-            box-shadow: 0 4px 20px var(--cyan-glow);
-        }
+        .btn-danger { background: var(--accent-red); color: #fff; }
+        .btn-danger:hover { background: #dc2626; }
 
-        .btn-primary:hover {
-            box-shadow: 0 8px 30px var(--cyan-glow), 0 0 50px rgba(0, 240, 255, 0.2);
-            transform: translateY(-2px);
-        }
-
-        .btn-success {
-            background: linear-gradient(135deg, #006644, var(--emerald));
-            color: #fff;
-            box-shadow: 0 4px 20px var(--emerald-glow);
-        }
-
-        .btn-success:hover {
-            box-shadow: 0 8px 30px var(--emerald-glow);
-            transform: translateY(-2px);
-        }
-
-        .btn-danger {
-            background: linear-gradient(135deg, #cc0000, var(--coral));
-            color: #fff;
-            box-shadow: 0 4px 20px var(--coral-glow);
-        }
-
-        .btn-danger:hover {
-            box-shadow: 0 8px 30px var(--coral-glow);
-            transform: translateY(-2px);
-        }
-
-        .btn-warning {
-            background: linear-gradient(135deg, #cc8800, var(--gold));
-            color: #000;
-            box-shadow: 0 4px 20px var(--gold-glow);
-        }
-
-        .btn-warning:hover {
-            box-shadow: 0 8px 30px var(--gold-glow);
-            transform: translateY(-2px);
-        }
+        .btn-warning { background: var(--accent-amber); color: #000; }
+        .btn-warning:hover { background: #d97706; }
 
         .btn-secondary {
-            background: rgba(255, 255, 255, 0.04);
-            color: #888;
-            border: 1px solid rgba(255, 255, 255, 0.15);
+            background: transparent;
+            color: var(--text-secondary);
+            border: 1px solid var(--border);
         }
+        .btn-secondary:hover { background: rgba(255,255,255,0.04); }
 
-        .btn-secondary:hover {
-            background: rgba(255, 255, 255, 0.08);
-            color: #fff;
-            border-color: rgba(255, 255, 255, 0.3);
-        }
+        .btn-sm { padding: 8px 12px; font-size: 11px; }
+        .btn-xs { padding: 6px 10px; font-size: 10px; width: auto; }
 
-        .btn-sm {
-            padding: 9px 14px;
-            font-size: 10px;
-        }
+        .btn-row { display: flex; gap: 8px; }
+        .btn-row .btn { flex: 1; }
 
-        .btn-row {
-            display: flex;
-            gap: 8px;
-        }
-
-        .btn-row .btn {
-            flex: 1;
-        }
-
-        /* ── MODE SWITCHER ─────────────────────────────── */
+        /* ── MODE BAR ─────────────────────────────── */
         .mode-bar {
             display: flex;
-            background: rgba(20, 20, 50, 0.5);
-            backdrop-filter: blur(15px);
-            -webkit-backdrop-filter: blur(15px);
-            border: 1px solid rgba(255, 255, 255, 0.08);
-            border-radius: 14px;
-            padding: 4px;
+            background: var(--bg-secondary);
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            padding: 3px;
             gap: 3px;
-            margin-bottom: 14px;
+            margin-bottom: 12px;
         }
 
         .mode-btn {
             flex: 1;
-            padding: 10px 4px;
-            border-radius: 10px;
-            font-family: 'Orbitron', monospace;
-            font-size: 9px;
+            padding: 8px 4px;
+            border-radius: 8px;
+            font-size: 10px;
             font-weight: 700;
-            text-transform: uppercase;
-            letter-spacing: 0.06em;
             cursor: pointer;
             border: none;
             background: transparent;
-            color: #555;
-            transition: all 0.3s;
+            color: var(--text-muted);
+            transition: all 0.15s;
             text-align: center;
+            font-family: 'Inter', sans-serif;
         }
 
-        .mode-btn.active-islam {
-            background: linear-gradient(135deg, #006644, var(--emerald));
-            color: #fff;
-            box-shadow: 0 0 20px var(--emerald-glow);
-        }
-
-        .mode-btn.active-nonislam {
-            background: linear-gradient(135deg, #0033cc, #0066ff);
-            color: #fff;
-            box-shadow: 0 0 20px rgba(0, 102, 255, 0.4);
-        }
-
-        .mode-btn.active-haid {
-            background: linear-gradient(135deg, #cc0044, var(--coral));
-            color: #fff;
-            box-shadow: 0 0 20px var(--coral-glow);
-        }
-
-        .mode-btn.active-keputrian {
-            background: linear-gradient(135deg, #4400cc, var(--violet));
-            color: #fff;
-            box-shadow: 0 0 20px var(--violet-glow);
-        }
+        .mode-btn.active { color: #fff; }
+        .mode-btn.active.islam { background: var(--accent-green); }
+        .mode-btn.active.nonislam { background: var(--accent-blue); }
+        .mode-btn.active.haid { background: var(--accent-rose); }
+        .mode-btn.active.keputrian { background: var(--accent-purple); }
 
         /* ── CAMERA ─────────────────────────────── */
-        .camera-box {
-            background: rgba(10, 10, 25, 0.8);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            border-radius: 18px;
+        .camera-container {
+            background: #000;
+            border: 1px solid var(--border);
+            border-radius: 12px;
             overflow: hidden;
             position: relative;
             min-height: 260px;
@@ -850,499 +496,203 @@
             flex-direction: column;
             align-items: center;
             justify-content: center;
-            background: rgba(10, 10, 25, 0.95);
+            background: var(--bg-primary);
             z-index: 10;
-            gap: 10px;
+            gap: 8px;
         }
 
-        .camera-placeholder i {
-            font-size: 44px;
-            color: #333;
-            animation: iconPulse 2s ease-in-out infinite;
-        }
+        .camera-placeholder i { font-size: 36px; color: var(--text-muted); opacity: 0.4; }
+        .camera-placeholder p { font-size: 11px; color: var(--text-muted); font-weight: 600; }
 
-        @keyframes iconPulse {
-            0%, 100% {
-                opacity: 0.3;
-            }
-            50% {
-                opacity: 0.6;
-            }
-        }
-
-        .camera-placeholder p {
-            font-family: 'Orbitron', monospace;
-            font-size: 10px;
-            color: #444;
-            font-weight: 600;
-            letter-spacing: 0.1em;
-        }
-
-        .scan-feedback {
+        .scan-overlay {
             position: absolute;
             inset: 0;
             display: none;
             align-items: center;
             justify-content: center;
-            background: rgba(10, 10, 25, 0.98);
-            backdrop-filter: blur(20px);
-            -webkit-backdrop-filter: blur(20px);
+            background: rgba(15,25,35,0.97);
             z-index: 20;
-            border-radius: 18px;
         }
 
-        .scan-feedback.show {
-            display: flex;
-        }
+        .scan-overlay.show { display: flex; }
 
-        .feedback-card {
+        .scan-result {
             text-align: center;
-            padding: 32px 40px;
-            border-radius: 20px;
-            min-width: 220px;
-            animation: feedbackPop 0.5s cubic-bezier(0.22, 0.61, 0.36, 1);
+            padding: 28px 36px;
+            border-radius: 14px;
         }
 
-        @keyframes feedbackPop {
-            0% {
-                transform: scale(0.5);
-                opacity: 0;
-            }
-            100% {
-                transform: scale(1);
-                opacity: 1;
-            }
-        }
-
-        .feedback-card .fb-icon {
-            font-size: 52px;
-            margin-bottom: 12px;
-        }
-        .feedback-card .fb-name {
-            font-family: 'Orbitron', sans-serif;
-            font-size: 18px;
-            font-weight: 800;
-            color: #fff;
-        }
-        .feedback-card .fb-msg {
-            font-size: 11px;
-            color: rgba(255, 255, 255, 0.7);
-            font-weight: 600;
-            text-transform: uppercase;
-            margin-top: 6px;
-            letter-spacing: 0.06em;
-        }
+        .scan-result-icon { font-size: 44px; margin-bottom: 8px; }
+        .scan-result-name { font-size: 16px; font-weight: 800; color: #fff; }
+        .scan-result-msg { font-size: 11px; color: rgba(255,255,255,0.7); font-weight: 600; margin-top: 4px; }
 
         /* ── LOG LIST ─────────────────────────────── */
-        .log-list {
-            display: flex;
-            flex-direction: column;
-            gap: 6px;
-        }
+        .log-list { display: flex; flex-direction: column; gap: 6px; }
 
         .log-item {
-            background: rgba(20, 20, 50, 0.4);
-            backdrop-filter: blur(10px);
-            -webkit-backdrop-filter: blur(10px);
-            border: 1px solid rgba(255, 255, 255, 0.06);
-            border-left: 3px solid var(--cyan);
-            border-radius: 10px;
-            padding: 12px 14px;
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-left: 3px solid var(--accent-teal);
+            border-radius: 8px;
+            padding: 10px 14px;
             display: flex;
             justify-content: space-between;
             align-items: center;
-            animation: logSlideIn 0.3s ease;
         }
 
-        @keyframes logSlideIn {
-            from {
-                transform: translateX(-20px);
-                opacity: 0;
-            }
-            to {
-                transform: translateX(0);
-                opacity: 1;
-            }
-        }
+        .log-item.alpa { border-left-color: var(--accent-red); }
+        .log-item.haid { border-left-color: var(--accent-rose); }
+        .log-item.keputrian { border-left-color: var(--accent-purple); }
+        .log-item.nonislam { border-left-color: var(--accent-blue); }
 
-        .log-item.alpa {
-            border-left-color: var(--coral);
-        }
-        .log-item.haid {
-            border-left-color: #ff6b9d;
-        }
-        .log-item.keputrian {
-            border-left-color: var(--violet);
-        }
-        .log-item.nonislam {
-            border-left-color: #4488ff;
-        }
-
-        .log-nama {
-            font-weight: 700;
-            color: #eee;
-            font-size: 13px;
-        }
-        .log-meta {
-            font-size: 10px;
-            color: #555;
-            margin-top: 2px;
-        }
+        .log-name { font-size: 13px; font-weight: 700; color: var(--text-primary); }
+        .log-meta { font-size: 10px; color: var(--text-muted); margin-top: 1px; }
 
         .badge {
-            font-family: 'Orbitron', monospace;
-            font-size: 9px;
-            font-weight: 700;
-            padding: 4px 10px;
-            border-radius: 8px;
-            letter-spacing: 0.06em;
+            font-size: 10px; font-weight: 700; padding: 3px 8px; border-radius: 6px;
+            letter-spacing: 0.03em;
         }
 
-        .badge-hadir {
-            background: rgba(0, 240, 255, 0.12);
-            color: var(--cyan);
-            border: 1px solid rgba(0, 240, 255, 0.2);
-        }
-        .badge-alpa {
-            background: rgba(255, 107, 107, 0.12);
-            color: var(--coral);
-            border: 1px solid rgba(255, 107, 107, 0.2);
-        }
-        .badge-haid {
-            background: rgba(255, 107, 157, 0.12);
-            color: #ff6b9d;
-            border: 1px solid rgba(255, 107, 157, 0.2);
-        }
+        .badge-hadir { background: rgba(20,184,166,0.12); color: var(--accent-teal); }
+        .badge-alpa { background: rgba(239,68,68,0.12); color: var(--accent-red); }
+        .badge-haid { background: rgba(244,63,94,0.12); color: var(--accent-rose); }
 
         /* ── EMPTY STATE ─────────────────────────────── */
         .empty-state {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            padding: 30px 20px;
-            text-align: center;
+            display: flex; flex-direction: column; align-items: center;
+            justify-content: center; padding: 30px 20px; text-align: center;
         }
-
-        .empty-state i {
-            font-size: 44px;
-            color: #222;
-            margin-bottom: 10px;
-        }
-        .empty-state p {
-            font-size: 11px;
-            color: #444;
-            font-weight: 500;
-        }
+        .empty-state i { font-size: 36px; color: var(--text-muted); opacity: 0.3; margin-bottom: 8px; }
+        .empty-state p { font-size: 12px; color: var(--text-muted); font-weight: 500; }
 
         /* ── TOAST ─────────────────────────────── */
         .toast-container {
-            position: fixed;
-            bottom: 20px;
-            left: 50%;
-            transform: translateX(-50%);
-            z-index: 9999;
-            display: flex;
-            flex-direction: column;
-            gap: 8px;
-            width: calc(100% - 32px);
-            max-width: 400px;
-            pointer-events: none;
+            position: fixed; bottom: 16px; left: 50%; transform: translateX(-50%);
+            z-index: 9999; display: flex; flex-direction: column; gap: 6px;
+            width: calc(100% - 32px); max-width: 400px; pointer-events: none;
         }
 
         .toast {
-            background: rgba(20, 20, 50, 0.9);
-            backdrop-filter: blur(30px);
-            -webkit-backdrop-filter: blur(30px);
-            border: 1px solid rgba(0, 240, 255, 0.3);
-            border-radius: 14px;
-            padding: 12px 16px;
-            font-size: 12px;
-            font-weight: 600;
-            color: #eee;
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            animation: toastSlide 0.4s cubic-bezier(0.22, 0.61, 0.36, 1);
-            pointer-events: auto;
-            box-shadow: 0 8px 30px rgba(0, 0, 0, 0.5);
+            background: var(--bg-card); border: 1px solid var(--border);
+            border-radius: 10px; padding: 10px 14px; font-size: 12px; font-weight: 600;
+            color: var(--text-primary); display: flex; align-items: center; gap: 8px;
+            animation: toastIn 0.3s ease; pointer-events: auto;
+            box-shadow: 0 4px 16px rgba(0,0,0,0.4);
         }
 
-        .toast.error {
-            border-color: rgba(255, 107, 107, 0.4);
-        }
+        .toast.error { border-color: rgba(239,68,68,0.4); }
 
-        @keyframes toastSlide {
-            from {
-                transform: translateY(20px);
-                opacity: 0;
-            }
-            to {
-                transform: translateY(0);
-                opacity: 1;
-            }
-        }
+        @keyframes toastIn { from { transform: translateY(10px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
 
         /* ── LOADING ─────────────────────────────── */
-        .loading-overlay {
-            position: fixed;
-            inset: 0;
-            background: rgba(6, 6, 15, 0.95);
-            z-index: 9998;
-            display: none;
-            align-items: center;
-            justify-content: center;
-            flex-direction: column;
-            gap: 16px;
-            backdrop-filter: blur(10px);
-            -webkit-backdrop-filter: blur(10px);
+        .loading-screen {
+            position: fixed; inset: 0; background: rgba(15,25,35,0.9);
+            z-index: 9998; display: none; align-items: center; justify-content: center;
+            flex-direction: column; gap: 12px;
+        }
+        .loading-screen.show { display: flex; }
+
+        .spinner {
+            width: 36px; height: 36px;
+            border: 3px solid var(--border);
+            border-top-color: var(--accent-blue); border-radius: 50%;
+            animation: spin 0.7s linear infinite;
         }
 
-        .loading-overlay.show {
-            display: flex;
+        @keyframes spin { to { transform: rotate(360deg); } }
+
+        .loading-label {
+            font-size: 11px; font-weight: 700; color: var(--text-secondary);
+            letter-spacing: 0.06em;
         }
 
-        .spinner-ring {
-            width: 50px;
-            height: 50px;
-            border: 3px solid transparent;
-            border-top-color: var(--cyan);
-            border-right-color: var(--magenta);
-            border-radius: 50%;
-            animation: spinRing 1s linear infinite;
-        }
-
-        @keyframes spinRing {
-            to {
-                transform: rotate(360deg);
-            }
-        }
-
-        .loading-text {
-            font-family: 'Orbitron', monospace;
-            font-size: 10px;
-            font-weight: 700;
-            color: var(--cyan);
-            letter-spacing: 0.2em;
-            animation: loadingPulse 1.5s ease-in-out infinite;
-        }
-
-        @keyframes loadingPulse {
-            0%, 100% {
-                opacity: 0.5;
-            }
-            50% {
-                opacity: 1;
-            }
-        }
-
-        /* ── LOGIN OVERLAY ─────────────────────────────── */
+        /* ── LOGIN ─────────────────────────────── */
         .login-overlay {
-            position: fixed;
-            inset: 0;
-            background: rgba(6, 6, 15, 0.98);
-            z-index: 9999;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            padding: 20px;
-            backdrop-filter: blur(30px);
-            -webkit-backdrop-filter: blur(30px);
+            position: fixed; inset: 0; background: var(--bg-primary);
+            z-index: 9999; display: flex; align-items: center; justify-content: center; padding: 20px;
         }
 
         .login-card {
-            background: rgba(20, 20, 50, 0.6);
-            backdrop-filter: blur(30px);
-            -webkit-backdrop-filter: blur(30px);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            border-radius: 24px;
-            width: 100%;
-            max-width: 380px;
-            overflow: hidden;
-            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.6), 0 0 80px rgba(0, 240, 255, 0.05);
-            animation: loginAppear 0.6s cubic-bezier(0.22, 0.61, 0.36, 1);
+            background: var(--bg-card); border: 1px solid var(--border);
+            border-radius: 16px; width: 100%; max-width: 360px; overflow: hidden;
         }
 
-        @keyframes loginAppear {
-            from {
-                transform: translateY(30px) scale(0.9);
-                opacity: 0;
-            }
-            to {
-                transform: translateY(0) scale(1);
-                opacity: 1;
-            }
+        .login-header {
+            padding: 24px 20px 16px; text-align: center;
+            border-bottom: 1px solid var(--border);
         }
 
-        .login-card-header {
-            padding: 28px 24px 20px;
-            text-align: center;
-            border-bottom: 1px solid rgba(255, 255, 255, 0.06);
-            position: relative;
+        .login-icon {
+            width: 52px; height: 52px; background: var(--accent-blue);
+            border-radius: 12px; display: flex; align-items: center; justify-content: center;
+            font-size: 24px; color: #fff; margin: 0 auto 12px;
         }
 
-        .login-logo {
-            width: 64px;
-            height: 64px;
-            background: linear-gradient(135deg, var(--cyan), var(--magenta), var(--violet));
-            border-radius: 18px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 28px;
-            margin: 0 auto 12px;
-            box-shadow: 0 0 40px var(--cyan-glow), 0 0 80px var(--magenta-glow);
-            animation: logoFloat 3s ease-in-out infinite;
-        }
+        .login-title { font-size: 20px; font-weight: 800; color: var(--text-primary); }
+        .login-sub { font-size: 11px; color: var(--text-muted); margin-top: 4px; }
 
-        .login-title {
-            font-family: 'Orbitron', 'Space Grotesk', sans-serif;
-            font-size: 22px;
-            font-weight: 900;
-            background: linear-gradient(135deg, #fff, var(--cyan));
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
-        }
-
-        .login-sub {
-            font-size: 10px;
-            color: #555;
-            margin-top: 4px;
-            letter-spacing: 0.06em;
-        }
-
-        .login-card-body {
-            padding: 20px 24px 24px;
-        }
+        .login-body { padding: 16px 20px 20px; }
 
         .login-scan-box {
-            background: rgba(10, 10, 25, 0.6);
-            border: 1px solid rgba(255, 255, 255, 0.08);
-            border-radius: 16px;
-            overflow: hidden;
-            position: relative;
-            min-height: 200px;
-            margin-bottom: 14px;
+            background: #000; border: 1px solid var(--border);
+            border-radius: 10px; overflow: hidden; position: relative;
+            min-height: 190px; margin-bottom: 12px;
         }
 
-        .login-scan-placeholder {
-            position: absolute;
-            inset: 0;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            gap: 8px;
+        .login-placeholder {
+            position: absolute; inset: 0; display: flex; flex-direction: column;
+            align-items: center; justify-content: center; gap: 8px;
         }
-
-        .login-scan-placeholder i {
-            font-size: 36px;
-            color: #333;
-        }
-        .login-scan-placeholder p {
-            font-family: 'Orbitron', monospace;
-            font-size: 10px;
-            color: #444;
-            letter-spacing: 0.1em;
-        }
+        .login-placeholder i { font-size: 32px; color: var(--text-muted); opacity: 0.3; }
+        .login-placeholder p { font-size: 10px; color: var(--text-muted); font-weight: 600; }
 
         .login-error {
-            display: none;
-            font-size: 11px;
-            color: var(--coral);
-            font-weight: 700;
-            text-align: center;
-            margin-top: 10px;
-            padding: 10px;
-            background: rgba(255, 107, 107, 0.08);
-            border: 1px solid rgba(255, 107, 107, 0.2);
-            border-radius: 10px;
+            display: none; font-size: 11px; color: var(--accent-red); font-weight: 700;
+            text-align: center; margin-top: 8px; padding: 8px;
+            background: rgba(239,68,68,0.06); border: 1px solid rgba(239,68,68,0.2);
+            border-radius: 8px;
         }
 
         .login-footer {
-            text-align: center;
-            padding: 16px;
-            border-top: 1px solid rgba(255, 255, 255, 0.04);
+            padding: 12px; border-top: 1px solid var(--border); text-align: center;
         }
-
-        .login-footer p {
-            font-size: 9px;
-            color: #333;
-            letter-spacing: 0.06em;
-        }
+        .login-footer p { font-size: 10px; color: var(--text-muted); }
 
         /* ── SCROLLBAR ─────────────────────────────── */
-        ::-webkit-scrollbar {
-            width: 3px;
-        }
-        ::-webkit-scrollbar-track {
-            background: transparent;
-        }
-        ::-webkit-scrollbar-thumb {
-            background: rgba(0, 240, 255, 0.2);
-            border-radius: 10px;
-        }
-        ::-webkit-scrollbar-thumb:hover {
-            background: rgba(0, 240, 255, 0.4);
-        }
+        ::-webkit-scrollbar { width: 4px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 4px; }
 
         /* ── READER RESET ─────────────────────────────── */
-        #reader, #readerLogin, #readerNaik {
-            border: none !important;
-        }
-        #reader video, #readerLogin video, #readerNaik video {
-            border-radius: 16px;
-        }
-
-        /* ── RESPONSIVE ─────────────────────────────── */
-        @media (min-width: 768px) {
-            .home-menu-grid {
-                grid-template-columns: 1fr 1fr 1fr;
-            }
-            .screen-content {
-                max-width: 600px;
-                margin: 0 auto;
-            }
-        }
+        #reader, #readerLogin, #readerNaik { border: none !important; }
+        #reader video, #readerLogin video, #readerNaik video { border-radius: 10px; }
     </style>
 </head>
 <body>
 
-<!-- BACKGROUND UNIVERSE -->
-<div class="bg-universe"></div>
-
-<!-- FLOATING PARTICLES -->
-<div class="particles-container" id="particlesContainer"></div>
-
 <!-- LOADING -->
-<div id="loadingOverlay" class="loading-overlay">
-    <div class="spinner-ring"></div>
-    <div class="loading-text">Processing...</div>
+<div id="loadingScreen" class="loading-screen">
+    <div class="spinner"></div>
+    <div class="loading-label">Memproses...</div>
 </div>
 
 <!-- TOAST -->
 <div class="toast-container" id="toastContainer"></div>
 
-<!-- BACKGROUND MUSIC (AUDIO ELEMENT) -->
-<audio id="bgMusic" loop preload="auto" style="display:none;">
-    <source src="data:audio/wav;base64,UklGRiQAAABXQVZFZm10IBAAAAABAAEARKwAAIhYAQACABAAZGF0YQAAAAA=" type="audio/wav">
-</audio>
-
-<!-- LOGIN OVERLAY -->
+<!-- LOGIN -->
 <div id="loginOverlay" class="login-overlay">
     <div class="login-card">
-        <div class="login-card-header">
-            <div class="login-logo">🕌</div>
+        <div class="login-header">
+            <div class="login-icon">🕌</div>
             <div class="login-title">DZUHUR 12</div>
-            <div class="login-sub">DIVINE PRESENCE SYSTEM</div>
+            <div class="login-sub">Sistem Presensi Kerohanian • SMAN 12</div>
         </div>
-        <div class="login-card-body">
+        <div class="login-body">
             <div class="login-scan-box">
                 <div id="readerLogin"></div>
-                <div id="loginScanPlaceholder" class="login-scan-placeholder">
+                <div id="loginPlaceholder" class="login-placeholder">
                     <i class="fas fa-qrcode"></i>
-                    <p>SCAN TO ENTER</p>
+                    <p>SCAN QR UNTUK MASUK</p>
                 </div>
             </div>
             <button onclick="startLoginScan()" id="btnLoginStart" class="btn btn-primary">
@@ -1352,336 +702,327 @@
                 <i class="fas fa-stop"></i> STOP
             </button>
             <div id="loginError" class="login-error">
-                <i class="fas fa-exclamation-triangle"></i> Invalid QR Code!
+                <i class="fas fa-exclamation-triangle"></i> QR tidak valid!
             </div>
         </div>
         <div class="login-footer">
-            <p>© GEMA BINTANG • KEROHANIAN SMAN 12 • v3.0</p>
+            <p>© Gema Bintang • Kerohanian SMAN 12</p>
         </div>
     </div>
 </div>
 
-<!-- APP CONTAINER -->
-<div class="app-container" id="appContainer">
+<!-- APP SHELL -->
+<div class="app-shell">
 
-    <!-- ═══════════════ HOME SCREEN ═══════════════ -->
-    <div class="screen active" id="screenHome">
-        <div class="screen-content">
-            <div class="home-header">
-                <div class="home-logo-wrapper">
-                    <div class="home-logo-ring"></div>
-                    <div class="home-logo">🕌</div>
-                </div>
-                <div class="home-title">Kerohanian 12</div>
-                <div class="home-subtitle">Divine Presence • Enterprise System</div>
+    <!-- NAVBAR -->
+    <header class="navbar">
+        <div class="navbar-brand">
+            <div class="navbar-logo">🕌</div>
+            <div>
+                <div class="navbar-title">Kerohanian 12</div>
+                <div class="navbar-subtitle">Presensi System</div>
             </div>
+        </div>
+        <div class="navbar-actions">
+            <button onclick="logout()" class="btn-icon danger" id="btnLogoutNav" style="display:none;" title="Keluar">
+                <i class="fas fa-sign-out-alt"></i>
+            </button>
+        </div>
+    </header>
 
-            <div class="home-stats-row">
-                <div class="home-stat-card">
-                    <div class="home-stat-value" style="color:var(--cyan);" id="homeHadir">0</div>
-                    <div class="home-stat-label">Hadir Hari Ini</div>
-                </div>
-                <div class="home-stat-card">
-                    <div class="home-stat-value" style="color:var(--gold);" id="homeTotal">0</div>
-                    <div class="home-stat-label">Total Siswa</div>
-                </div>
-            </div>
+    <!-- SCREEN STACK -->
+    <div class="screen-stack">
 
-            <div class="home-menu-grid">
-                <div class="home-menu-card" onclick="navigateTo('scan')">
-                    <div class="menu-icon cyan"><i class="fas fa-camera"></i></div>
-                    <div class="menu-title">Scan Presensi</div>
-                    <div class="menu-desc">QR Code Scanner</div>
-                </div>
-                <div class="home-menu-card" onclick="navigateTo('admin')">
-                    <div class="menu-icon gold"><i class="fas fa-crown"></i></div>
-                    <div class="menu-title">Admin Panel</div>
-                    <div class="menu-desc">Kelola Data Siswa</div>
-                </div>
-                <div class="home-menu-card" onclick="navigateTo('naikkelas')">
-                    <div class="menu-icon violet"><i class="fas fa-graduation-cap"></i></div>
-                    <div class="menu-title">Naik Kelas</div>
-                    <div class="menu-desc">Migrasi Siswa</div>
-                </div>
-                <div class="home-menu-card" onclick="navigateTo('laporan')">
-                    <div class="menu-icon emerald"><i class="fas fa-chart-bar"></i></div>
-                    <div class="menu-title">Data & Laporan</div>
-                    <div class="menu-desc">Database Siswa</div>
-                </div>
-                <div class="home-menu-card" onclick="navigateTo('import')">
-                    <div class="menu-icon magenta"><i class="fas fa-file-excel"></i></div>
-                    <div class="menu-title">Import Excel</div>
-                    <div class="menu-desc">Bulk QR Generator</div>
-                </div>
-                <div class="home-menu-card" onclick="navigateTo('reset')">
-                    <div class="menu-icon coral"><i class="fas fa-rotate-left"></i></div>
-                    <div class="menu-title">Reset Data</div>
-                    <div class="menu-desc">Reset Kehadiran</div>
-                </div>
-            </div>
-
-            <!-- MUSIC PLAYER -->
-            <div class="music-player">
-                <button class="music-btn" id="musicBtn" onclick="toggleMusic()">
-                    <i class="fas fa-play"></i>
-                </button>
-                <div class="music-info">
-                    <div class="music-title">🎵 Divine Ambience • Background Music</div>
-                    <div class="music-bar">
-                        <div class="music-progress" id="musicProgress"></div>
+        <!-- HOME -->
+        <div class="screen active" id="screenHome">
+            <div class="screen-body">
+                <div class="home-content">
+                    <div class="welcome-section">
+                        <div class="welcome-icon">🕌</div>
+                        <div class="welcome-title">Kerohanian SMAN 12</div>
+                        <div class="welcome-subtitle">Sistem Presensi Dzuhur Terintegrasi</div>
                     </div>
-                </div>
-                <span style="font-size:10px; color:#555; font-family:'Orbitron',monospace;" id="musicVol">50%</span>
-            </div>
 
-            <!-- USER INFO -->
-            <div style="display:flex; align-items:center; justify-content:center; gap:8px; margin-top:12px; padding:10px;">
-                <div style="width:32px; height:32px; background:linear-gradient(135deg, var(--cyan), var(--violet)); border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:12px; color:#fff;">
-                    <i class="fas fa-user"></i>
-                </div>
-                <span style="font-size:11px; color:#555; font-weight:600;">ADMINISTRATOR</span>
-                <button onclick="logout()" style="margin-left:8px; background:rgba(255,107,107,0.1); color:var(--coral); border:1px solid rgba(255,107,107,0.2); border-radius:8px; padding:5px 10px; font-size:10px; font-weight:700; cursor:pointer; font-family:'Orbitron',monospace;">
-                    EXIT
-                </button>
-            </div>
-        </div>
-    </div>
+                    <div class="stats-row">
+                        <div class="stat-box">
+                            <div class="stat-value" style="color:var(--accent-teal);" id="homeHadir">0</div>
+                            <div class="stat-label">Hadir Hari Ini</div>
+                        </div>
+                        <div class="stat-box">
+                            <div class="stat-value" style="color:var(--accent-amber);" id="homeTotal">0</div>
+                            <div class="stat-label">Total Siswa</div>
+                        </div>
+                    </div>
 
-    <!-- ═══════════════ SCAN SCREEN ═══════════════ -->
-    <div class="screen" id="screenScan">
-        <div class="topbar">
-            <div class="topbar-back" onclick="navigateTo('home')"><i class="fas fa-arrow-left"></i></div>
-            <div class="topbar-title">Scan Presensi</div>
-            <div class="topbar-glow"></div>
-        </div>
-        <div class="screen-content">
-            <div class="mode-bar">
-                <button onclick="setMode('Islam')" id="modeIslam" class="mode-btn active-islam">☪️ Islam</button>
-                <button onclick="setMode('NonIslam')" id="modeKristen" class="mode-btn">✝️ Non Islam</button>
-                <button onclick="setMode('Haid')" id="modeHaid" class="mode-btn">🩸 Haid</button>
-                <button onclick="setMode('Keputrian')" id="modeKeputrian" class="mode-btn">🌸 Putri</button>
-            </div>
+                    <div class="menu-grid">
+                        <div class="menu-card" onclick="navigateTo('scan')">
+                            <div class="menu-card-icon teal"><i class="fas fa-camera"></i></div>
+                            <div class="menu-card-title">Scan Presensi</div>
+                            <div class="menu-card-desc">Scan QR Code siswa</div>
+                        </div>
+                        <div class="menu-card" onclick="navigateTo('admin')">
+                            <div class="menu-card-icon amber"><i class="fas fa-user-plus"></i></div>
+                            <div class="menu-card-title">Tambah Siswa</div>
+                            <div class="menu-card-desc">Registrasi & QR Code</div>
+                        </div>
+                        <div class="menu-card" onclick="navigateTo('naikkelas')">
+                            <div class="menu-card-icon purple"><i class="fas fa-graduation-cap"></i></div>
+                            <div class="menu-card-title">Naik Kelas</div>
+                            <div class="menu-card-desc">Migrasi ke kelas baru</div>
+                        </div>
+                        <div class="menu-card" onclick="navigateTo('laporan')">
+                            <div class="menu-card-icon blue"><i class="fas fa-chart-bar"></i></div>
+                            <div class="menu-card-title">Data & Laporan</div>
+                            <div class="menu-card-desc">Database siswa</div>
+                        </div>
+                        <div class="menu-card" onclick="navigateTo('import')">
+                            <div class="menu-card-icon green"><i class="fas fa-file-excel"></i></div>
+                            <div class="menu-card-title">Import Excel</div>
+                            <div class="menu-card-desc">Bulk QR Generator</div>
+                        </div>
+                        <div class="menu-card" onclick="navigateTo('reset')">
+                            <div class="menu-card-icon rose"><i class="fas fa-rotate-left"></i></div>
+                            <div class="menu-card-title">Reset Data</div>
+                            <div class="menu-card-desc">Reset kehadiran</div>
+                        </div>
+                    </div>
 
-            <div class="camera-box" style="margin-bottom:12px;">
-                <div id="reader"></div>
-                <div id="cameraPlaceholder" class="camera-placeholder">
-                    <i class="fas fa-camera"></i>
-                    <p>Camera Offline</p>
-                </div>
-                <div class="scan-feedback" id="feedback">
-                    <div class="feedback-card" id="fbBox">
-                        <div class="fb-icon" id="fbIcon"></div>
-                        <div class="fb-name" id="fbNama"></div>
-                        <div class="fb-msg" id="fbMsg"></div>
+                    <div class="user-footer">
+                        <div class="user-avatar-mini"><i class="fas fa-user"></i></div>
+                        <span style="font-size:12px; color:var(--text-muted); font-weight:600;">Administrator</span>
                     </div>
                 </div>
             </div>
+        </div>
 
-            <div class="btn-row" style="margin-bottom:12px;">
-                <button onclick="startCam()" id="btnStart" class="btn btn-primary btn-sm"><i class="fas fa-play"></i> Start</button>
-                <button onclick="flipCam()" id="btnFlip" class="btn btn-secondary btn-sm" style="display:none;"><i class="fas fa-sync"></i></button>
-                <button onclick="stopCam()" id="btnStop" class="btn btn-danger btn-sm" style="display:none;"><i class="fas fa-stop"></i></button>
+        <!-- SCAN -->
+        <div class="screen" id="screenScan">
+            <div class="screen-header">
+                <button class="btn-back" onclick="navigateTo('home')"><i class="fas fa-arrow-left"></i></button>
+                <div class="screen-title">Scan Presensi</div>
             </div>
+            <div class="screen-body">
+                <div class="mode-bar">
+                    <button onclick="setMode('Islam')" id="modeIslam" class="mode-btn active islam">Islam</button>
+                    <button onclick="setMode('NonIslam')" id="modeKristen" class="mode-btn">Non Islam</button>
+                    <button onclick="setMode('Haid')" id="modeHaid" class="mode-btn">Haid</button>
+                    <button onclick="setMode('Keputrian')" id="modeKeputrian" class="mode-btn">Keputrian</button>
+                </div>
 
-            <!-- Manual Absen -->
-            <div style="background:rgba(20,20,50,0.3); backdrop-filter:blur(15px); -webkit-backdrop-filter:blur(15px); border:1px solid rgba(255,255,255,0.06); border-radius:14px; padding:14px; margin-bottom:12px;">
-                <div style="font-family:'Orbitron',monospace; font-size:10px; font-weight:700; color:var(--gold); margin-bottom:8px;">
-                    <i class="fas fa-pen-to-square"></i> MANUAL ABSEN
+                <div class="camera-container" style="margin-bottom:10px;">
+                    <div id="reader"></div>
+                    <div id="cameraPlaceholder" class="camera-placeholder">
+                        <i class="fas fa-camera"></i>
+                        <p>Kamera belum aktif</p>
+                    </div>
+                    <div class="scan-overlay" id="feedback">
+                        <div class="scan-result" id="fbBox">
+                            <div class="scan-result-icon" id="fbIcon"></div>
+                            <div class="scan-result-name" id="fbNama"></div>
+                            <div class="scan-result-msg" id="fbMsg"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="btn-row" style="margin-bottom:10px;">
+                    <button onclick="startCam()" id="btnStart" class="btn btn-primary btn-sm"><i class="fas fa-play"></i> Aktifkan</button>
+                    <button onclick="flipCam()" id="btnFlip" class="btn btn-secondary btn-sm" style="display:none;"><i class="fas fa-sync-alt"></i></button>
+                    <button onclick="stopCam()" id="btnStop" class="btn btn-danger btn-sm" style="display:none;"><i class="fas fa-stop"></i></button>
+                </div>
+
+                <!-- Manual -->
+                <div style="background:var(--bg-card); border:1px solid var(--border); border-radius:10px; padding:12px; margin-bottom:10px;">
+                    <div style="font-size:11px; font-weight:700; color:var(--text-secondary); margin-bottom:8px;">
+                        <i class="fas fa-pen" style="color:var(--accent-amber);"></i> Absen Manual
+                    </div>
+                    <div class="form-row" style="margin-bottom:8px;">
+                        <select id="manualKelas" class="form-input"></select>
+                        <select id="manualAbsen" class="form-input"><option value="">Absen</option></select>
+                    </div>
+                    <input type="text" id="manualNama" readonly class="form-input" placeholder="Nama otomatis" style="margin-bottom:8px;">
+                    <div class="btn-row">
+                        <button onclick="absenManualTidakHadir()" class="btn btn-danger btn-sm">Tidak Hadir</button>
+                        <button onclick="alpakanSemuaKosong()" class="btn btn-warning btn-sm">Alpakan Semua</button>
+                    </div>
+                </div>
+
+                <!-- Log -->
+                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
+                    <span style="font-size:12px; font-weight:700; color:var(--text-primary);">
+                        <i class="fas fa-list" style="color:var(--accent-teal);"></i> Log Presensi
+                    </span>
+                    <span style="font-size:13px; font-weight:800; color:var(--accent-teal);" id="totalHadir">0</span>
                 </div>
                 <div class="form-row" style="margin-bottom:8px;">
-                    <select id="manualKelas" class="form-input"></select>
-                    <select id="manualAbsen" class="form-input"><option value="">Absen</option></select>
+                    <select id="pilihBulan" class="form-input" onchange="initTanggalHarian(this.value)"></select>
+                    <select id="tanggalHarian" class="form-input" onchange="gantiTanggalUI()"></select>
                 </div>
-                <input type="text" id="manualNama" readonly class="form-input" placeholder="Nama otomatis" style="margin-bottom:8px;">
-                <div class="btn-row">
-                    <button onclick="absenManualTidakHadir()" class="btn btn-danger btn-sm">❌ TIDAK HADIR</button>
-                    <button onclick="alpakanSemuaKosong()" class="btn btn-warning btn-sm">🚨 ALPAKAN</button>
-                </div>
-            </div>
-
-            <!-- Log -->
-            <div style="font-family:'Orbitron',monospace; font-size:10px; font-weight:700; color:var(--cyan); margin-bottom:8px;">
-                <i class="fas fa-list"></i> LOG PRESENSI • <span id="totalHadir" style="color:var(--emerald);">0</span> HADIR
-            </div>
-            <div class="form-row" style="margin-bottom:8px;">
-                <select id="pilihBulan" class="form-input" onchange="initTanggalHarian(this.value)"></select>
-                <select id="tanggalHarian" class="form-input" onchange="gantiTanggalUI()"></select>
-            </div>
-            <button onclick="downloadHarian()" class="btn btn-primary btn-sm" style="margin-bottom:8px;">
-                <i class="fas fa-download"></i> DOWNLOAD
-            </button>
-            <div id="logPresensi" class="log-list">
-                <div class="empty-state"><i class="fas fa-inbox"></i><p>Belum ada presensi</p></div>
-            </div>
-        </div>
-    </div>
-
-    <!-- ═══════════════ ADMIN SCREEN ═══════════════ -->
-    <div class="screen" id="screenAdmin">
-        <div class="topbar">
-            <div class="topbar-back" onclick="navigateTo('home')"><i class="fas fa-arrow-left"></i></div>
-            <div class="topbar-title">Admin Panel</div>
-        </div>
-        <div class="screen-content">
-            <div style="background:rgba(20,20,50,0.3); backdrop-filter:blur(15px); -webkit-backdrop-filter:blur(15px); border:1px solid rgba(255,255,255,0.06); border-radius:16px; padding:16px;">
-                <div style="font-family:'Orbitron',monospace; font-size:11px; font-weight:700; color:var(--cyan); margin-bottom:12px;">
-                    <i class="fas fa-user-plus"></i> REGISTRASI SISWA
-                </div>
-                <div class="form-group">
-                    <label class="form-label">Nama Lengkap</label>
-                    <input type="text" id="nama" placeholder="Masukkan nama" class="form-input">
-                </div>
-                <div class="form-row">
-                    <div class="form-group">
-                        <label class="form-label">Kelas</label>
-                        <select id="kelas" class="form-input"></select>
-                    </div>
-                    <div class="form-group">
-                        <label class="form-label">No. Absen</label>
-                        <input type="number" id="absen" placeholder="01" class="form-input">
-                    </div>
-                </div>
-                <div class="form-row">
-                    <div class="form-group">
-                        <label class="form-label">Gender</label>
-                        <select id="jk" class="form-input">
-                            <option value="L">Laki-laki</option>
-                            <option value="P">Perempuan</option>
-                        </select>
-                    </div>
-                    <div class="form-group">
-                        <label class="form-label">Agama</label>
-                        <select id="agama" class="form-input">
-                            <option value="Islam">Islam</option>
-                            <option value="Kristen">Kristen</option>
-                            <option value="Katolik">Katolik</option>
-                            <option value="Hindu">Hindu</option>
-                            <option value="Buddha">Buddha</option>
-                            <option value="Konghucu">Konghucu</option>
-                        </select>
-                    </div>
-                </div>
-                <button onclick="buatQR()" class="btn btn-primary"><i class="fas fa-qrcode"></i> GENERATE QR</button>
-                <div id="qrArea"></div>
-            </div>
-        </div>
-    </div>
-
-    <!-- ═══════════════ NAIK KELAS SCREEN ═══════════════ -->
-    <div class="screen" id="screenNaikKelas">
-        <div class="topbar">
-            <div class="topbar-back" onclick="navigateTo('home')"><i class="fas fa-arrow-left"></i></div>
-            <div class="topbar-title">Naik Kelas</div>
-        </div>
-        <div class="screen-content">
-            <div class="form-group">
-                <label class="form-label">Kelas Tujuan</label>
-                <select id="kelasTujuan" class="form-input"></select>
-            </div>
-            <div class="camera-box" style="margin-bottom:12px;">
-                <div id="readerNaik"></div>
-                <div class="scan-feedback" id="feedbackNaik">
-                    <div class="feedback-card" id="fbNaikBox">
-                        <div class="fb-icon" id="fbNaikIcon"></div>
-                        <div class="fb-name" id="fbNaikNama"></div>
-                        <div class="fb-msg" id="fbNaikMsg"></div>
-                    </div>
-                </div>
-            </div>
-            <div class="btn-row" style="margin-bottom:12px;">
-                <button onclick="startScanNaikKelas()" id="btnStartNaik" class="btn btn-warning btn-sm"><i class="fas fa-play"></i> Scan</button>
-                <button onclick="stopScanNaikKelas()" id="btnStopNaik" class="btn btn-danger btn-sm" style="display:none;"><i class="fas fa-stop"></i></button>
-            </div>
-            <div style="font-family:'Orbitron',monospace; font-size:10px; font-weight:700; color:var(--cyan); margin-bottom:8px;">
-                <i class="fas fa-list-ul"></i> DAFTAR SCAN
-            </div>
-            <div id="listScanNaik" style="display:flex; flex-direction:column; gap:6px; margin-bottom:12px; max-height:220px; overflow-y:auto;"></div>
-            <div class="btn-row">
-                <button onclick="simpanNaikKelas()" class="btn btn-primary btn-sm"><i class="fas fa-save"></i> Simpan</button>
-                <button onclick="resetNaikKelas()" class="btn btn-secondary btn-sm"><i class="fas fa-trash"></i> Reset</button>
-            </div>
-        </div>
-    </div>
-
-    <!-- ═══════════════ LAPORAN SCREEN ═══════════════ -->
-    <div class="screen" id="screenLaporan">
-        <div class="topbar">
-            <div class="topbar-back" onclick="navigateTo('home')"><i class="fas fa-arrow-left"></i></div>
-            <div class="topbar-title">Data & Laporan</div>
-        </div>
-        <div class="screen-content">
-            <div class="home-stats-row" style="margin-bottom:12px;">
-                <div class="home-stat-card">
-                    <div class="home-stat-value" style="color:var(--cyan);" id="dashTotalSiswa">0</div>
-                    <div class="home-stat-label">Total Siswa</div>
-                </div>
-                <div class="home-stat-card">
-                    <div class="home-stat-value" style="color:var(--emerald);" id="dashHadirHari">0</div>
-                    <div class="home-stat-label">Hadir Hari Ini</div>
-                </div>
-            </div>
-            <div style="display:flex; gap:8px; margin-bottom:10px;">
-                <div style="flex:1; position:relative;">
-                    <i class="fas fa-search" style="position:absolute; left:12px; top:50%; transform:translateY(-50%); color:#444; font-size:12px;"></i>
-                    <input type="text" id="searchSiswa" placeholder="Cari nama..." oninput="filterLaporan()" class="form-input" style="padding-left:34px;">
-                </div>
-                <select id="filterKelas" onchange="filterLaporan()" class="form-input" style="width:120px;">
-                    <option value="">Semua</option>
-                </select>
-            </div>
-            <div id="listLaporan" style="display:flex; flex-direction:column; gap:6px;"></div>
-        </div>
-    </div>
-
-    <!-- ═══════════════ IMPORT SCREEN ═══════════════ -->
-    <div class="screen" id="screenImport">
-        <div class="topbar">
-            <div class="topbar-back" onclick="navigateTo('home')"><i class="fas fa-arrow-left"></i></div>
-            <div class="topbar-title">Import Excel</div>
-        </div>
-        <div class="screen-content">
-            <div style="background:rgba(20,20,50,0.3); backdrop-filter:blur(15px); -webkit-backdrop-filter:blur(15px); border:1px solid rgba(255,255,255,0.06); border-radius:16px; padding:16px;">
-                <div style="font-family:'Orbitron',monospace; font-size:11px; font-weight:700; color:var(--magenta); margin-bottom:12px;">
-                    <i class="fas fa-file-excel"></i> UPLOAD EXCEL
-                </div>
-                <div style="background:rgba(10,10,25,0.4); border:2px dashed rgba(255,255,255,0.1); border-radius:14px; padding:20px; text-align:center; margin-bottom:14px;">
-                    <i class="fas fa-cloud-upload-alt" style="font-size:40px; color:#333; margin-bottom:8px; display:block;"></i>
-                    <input type="file" id="fileExcel" accept=".xlsx,.xls" class="form-input" style="background:transparent; border:none; padding:8px; text-align:center;">
-                    <p style="font-size:10px; color:#444; margin-top:4px;">.xlsx / .xls • Multi-sheet</p>
-                </div>
-                <button onclick="importExcel()" class="btn btn-success"><i class="fas fa-upload"></i> PROSES</button>
-                <div id="importProgress" style="display:none; text-align:center; font-size:11px; font-weight:600; color:var(--emerald); margin-top:10px;"></div>
-                <div id="importResult" style="display:none; margin-top:10px;"></div>
-            </div>
-        </div>
-    </div>
-
-    <!-- ═══════════════ RESET SCREEN ═══════════════ -->
-    <div class="screen" id="screenReset">
-        <div class="topbar">
-            <div class="topbar-back" onclick="navigateTo('home')"><i class="fas fa-arrow-left"></i></div>
-            <div class="topbar-title">Reset Data</div>
-        </div>
-        <div class="screen-content">
-            <div style="background:rgba(20,20,50,0.3); backdrop-filter:blur(15px); -webkit-backdrop-filter:blur(15px); border:1px solid rgba(255,107,107,0.2); border-radius:16px; padding:16px;">
-                <div style="font-family:'Orbitron',monospace; font-size:11px; font-weight:700; color:var(--coral); margin-bottom:8px;">
-                    <i class="fas fa-rotate-left"></i> RESET TOTAL HADIR
-                </div>
-                <p style="font-size:11px; color:#555; margin-bottom:12px; line-height:1.6;">
-                    ⚠️ Reset semua total kehadiran siswa menjadi 0. Gunakan di awal tahun ajaran baru.
-                    <strong style="color:var(--coral);">Tidak bisa dibatalkan!</strong>
-                </p>
-                <button onclick="resetTotalHadir()" class="btn btn-danger">
-                    <i class="fas fa-exclamation-triangle"></i> RESET SEMUA
+                <button onclick="downloadHarian()" class="btn btn-primary btn-sm" style="margin-bottom:8px;">
+                    <i class="fas fa-download"></i> Download
                 </button>
+                <div id="logPresensi" class="log-list">
+                    <div class="empty-state"><i class="fas fa-inbox"></i><p>Belum ada presensi</p></div>
+                </div>
             </div>
         </div>
-    </div>
 
+        <!-- ADMIN -->
+        <div class="screen" id="screenAdmin">
+            <div class="screen-header">
+                <button class="btn-back" onclick="navigateTo('home')"><i class="fas fa-arrow-left"></i></button>
+                <div class="screen-title">Tambah Siswa</div>
+            </div>
+            <div class="screen-body">
+                <div style="background:var(--bg-card); border:1px solid var(--border); border-radius:12px; padding:14px;">
+                    <div class="form-group">
+                        <label class="form-label">Nama Lengkap</label>
+                        <input type="text" id="nama" placeholder="Masukkan nama" class="form-input">
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label class="form-label">Kelas</label>
+                            <select id="kelas" class="form-input"></select>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">No. Absen</label>
+                            <input type="number" id="absen" placeholder="01" class="form-input">
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label class="form-label">Gender</label>
+                            <select id="jk" class="form-input">
+                                <option value="L">Laki-laki</option>
+                                <option value="P">Perempuan</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Agama</label>
+                            <select id="agama" class="form-input">
+                                <option value="Islam">Islam</option>
+                                <option value="Kristen">Kristen</option>
+                                <option value="Katolik">Katolik</option>
+                                <option value="Hindu">Hindu</option>
+                                <option value="Buddha">Buddha</option>
+                                <option value="Konghucu">Konghucu</option>
+                            </select>
+                        </div>
+                    </div>
+                    <button onclick="buatQR()" class="btn btn-primary"><i class="fas fa-qrcode"></i> Generate QR</button>
+                    <div id="qrArea"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- NAIK KELAS -->
+        <div class="screen" id="screenNaikKelas">
+            <div class="screen-header">
+                <button class="btn-back" onclick="navigateTo('home')"><i class="fas fa-arrow-left"></i></button>
+                <div class="screen-title">Naik Kelas</div>
+            </div>
+            <div class="screen-body">
+                <div class="form-group">
+                    <label class="form-label">Kelas Tujuan</label>
+                    <select id="kelasTujuan" class="form-input"></select>
+                </div>
+                <div class="camera-container" style="margin-bottom:10px;">
+                    <div id="readerNaik"></div>
+                    <div class="scan-overlay" id="feedbackNaik">
+                        <div class="scan-result" id="fbNaikBox">
+                            <div class="scan-result-icon" id="fbNaikIcon"></div>
+                            <div class="scan-result-name" id="fbNaikNama"></div>
+                            <div class="scan-result-msg" id="fbNaikMsg"></div>
+                        </div>
+                    </div>
+                </div>
+                <div class="btn-row" style="margin-bottom:10px;">
+                    <button onclick="startScanNaikKelas()" id="btnStartNaik" class="btn btn-warning btn-sm"><i class="fas fa-play"></i> Scan</button>
+                    <button onclick="stopScanNaikKelas()" id="btnStopNaik" class="btn btn-danger btn-sm" style="display:none;"><i class="fas fa-stop"></i></button>
+                </div>
+                <div style="font-size:12px; font-weight:700; color:var(--text-primary); margin-bottom:6px;">
+                    <i class="fas fa-list-ul" style="color:var(--accent-purple);"></i> Daftar Scan
+                </div>
+                <div id="listScanNaik" style="display:flex; flex-direction:column; gap:6px; margin-bottom:10px; max-height:200px; overflow-y:auto;"></div>
+                <div class="btn-row">
+                    <button onclick="simpanNaikKelas()" class="btn btn-primary btn-sm"><i class="fas fa-save"></i> Simpan</button>
+                    <button onclick="resetNaikKelas()" class="btn btn-secondary btn-sm"><i class="fas fa-trash"></i> Reset</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- LAPORAN -->
+        <div class="screen" id="screenLaporan">
+            <div class="screen-header">
+                <button class="btn-back" onclick="navigateTo('home')"><i class="fas fa-arrow-left"></i></button>
+                <div class="screen-title">Data & Laporan</div>
+            </div>
+            <div class="screen-body">
+                <div class="stats-row" style="margin-bottom:12px;">
+                    <div class="stat-box">
+                        <div class="stat-value" style="color:var(--accent-blue);" id="dashTotalSiswa">0</div>
+                        <div class="stat-label">Total Siswa</div>
+                    </div>
+                    <div class="stat-box">
+                        <div class="stat-value" style="color:var(--accent-green);" id="dashHadirHari">0</div>
+                        <div class="stat-label">Hadir Hari Ini</div>
+                    </div>
+                </div>
+                <div style="display:flex; gap:8px; margin-bottom:10px;">
+                    <div style="flex:1; position:relative;">
+                        <i class="fas fa-search" style="position:absolute; left:10px; top:50%; transform:translateY(-50%); color:var(--text-muted); font-size:12px;"></i>
+                        <input type="text" id="searchSiswa" placeholder="Cari nama..." oninput="filterLaporan()" class="form-input" style="padding-left:30px;">
+                    </div>
+                    <select id="filterKelas" onchange="filterLaporan()" class="form-input" style="width:110px;">
+                        <option value="">Semua</option>
+                    </select>
+                </div>
+                <div id="listLaporan" style="display:flex; flex-direction:column; gap:6px;"></div>
+            </div>
+        </div>
+
+        <!-- IMPORT -->
+        <div class="screen" id="screenImport">
+            <div class="screen-header">
+                <button class="btn-back" onclick="navigateTo('home')"><i class="fas fa-arrow-left"></i></button>
+                <div class="screen-title">Import Excel</div>
+            </div>
+            <div class="screen-body">
+                <div style="background:var(--bg-card); border:1px solid var(--border); border-radius:12px; padding:14px;">
+                    <div style="background:var(--bg-secondary); border:1.5px dashed var(--border); border-radius:10px; padding:18px; text-align:center; margin-bottom:12px;">
+                        <i class="fas fa-cloud-upload-alt" style="font-size:32px; color:var(--text-muted); margin-bottom:6px; display:block;"></i>
+                        <input type="file" id="fileExcel" accept=".xlsx,.xls" class="form-input" style="background:transparent; border:none; padding:6px; text-align:center;">
+                        <p style="font-size:10px; color:var(--text-muted); margin-top:4px;">Format .xlsx / .xls</p>
+                    </div>
+                    <button onclick="importExcel()" class="btn btn-success"><i class="fas fa-upload"></i> Proses & Generate QR</button>
+                    <div id="importProgress" style="display:none; text-align:center; font-size:11px; font-weight:600; color:var(--accent-teal); margin-top:10px;"></div>
+                    <div id="importResult" style="display:none; margin-top:10px;"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- RESET -->
+        <div class="screen" id="screenReset">
+            <div class="screen-header">
+                <button class="btn-back" onclick="navigateTo('home')"><i class="fas fa-arrow-left"></i></button>
+                <div class="screen-title">Reset Data</div>
+            </div>
+            <div class="screen-body">
+                <div style="background:var(--bg-card); border:1px solid rgba(239,68,68,0.2); border-radius:12px; padding:14px;">
+                    <div style="font-size:13px; font-weight:700; color:var(--accent-red); margin-bottom:6px;">
+                        <i class="fas fa-exclamation-triangle"></i> Reset Total Hadir
+                    </div>
+                    <p style="font-size:11px; color:var(--text-muted); margin-bottom:10px; line-height:1.6;">
+                        Reset semua counter kehadiran siswa menjadi 0. Gunakan di awal tahun ajaran baru. <strong style="color:var(--accent-red);">Tidak bisa dibatalkan.</strong>
+                    </p>
+                    <button onclick="resetTotalHadir()" class="btn btn-danger"><i class="fas fa-rotate-left"></i> Reset Semua</button>
+                </div>
+            </div>
+        </div>
+
+    </div>
 </div>
 
 <script>
-    // Firebase Config
     const firebaseConfig = {
         apiKey: "AIzaSyBQwKb5BgWywX3bx3gKjNJsugJ1sUBr4X4",
         authDomain: "absen-dzuhur.firebaseapp.com",
@@ -1698,974 +1039,659 @@
     const KELAS_LIST = ["X-1","X-2","X-3","X-4","X-5","X-6","XI-1","XI-2","XI-3","XI-4","XI-5","XI-6","XII-1","XII-2","XII-3","XII-4","XII-5","XII-6"];
     const NAMA_HARI = ['Minggu','Senin','Selasa','Rabu','Kamis','Jumat','Sabtu'];
 
-    let isLogin = false;
-    let mode = 'Islam';
-    let scanner = null;
-    let allSiswaData = [];
-    let scannerLogin = null;
-    let facingMode = 'environment';
-    let scannerNaik = null;
-    let listSiswaScanned = [];
-    let currentPresensiRef = null;
-    let currentScreen = 'home';
-    let musicPlaying = false;
-    let audioCtx = null;
-    let musicGain = null;
-    let musicOsc = null;
+    let isLogin = false, mode = 'Islam', scanner = null, allSiswaData = [];
+    let scannerLogin = null, facingMode = 'environment', scannerNaik = null;
+    let listSiswaScanned = [], currentPresensiRef = null, currentScreen = 'home';
 
-    // ── PARTICLES ───────────────────────────────
-    function createParticles() {
-        const container = document.getElementById('particlesContainer');
-        const colors = ['#00f0ff', '#ff00ff', '#ffd700', '#00ff88', '#7b2fff', '#ff6b6b'];
-        for (let i = 0; i < 30; i++) {
-            const particle = document.createElement('div');
-            particle.className = 'particle';
-            const size = Math.random() * 4 + 2;
-            particle.style.cssText = `
-                width: ${size}px;
-                height: ${size}px;
-                left: ${Math.random() * 100}%;
-                background: ${colors[Math.floor(Math.random() * colors.length)]};
-                box-shadow: 0 0 ${size * 3}px currentColor;
-                animation-duration: ${Math.random() * 10 + 10}s;
-                animation-delay: ${Math.random() * 10}s;
-            `;
-            container.appendChild(particle);
-        }
-    }
-
-    // ── MUSIC ───────────────────────────────
-    function initMusic() {
-        try {
-            audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-            musicGain = audioCtx.createGain();
-            musicGain.gain.value = 0.03;
-            musicGain.connect(audioCtx.destination);
-
-            musicOsc = audioCtx.createOscillator();
-            musicOsc.type = 'sine';
-            musicOsc.frequency.value = 220;
-            musicOsc.connect(musicGain);
-
-            const osc2 = audioCtx.createOscillator();
-            osc2.type = 'sine';
-            osc2.frequency.value = 330;
-            const gain2 = audioCtx.createGain();
-            gain2.gain.value = 0.02;
-            osc2.connect(gain2);
-            gain2.connect(audioCtx.destination);
-
-            const osc3 = audioCtx.createOscillator();
-            osc3.type = 'triangle';
-            osc3.frequency.value = 440;
-            const gain3 = audioCtx.createGain();
-            gain3.gain.value = 0.015;
-            osc3.connect(gain3);
-            gain3.connect(audioCtx.destination);
-
-            musicOsc.start();
-            osc2.start();
-            osc3.start();
-
-            // Slow modulation
-            setInterval(() => {
-                if (musicPlaying) {
-                    musicOsc.frequency.value = 220 + Math.sin(Date.now() / 4000) * 50;
-                    osc2.frequency.value = 330 + Math.sin(Date.now() / 3000) * 40;
-                    osc3.frequency.value = 440 + Math.sin(Date.now() / 5000) * 30;
-                }
-            }, 100);
-        } catch(e) {}
-    }
-
-    window.toggleMusic = function() {
-        if (!audioCtx) initMusic();
-        musicPlaying = !musicPlaying;
-        const btn = document.getElementById('musicBtn');
-        const progress = document.getElementById('musicProgress');
-        if (musicPlaying) {
-            if (audioCtx.state === 'suspended') audioCtx.resume();
-            musicGain.gain.value = 0.03;
-            btn.innerHTML = '<i class="fas fa-pause"></i>';
-            btn.classList.add('playing');
-            if (progress) progress.classList.add('playing');
-        } else {
-            musicGain.gain.value = 0;
-            btn.innerHTML = '<i class="fas fa-play"></i>';
-            btn.classList.remove('playing');
-            if (progress) progress.classList.remove('playing');
-        }
-    };
-
-    // ── NAVIGATION ───────────────────────────────
-    window.navigateTo = function(screenName) {
-        if (!isLogin && screenName !== 'home') {
-            document.getElementById('loginOverlay').style.display = '';
-            return;
-        }
-        stopCam();
-        stopScanNaikKelas();
-
-        const allScreens = ['home', 'scan', 'admin', 'naikkelas', 'laporan', 'import', 'reset'];
-        allScreens.forEach(s => {
-            const el = document.getElementById('screen' + s.charAt(0).toUpperCase() + s.slice(1).replace('laporan', 'Laporan').replace('naikkelas', 'NaikKelas').replace('import', 'Import').replace('reset', 'Reset'));
-            if (el) el.classList.remove('active', 'prev');
-        });
-
-        const targetMap = {
-            'home': 'screenHome', 'scan': 'screenScan', 'admin': 'screenAdmin',
-            'naikkelas': 'screenNaikKelas', 'laporan': 'screenLaporan',
-            'import': 'screenImport', 'reset': 'screenReset'
-        };
-
-        const targetId = targetMap[screenName];
-        const target = document.getElementById(targetId);
-        const current = document.getElementById(targetMap[currentScreen]);
-
-        if (current && current !== target) {
-            current.classList.add('prev');
-            current.classList.remove('active');
-        }
-        if (target) {
-            target.classList.add('active');
-            target.classList.remove('prev');
-            target.scrollTop = 0;
-        }
-
-        currentScreen = screenName;
-
-        if (screenName === 'home') updateHomeStats();
-        if (screenName === 'laporan') updateDashboard();
-        if (screenName === 'scan' && isLogin) listenPresensi();
-    };
-
-    // ── TOAST ───────────────────────────────
-    function showToast(message, type = 'success') {
-        const container = document.getElementById('toastContainer');
+    function showToast(msg, type='success') {
+        const c = document.getElementById('toastContainer');
         const t = document.createElement('div');
-        t.className = 'toast' + (type === 'error' ? ' error' : '');
-        t.innerHTML = `<span>${type === 'success' ? '✅' : '❌'}</span><span>${message}</span>`;
-        container.appendChild(t);
-        setTimeout(() => { t.style.opacity = '0'; t.style.transition = 'all 0.3s'; setTimeout(() => t.remove(), 300); }, 2500);
+        t.className = 'toast' + (type==='error'?' error':'');
+        t.innerHTML = `<span>${type==='success'?'✅':'❌'}</span><span>${msg}</span>`;
+        c.appendChild(t);
+        setTimeout(()=>{t.style.opacity='0';t.style.transition='all 0.2s';setTimeout(()=>t.remove(),200);},2500);
     }
 
     function playBeep(type) {
         try {
-            const ctx = new (window.AudioContext || window.webkitAudioContext)();
-            const osc = ctx.createOscillator();
-            const gain = ctx.createGain();
-            osc.connect(gain); gain.connect(ctx.destination);
-            osc.type = 'sine';
-            osc.frequency.value = type === 'success' ? 880 : 330;
-            gain.gain.value = 0.2;
-            osc.start();
-            gain.gain.exponentialRampToValueAtTime(0.00001, ctx.currentTime + 0.3);
-            osc.stop(ctx.currentTime + 0.3);
-        } catch(e) {}
+            const ctx = new (window.AudioContext||window.webkitAudioContext)();
+            const o = ctx.createOscillator(), g = ctx.createGain();
+            o.connect(g);g.connect(ctx.destination);
+            o.type='sine';o.frequency.value=type==='success'?880:330;
+            g.gain.value=0.15;o.start();
+            g.gain.exponentialRampToValueAtTime(0.00001,ctx.currentTime+0.25);
+            o.stop(ctx.currentTime+0.25);
+        }catch(e){}
     }
 
-    // ── INIT ───────────────────────────────
+    window.navigateTo = function(screen) {
+        if (!isLogin && screen !== 'home') {
+            document.getElementById('loginOverlay').style.display = '';
+            return;
+        }
+        stopCam(); stopScanNaikKelas();
+        const screens = ['home','scan','admin','naikkelas','laporan','import','reset'];
+        const map = { home:'screenHome',scan:'screenScan',admin:'screenAdmin',naikkelas:'screenNaikKelas',laporan:'screenLaporan',import:'screenImport',reset:'screenReset' };
+        screens.forEach(s => {
+            const el = document.getElementById(map[s]);
+            if (el) el.classList.remove('active');
+        });
+        const target = document.getElementById(map[screen]);
+        if (target) { target.classList.add('active'); target.querySelector('.screen-body')?.scrollTo(0,0); }
+        currentScreen = screen;
+        if (screen === 'home') updateHomeStats();
+        if (screen === 'laporan') updateDashboard();
+        if (screen === 'scan' && isLogin) listenPresensi();
+    };
+
     function initDropdownBulan() {
-        const select = document.getElementById('pilihBulan');
-        if (!select) return;
-        select.innerHTML = '';
+        const s = document.getElementById('pilihBulan');
+        if (!s) return;
+        s.innerHTML = '';
         const now = new Date();
-        for (let i = 0; i < 12; i++) {
-            const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
-            const m = String(d.getMonth() + 1).padStart(2, '0');
-            const y = d.getFullYear();
-            select.innerHTML += `<option value="${y}-${m}">${d.toLocaleDateString('id-ID', { month: 'long', year: 'numeric' }).toUpperCase()}</option>`;
+        for (let i=0;i<12;i++) {
+            const d = new Date(now.getFullYear(),now.getMonth()-i,1);
+            s.innerHTML += `<option value="${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}">${d.toLocaleDateString('id-ID',{month:'long',year:'numeric'}).toUpperCase()}</option>`;
         }
     }
 
-    window.initTanggalHarian = function(monthStr) {
-        const selectBulan = document.getElementById('pilihBulan');
-        const selectHari = document.getElementById('tanggalHarian');
-        if (!selectHari) return;
-        let targetDate = new Date();
-        if (monthStr) {
-            const parts = monthStr.split('-');
-            targetDate = new Date(parts[0], parseInt(parts[1]) - 1, 1);
-        } else if (selectBulan?.value) {
-            const parts = selectBulan.value.split('-');
-            targetDate = new Date(parts[0], parseInt(parts[1]) - 1, 1);
+    window.initTanggalHarian = function(ms) {
+        const sb = document.getElementById('pilihBulan'), sh = document.getElementById('tanggalHarian');
+        if (!sh) return;
+        let td = new Date();
+        if (ms) { const [y,m] = ms.split('-'); td = new Date(y,m-1,1); }
+        else if (sb?.value) { const [y,m] = sb.value.split('-'); td = new Date(y,m-1,1); }
+        const bln = td.getMonth(), thn = td.getFullYear(), jh = new Date(thn,bln+1,0).getDate();
+        sh.innerHTML = '';
+        for (let i=1;i<=jh;i++) {
+            const t = new Date(thn,bln,i);
+            if (t.getDay()>=1&&t.getDay()<=5) sh.innerHTML += `<option value="${t.toLocaleDateString('id-ID').replace(/\//g,'-')}">${NAMA_HARI[t.getDay()]}, ${t.toLocaleDateString('id-ID')}</option>`;
         }
-        const bulan = targetDate.getMonth();
-        const tahun = targetDate.getFullYear();
-        const jumlahHari = new Date(tahun, bulan + 1, 0).getDate();
-        selectHari.innerHTML = '';
-        for (let i = 1; i <= jumlahHari; i++) {
-            const tgl = new Date(tahun, bulan, i);
-            if (tgl.getDay() >= 1 && tgl.getDay() <= 5) {
-                const key = tgl.toLocaleDateString('id-ID').replace(/\//g, '-');
-                selectHari.innerHTML += `<option value="${key}">${NAMA_HARI[tgl.getDay()]}, ${tgl.toLocaleDateString('id-ID')}</option>`;
-            }
-        }
-        const todayKey = new Date().toLocaleDateString('id-ID').replace(/\//g, '-');
-        if (!monthStr && [...selectHari.options].some(o => o.value === todayKey)) selectHari.value = todayKey;
-        else if (selectHari.options.length > 0) selectHari.selectedIndex = 0;
-        selectHari.innerHTML += `<option value="__ALL__">📦 REKAP ${targetDate.toLocaleDateString('id-ID', { month: 'long', year: 'numeric' }).toUpperCase()}</option>`;
+        const today = new Date().toLocaleDateString('id-ID').replace(/\//g,'-');
+        if (!ms && [...sh.options].some(o=>o.value===today)) sh.value = today;
+        else if (sh.options.length>0) sh.selectedIndex = 0;
+        sh.innerHTML += `<option value="__ALL__">📦 Rekap ${td.toLocaleDateString('id-ID',{month:'long',year:'numeric'}).toUpperCase()}</option>`;
         if (isLogin) gantiTanggalUI();
     };
 
     window.onload = function() {
-        createParticles();
-        ['kelas', 'kelasTujuan', 'manualKelas'].forEach(id => {
+        ['kelas','kelasTujuan','manualKelas'].forEach(id=>{
             const el = document.getElementById(id);
-            if (el) KELAS_LIST.forEach(k => el.innerHTML += `<option value="${k}">${k}</option>`);
+            if (el) KELAS_LIST.forEach(k=>el.innerHTML+=`<option value="${k}">${k}</option>`);
         });
-        const manualKelas = document.getElementById('manualKelas');
-        if (manualKelas) {
-            manualKelas.addEventListener('change', loadManualAbsenOptions);
-            loadManualAbsenOptions();
-        }
-        initDropdownBulan();
-        initTanggalHarian();
-        setMode('Islam');
-        renderListNaik();
-        if (localStorage.getItem('login') === 'true') {
+        const mk = document.getElementById('manualKelas');
+        if (mk) { mk.addEventListener('change',loadManualAbsenOptions); loadManualAbsenOptions(); }
+        initDropdownBulan(); initTanggalHarian(); setMode('Islam'); renderListNaik();
+        if (localStorage.getItem('login')==='true') {
             isLogin = true;
             document.getElementById('loginOverlay').style.display = 'none';
-            listenPresensi();
-            updateHomeStats();
-            updateDashboard();
+            document.getElementById('btnLogoutNav').style.display = '';
+            listenPresensi(); updateHomeStats(); updateDashboard();
         }
-        // Auto-init music on first user interaction
-        document.addEventListener('click', () => { if (!audioCtx) initMusic(); }, { once: true });
     };
 
-    // ── LOGIN ───────────────────────────────
     window.startLoginScan = function() {
-        document.getElementById('btnLoginStart').style.display = 'none';
-        document.getElementById('btnLoginStop').style.display = '';
-        const ph = document.getElementById('loginScanPlaceholder');
-        if (ph) ph.style.display = 'none';
-        document.getElementById('loginError').style.display = 'none';
+        document.getElementById('btnLoginStart').style.display='none';
+        document.getElementById('btnLoginStop').style.display='';
+        document.getElementById('loginPlaceholder').style.display='none';
+        document.getElementById('loginError').style.display='none';
         scannerLogin = new Html5Qrcode("readerLogin");
-        scannerLogin.start({ facingMode: "environment" }, { fps: 10, qrbox: 160 },
-            (text) => {
+        scannerLogin.start({facingMode:"environment"},{fps:10,qrbox:160},
+            text=>{
                 scannerLogin.stop();
-                document.getElementById('btnLoginStop').style.display = 'none';
-                if (text.trim() === PASSWORD) { doLogin(); }
+                document.getElementById('btnLoginStop').style.display='none';
+                if (text.trim()===PASSWORD) doLogin();
                 else {
-                    document.getElementById('loginError').style.display = '';
-                    if (ph) ph.style.display = '';
-                    document.getElementById('btnLoginStart').style.display = '';
+                    document.getElementById('loginError').style.display='';
+                    document.getElementById('loginPlaceholder').style.display='';
+                    document.getElementById('btnLoginStart').style.display='';
                     playBeep('error');
                 }
-            }, () => {}
-        ).catch(e => {
-            showToast('Gagal: ' + e, 'error');
-            document.getElementById('btnLoginStart').style.display = '';
-            document.getElementById('btnLoginStop').style.display = 'none';
+            },()=>{}
+        ).catch(e=>{
+            showToast('Gagal: '+e,'error');
+            document.getElementById('btnLoginStart').style.display='';
+            document.getElementById('btnLoginStop').style.display='none';
         });
     };
 
     window.stopLoginScan = function() {
-        try { if (scannerLogin?.isScanning) scannerLogin.stop(); } catch(e) {}
-        document.getElementById('btnLoginStart').style.display = '';
-        document.getElementById('btnLoginStop').style.display = 'none';
-        const ph = document.getElementById('loginScanPlaceholder');
-        if (ph) ph.style.display = '';
+        try{if(scannerLogin?.isScanning)scannerLogin.stop();}catch(e){}
+        document.getElementById('btnLoginStart').style.display='';
+        document.getElementById('btnLoginStop').style.display='none';
+        document.getElementById('loginPlaceholder').style.display='';
     };
 
     function doLogin() {
         isLogin = true;
-        localStorage.setItem('login', 'true');
-        document.getElementById('loginOverlay').style.display = 'none';
+        localStorage.setItem('login','true');
+        document.getElementById('loginOverlay').style.display='none';
+        document.getElementById('btnLogoutNav').style.display='';
         navigateTo('home');
-        listenPresensi();
-        updateHomeStats();
-        updateDashboard();
-        showToast('✨ Login berhasil!', 'success');
+        listenPresensi(); updateHomeStats(); updateDashboard();
+        showToast('Login berhasil!','success');
         playBeep('success');
-        if (!musicPlaying) toggleMusic();
     }
 
     window.logout = function() {
         if (confirm('Yakin keluar?')) {
-            if (musicPlaying) toggleMusic();
             isLogin = false;
             localStorage.removeItem('login');
             location.reload();
         }
     };
 
-    // ── MODE ───────────────────────────────
     window.setMode = function(m) {
         mode = m;
-        document.getElementById('modeIslam').className = 'mode-btn' + (m === 'Islam' ? ' active-islam' : '');
-        document.getElementById('modeKristen').className = 'mode-btn' + (m === 'NonIslam' ? ' active-nonislam' : '');
-        document.getElementById('modeHaid').className = 'mode-btn' + (m === 'Haid' ? ' active-haid' : '');
-        document.getElementById('modeKeputrian').className = 'mode-btn' + (m === 'Keputrian' ? ' active-keputrian' : '');
-        showToast(`Mode: ${m}`, 'success');
-        playBeep('success');
+        const el = (id,cls)=> { const e=document.getElementById(id); if(e) e.className='mode-btn'+(m===cls?' active '+cls:''); };
+        el('modeIslam','Islam','islam'); el('modeKristen','NonIslam','nonislam');
+        el('modeHaid','Haid','haid'); el('modeKeputrian','Keputrian','keputrian');
+        showToast(`Mode: ${m}`,'success'); playBeep('success');
     };
 
-    // ── HOME STATS ───────────────────────────────
     async function updateHomeStats() {
-        const siswaSnap = await db.ref('siswa').once('value');
-        let total = 0;
-        const data = siswaSnap.val() || {};
-        for (let k in data) total += Object.keys(data[k] || {}).length;
-        document.getElementById('homeTotal').innerText = total;
-        const today = new Date().toLocaleDateString('id-ID').replace(/\//g, '-');
-        const presensiSnap = await db.ref('presensi/' + today).once('value');
-        const presensi = presensiSnap.val() || {};
-        const hadir = Object.values(presensi).filter(e => e.status !== 'TIDAK HADIR').length;
-        document.getElementById('homeHadir').innerText = hadir;
-        document.getElementById('dashHadirHari') && (document.getElementById('dashHadirHari').innerText = hadir);
-        document.getElementById('statHadir') && (document.getElementById('statHadir').innerText = hadir);
+        const ss = await db.ref('siswa').once('value');
+        let t=0; const d=ss.val()||{};
+        for (let k in d) t+=Object.keys(d[k]||{}).length;
+        document.getElementById('homeTotal').innerText=t;
+        const today = new Date().toLocaleDateString('id-ID').replace(/\//g,'-');
+        const ps = await db.ref('presensi/'+today).once('value');
+        const p=ps.val()||{};
+        const h=Object.values(p).filter(e=>e.status!=='TIDAK HADIR').length;
+        document.getElementById('homeHadir').innerText=h;
+        document.getElementById('dashHadirHari')&&(document.getElementById('dashHadirHari').innerText=h);
+        document.getElementById('statHadir')&&(document.getElementById('statHadir').innerText=h);
     }
 
     async function updateDashboard() {
-        const siswaSnap = await db.ref('siswa').once('value');
-        const semuaSiswa = siswaSnap.val() || {};
-        allSiswaData = [];
-        let totalSiswa = 0;
-        const filterKelas = document.getElementById('filterKelas');
-        if (filterKelas) {
-            const existing = new Set(Array.from(filterKelas.options).map(o => o.value).filter(v => v));
-            for (let kelas in semuaSiswa) {
-                if (!existing.has(kelas)) filterKelas.innerHTML += `<option value="${kelas}">${kelas}</option>`;
-                for (let absen in semuaSiswa[kelas]) {
-                    totalSiswa++;
-                    allSiswaData.push({ ...semuaSiswa[kelas][absen], kelas, absen });
-                }
+        const ss = await db.ref('siswa').once('value');
+        const d=ss.val()||{}; allSiswaData=[];
+        let t=0;
+        const fk=document.getElementById('filterKelas');
+        if(fk){
+            const ex=new Set(Array.from(fk.options).map(o=>o.value).filter(v=>v));
+            for(let k in d){
+                if(!ex.has(k)) fk.innerHTML+=`<option value="${k}">${k}</option>`;
+                for(let a in d[k]){t++;allSiswaData.push({...d[k][a],kelas:k,absen:a});}
             }
         }
-        document.getElementById('dashTotalSiswa').innerText = totalSiswa;
-        updateHomeStats();
-        filterLaporan();
+        document.getElementById('dashTotalSiswa').innerText=t;
+        updateHomeStats(); filterLaporan();
     }
 
     window.filterLaporan = function() {
-        const search = (document.getElementById('searchSiswa')?.value || '').toLowerCase();
-        const kelasFilter = document.getElementById('filterKelas')?.value || '';
-        let filtered = allSiswaData.filter(s => {
-            return (s.nama || '').toLowerCase().includes(search) && (!kelasFilter || s.kelas === kelasFilter);
-        });
-        filtered.sort((a, b) => a.kelas.localeCompare(b.kelas) || parseInt(a.absen) - parseInt(b.absen));
-        const container = document.getElementById('listLaporan');
-        if (!container) return;
-        if (filtered.length === 0) {
-            container.innerHTML = '<div class="empty-state"><i class="fas fa-search"></i><p>Tidak ada data</p></div>';
-            return;
-        }
-        container.innerHTML = filtered.map(s => `
-            <div style="background:rgba(20,20,50,0.3); backdrop-filter:blur(10px); -webkit-backdrop-filter:blur(10px); border:1px solid rgba(255,255,255,0.04); border-radius:12px; padding:12px 14px;">
-                <div style="display:flex; justify-content:space-between; align-items:flex-start;">
+        const s=(document.getElementById('searchSiswa')?.value||'').toLowerCase();
+        const kf=document.getElementById('filterKelas')?.value||'';
+        let f=allSiswaData.filter(x=>(x.nama||'').toLowerCase().includes(s)&&(!kf||x.kelas===kf));
+        f.sort((a,b)=>a.kelas.localeCompare(b.kelas)||parseInt(a.absen)-parseInt(b.absen));
+        const c=document.getElementById('listLaporan');
+        if(!c)return;
+        if(f.length===0){c.innerHTML='<div class="empty-state"><i class="fas fa-search"></i><p>Tidak ada data</p></div>';return;}
+        c.innerHTML=f.map(x=>`
+            <div style="background:var(--bg-card);border:1px solid var(--border);border-radius:10px;padding:12px 14px;">
+                <div style="display:flex;justify-content:space-between;align-items:flex-start;">
                     <div>
-                        <div style="font-size:13px; font-weight:700; color:#eee;">${s.nama || '-'}</div>
-                        <div style="font-size:10px; color:var(--cyan); font-weight:600; margin-top:2px;">${s.kelas} • Absen ${s.absen} • ${s.jk === 'L' ? 'L' : 'P'} • ${s.agama || '-'}</div>
+                        <div style="font-size:13px;font-weight:700;color:var(--text-primary);">${x.nama||'-'}</div>
+                        <div style="font-size:10px;color:var(--text-muted);margin-top:2px;">${x.kelas} • Absen ${x.absen} • ${x.jk==='L'?'L':'P'} • ${x.agama||'-'}</div>
                     </div>
-                    <div style="background:rgba(0,240,255,0.1); color:var(--cyan); font-family:'Orbitron',monospace; font-size:12px; font-weight:800; padding:4px 10px; border-radius:8px;">${s.totalHadir || 0}x</div>
+                    <div style="background:rgba(20,184,166,0.1);color:var(--accent-teal);font-size:13px;font-weight:800;padding:3px 10px;border-radius:6px;">${x.totalHadir||0}x</div>
                 </div>
             </div>
         `).join('');
     };
 
-    // ── PRESENSI LISTENER ───────────────────────────────
     window.gantiTanggalUI = function() {
-        const val = document.getElementById('tanggalHarian')?.value;
-        if (val && val !== '__ALL__') listenPresensi(val);
+        const v=document.getElementById('tanggalHarian')?.value;
+        if(v&&v!=='__ALL__') listenPresensi(v);
     };
 
-    window.listenPresensi = function(tanggalKey) {
-        if (currentPresensiRef) currentPresensiRef.off();
-        const targetDate = (tanggalKey && tanggalKey !== '__ALL__') ? tanggalKey : new Date().toLocaleDateString('id-ID').replace(/\//g, '-');
-        currentPresensiRef = db.ref('presensi/' + targetDate);
-        currentPresensiRef.on('value', (snap) => {
-            const data = snap.val() || {};
-            const entries = Object.values(data);
-            const totalHadir = entries.filter(e => e.status !== 'TIDAK HADIR').length;
-            document.getElementById('totalHadir') && (document.getElementById('totalHadir').innerText = totalHadir);
-            document.getElementById('homeHadir') && (document.getElementById('homeHadir').innerText = totalHadir);
-            document.getElementById('dashHadirHari') && (document.getElementById('dashHadirHari').innerText = totalHadir);
-            document.getElementById('statHadir') && (document.getElementById('statHadir').innerText = totalHadir);
-
-            const logContainer = document.getElementById('logPresensi');
-            if (!logContainer) return;
-            if (entries.length === 0) {
-                logContainer.innerHTML = '<div class="empty-state"><i class="fas fa-inbox"></i><p>Belum ada presensi</p></div>';
-                return;
-            }
-            entries.sort((a, b) => (b.timestamp || 0) - (a.timestamp || 0));
-            logContainer.innerHTML = entries.map(e => {
-                let cls = '', badgeCls = 'badge-hadir', badgeTxt = `#${e.totalHadir}`;
-                if (e.status === 'TIDAK HADIR') { cls = 'alpa'; badgeCls = 'badge-alpa'; badgeTxt = 'ALPA'; }
-                else if (e.jam === 'HAID') { cls = 'haid'; badgeCls = 'badge-haid'; badgeTxt = 'HAID'; }
-                else if (e.jam === 'KEPUTRIAN') { cls = 'keputrian'; badgeTxt = 'PUTRI'; }
-                else if (e.status === 'IBADAH') { cls = 'nonislam'; badgeTxt = 'IBADAH'; }
-                return `
-                    <div class="log-item ${cls}">
-                        <div>
-                            <div class="log-nama">${e.nama}</div>
-                            <div class="log-meta">${e.kelas} • ${e.status}${e.status !== 'TIDAK HADIR' ? ' • ' + e.jam : ''}</div>
-                        </div>
-                        <div class="badge ${badgeCls}">${badgeTxt}</div>
-                    </div>`;
+    window.listenPresensi = function(tk) {
+        if(currentPresensiRef)currentPresensiRef.off();
+        const td=(tk&&tk!=='__ALL__')?tk:new Date().toLocaleDateString('id-ID').replace(/\//g,'-');
+        currentPresensiRef=db.ref('presensi/'+td);
+        currentPresensiRef.on('value',snap=>{
+            const d=snap.val()||{},entries=Object.values(d);
+            const th=entries.filter(e=>e.status!=='TIDAK HADIR').length;
+            document.getElementById('totalHadir')&&(document.getElementById('totalHadir').innerText=th);
+            document.getElementById('homeHadir')&&(document.getElementById('homeHadir').innerText=th);
+            document.getElementById('dashHadirHari')&&(document.getElementById('dashHadirHari').innerText=th);
+            const lc=document.getElementById('logPresensi');
+            if(!lc)return;
+            if(entries.length===0){lc.innerHTML='<div class="empty-state"><i class="fas fa-inbox"></i><p>Belum ada presensi</p></div>';return;}
+            entries.sort((a,b)=>(b.timestamp||0)-(a.timestamp||0));
+            lc.innerHTML=entries.map(e=>{
+                let cls='',bc='badge-hadir',bt=`#${e.totalHadir}`;
+                if(e.status==='TIDAK HADIR'){cls='alpa';bc='badge-alpa';bt='ALPA';}
+                else if(e.jam==='HAID'){cls='haid';bc='badge-haid';bt='HAID';}
+                else if(e.jam==='KEPUTRIAN'){cls='keputrian';bt='PUTRI';}
+                else if(e.status==='IBADAH'){cls='nonislam';bt='IBADAH';}
+                return `<div class="log-item ${cls}"><div><div class="log-name">${e.nama}</div><div class="log-meta">${e.kelas} • ${e.status}${e.status!=='TIDAK HADIR'?' • '+e.jam:''}</div></div><div class="badge ${bc}">${bt}</div></div>`;
             }).join('');
         });
     };
 
-    // ── QR GENERATION ───────────────────────────────
     window.buatQR = async function() {
-        const nama = document.getElementById('nama').value.trim();
-        const kelas = document.getElementById('kelas').value;
-        const absen = document.getElementById('absen').value.trim();
-        const jk = document.getElementById('jk').value;
-        const agama = document.getElementById('agama').value;
-        if (!nama || !absen) { showToast('Lengkapi data!', 'error'); playBeep('error'); return; }
-        document.getElementById('loadingOverlay').classList.add('show');
-        await db.ref('siswa/' + kelas + '/' + absen).set({
-            nama: nama.toUpperCase(), kelas, absen, jk, agama, totalHadir: 0, terdaftar: Date.now()
-        });
-        const area = document.getElementById('qrArea');
-        area.innerHTML = `
-            <div style="background:rgba(20,20,50,0.4); backdrop-filter:blur(15px); -webkit-backdrop-filter:blur(15px); border:1px solid rgba(0,240,255,0.2); border-radius:16px; padding:20px; text-align:center; margin-top:12px; box-shadow:0 0 30px var(--cyan-glow);">
-                <div style="background:white; padding:10px; border-radius:10px; display:inline-block;" id="qrImg"></div>
-                <div style="font-size:15px; font-weight:800; color:#eee; margin-top:8px;">${nama.toUpperCase()}</div>
-                <div style="font-size:10px; color:var(--cyan); font-weight:600; margin-top:4px;">${kelas} • ${jk === 'L' ? 'Laki-laki' : 'Perempuan'} • ${agama} • Absen ${absen}</div>
-            </div>`;
-        new QRCode(document.getElementById("qrImg"), {
-            text: `${nama.toUpperCase()}|${kelas}|${absen}|${jk}|${agama}`, width: 160, height: 160
-        });
-        document.getElementById('loadingOverlay').classList.remove('show');
-        showToast('✨ QR berhasil dibuat!', 'success');
-        playBeep('success');
-        updateDashboard();
-        loadManualAbsenOptions();
+        const nama=document.getElementById('nama').value.trim(),kelas=document.getElementById('kelas').value;
+        const absen=document.getElementById('absen').value.trim(),jk=document.getElementById('jk').value,agama=document.getElementById('agama').value;
+        if(!nama||!absen){showToast('Lengkapi data!','error');playBeep('error');return;}
+        document.getElementById('loadingScreen').classList.add('show');
+        await db.ref('siswa/'+kelas+'/'+absen).set({nama:nama.toUpperCase(),kelas,absen,jk,agama,totalHadir:0,terdaftar:Date.now()});
+        const area=document.getElementById('qrArea');
+        area.innerHTML=`<div style="background:var(--bg-card);border:1px solid var(--border);border-radius:12px;padding:16px;text-align:center;margin-top:10px;"><div style="background:#fff;padding:10px;border-radius:10px;display:inline-block;" id="qrImg"></div><div style="font-size:14px;font-weight:800;color:var(--text-primary);margin-top:8px;">${nama.toUpperCase()}</div><div style="font-size:10px;color:var(--text-muted);margin-top:4px;">${kelas} • ${jk==='L'?'Laki-laki':'Perempuan'} • ${agama} • Absen ${absen}</div></div>`;
+        new QRCode(document.getElementById("qrImg"),{text:`${nama.toUpperCase()}|${kelas}|${absen}|${jk}|${agama}`,width:150,height:150});
+        document.getElementById('loadingScreen').classList.remove('show');
+        showToast('QR berhasil dibuat!','success');playBeep('success');
+        updateDashboard();loadManualAbsenOptions();
     };
 
-    // ── CAMERA ───────────────────────────────
     window.startCam = async function() {
-        document.getElementById('btnStart').style.display = 'none';
-        document.getElementById('btnFlip').style.display = '';
-        document.getElementById('btnStop').style.display = '';
-        document.getElementById('cameraPlaceholder').style.display = 'none';
-        scanner = new Html5Qrcode("reader");
-        try {
-            await scanner.start({ facingMode: "environment" }, { fps: 5, qrbox: { width: 240, height: 240 }, aspectRatio: 1.333 },
-                (text) => { scanner.pause(); prosesQR(text); }, () => {});
-            showToast('📷 Kamera aktif', 'success');
-        } catch(e) {
-            showToast('Gagal: ' + e, 'error');
-            document.getElementById('btnStart').style.display = '';
-            document.getElementById('btnFlip').style.display = 'none';
-            document.getElementById('btnStop').style.display = 'none';
-            document.getElementById('cameraPlaceholder').style.display = '';
+        document.getElementById('btnStart').style.display='none';
+        document.getElementById('btnFlip').style.display='';document.getElementById('btnStop').style.display='';
+        document.getElementById('cameraPlaceholder').style.display='none';
+        scanner=new Html5Qrcode("reader");
+        try{
+            await scanner.start({facingMode:"environment"},{fps:5,qrbox:{width:240,height:240},aspectRatio:1.333},text=>{scanner.pause();prosesQR(text);},()=>{});
+            showToast('Kamera aktif','success');
+        }catch(e){
+            showToast('Gagal: '+e,'error');
+            document.getElementById('btnStart').style.display='';document.getElementById('btnFlip').style.display='none';
+            document.getElementById('btnStop').style.display='none';document.getElementById('cameraPlaceholder').style.display='';
         }
     };
 
     window.flipCam = async function() {
-        try { if (scanner?.isScanning) await scanner.stop(); } catch(e) {}
-        facingMode = facingMode === 'environment' ? 'user' : 'environment';
-        scanner = new Html5Qrcode("reader");
-        try {
-            await scanner.start({ facingMode }, { fps: 5, qrbox: { width: 240, height: 240 }, aspectRatio: 1.333 },
-                (text) => { scanner.pause(); prosesQR(text); }, () => {});
-        } catch(e) { showToast('Gagal', 'error'); }
+        try{if(scanner?.isScanning)await scanner.stop();}catch(e){}
+        facingMode=facingMode==='environment'?'user':'environment';
+        scanner=new Html5Qrcode("reader");
+        try{await scanner.start({facingMode},{fps:5,qrbox:{width:240,height:240},aspectRatio:1.333},text=>{scanner.pause();prosesQR(text);},()=>{});}catch(e){}
     };
 
     window.stopCam = function() {
-        try { if (scanner?.isScanning) scanner.stop(); } catch(e) {}
-        facingMode = 'environment';
-        document.getElementById('btnStart').style.display = '';
-        document.getElementById('btnFlip').style.display = 'none';
-        document.getElementById('btnStop').style.display = 'none';
-        document.getElementById('cameraPlaceholder').style.display = '';
+        try{if(scanner?.isScanning)scanner.stop();}catch(e){}
+        facingMode='environment';
+        document.getElementById('btnStart').style.display='';document.getElementById('btnFlip').style.display='none';
+        document.getElementById('btnStop').style.display='none';document.getElementById('cameraPlaceholder').style.display='';
     };
 
     function getModeAktif() {
-        if (document.getElementById('modeHaid')?.classList.contains('active-haid')) return 'Haid';
-        if (document.getElementById('modeKeputrian')?.classList.contains('active-keputrian')) return 'Keputrian';
-        if (document.getElementById('modeKristen')?.classList.contains('active-nonislam')) return 'NonIslam';
-        return 'Islam';
+        if(document.getElementById('modeHaid')?.classList.contains('active'))return'Haid';
+        if(document.getElementById('modeKeputrian')?.classList.contains('active'))return'Keputrian';
+        if(document.getElementById('modeKristen')?.classList.contains('active'))return'NonIslam';
+        return'Islam';
     }
 
-    function normalisasiNamaQR(v) { return (v || '').toString().trim().replace(/\s+/g, ' ').toUpperCase(); }
+    function normalisasiNamaQR(v){return(v||'').toString().trim().replace(/\s+/g,' ').toUpperCase();}
 
     function parseQRPresensi(text) {
-        if (!text?.toString().trim()) throw 'QR kosong';
-        const raw = text.toString().trim();
-        if (raw.includes('|')) {
-            const parts = raw.split('|').map(v => v.trim());
-            if (parts.length !== 5) throw 'Bukan QR presensi';
-            const [nama, kelasRaw, absenRaw, jkRaw, agamaRaw] = parts;
-            const kelas = kelasRaw.toUpperCase();
-            const absen = absenRaw.replace(/\D/g, '');
-            if (!nama || !kelas || !absen || !jkRaw || !agamaRaw) throw 'Data tidak lengkap';
-            return { nama: nama.trim(), kelas, absen, jk: jkRaw.toUpperCase(), agama: agamaRaw.trim() };
+        if(!text?.toString().trim())throw'QR kosong';
+        const raw=text.toString().trim();
+        if(raw.includes('|')){
+            const p=raw.split('|').map(v=>v.trim());
+            if(p.length!==5)throw'Bukan QR presensi';
+            const[nama,kl,al,jk,ag]=p;
+            if(!nama||!kl||!al||!jk||!ag)throw'Data tidak lengkap';
+            return{nama:nama.trim(),kelas:kl.toUpperCase(),absen:al.replace(/\D/g,''),jk:jk.toUpperCase(),agama:ag.trim()};
         }
-        throw 'Format tidak dikenal';
+        throw'Format tidak dikenal';
     }
 
     async function prosesQR(text) {
-        mode = getModeAktif();
-        document.getElementById('loadingOverlay').classList.add('show');
-        try {
-            let { nama, kelas, absen, jk, agama } = parseQRPresensi(text);
-            const siswaRef = db.ref('siswa/' + kelas + '/' + absen);
-            const siswaSnap = await siswaRef.once('value');
-            if (!siswaSnap.exists()) throw 'Siswa tidak ditemukan';
-            let dataSiswa = siswaSnap.val() || {};
-            if (dataSiswa.nama && normalisasiNamaQR(dataSiswa.nama) !== normalisasiNamaQR(nama)) throw 'QR tidak cocok';
-            nama = dataSiswa.nama || nama;
-            jk = (dataSiswa.jk || jk || 'L').toUpperCase();
-            agama = dataSiswa.agama || agama || 'Islam';
-
-            if (mode === 'Haid' || mode === 'Keputrian') {
-                if (jk !== 'P') throw `Mode ${mode} hanya untuk perempuan!`;
-            } else {
-                const agamaMode = agama === 'Islam' ? 'Islam' : 'NonIslam';
-                if (agamaMode !== mode) throw agama === 'Islam' ? 'Gunakan mode Islam' : 'Gunakan mode Non Islam';
+        mode=getModeAktif();
+        document.getElementById('loadingScreen').classList.add('show');
+        try{
+            let{nama,kelas,absen,jk,agama}=parseQRPresensi(text);
+            const ref=db.ref('siswa/'+kelas+'/'+absen);
+            const snap=await ref.once('value');
+            if(!snap.exists())throw'Siswa tidak ditemukan';
+            let ds=snap.val()||{};
+            if(ds.nama&&normalisasiNamaQR(ds.nama)!==normalisasiNamaQR(nama))throw'QR tidak cocok';
+            nama=ds.nama||nama;jk=(ds.jk||jk||'L').toUpperCase();agama=ds.agama||agama||'Islam';
+            if(mode==='Haid'||mode==='Keputrian'){if(jk!=='P')throw`Mode ${mode} hanya untuk perempuan!`;}
+            else{
+                const am=agama==='Islam'?'Islam':'NonIslam';
+                if(am!==mode)throw agama==='Islam'?'Gunakan mode Islam':'Gunakan mode Non Islam';
             }
-
-            const today = new Date().toLocaleDateString('id-ID').replace(/\//g, '-');
-            const presensiRef = db.ref('presensi/' + today + '/' + kelas + '_' + absen);
-            if ((await presensiRef.once('value')).exists()) throw 'Sudah absen!';
-
-            let totalHadir = (dataSiswa.totalHadir || 0) + 1;
-            await siswaRef.set({ ...dataSiswa, nama, kelas, absen, jk, agama, totalHadir, lastUpdate: Date.now() });
-            const jam = (mode === 'Haid' || mode === 'Keputrian') ? mode.toUpperCase() : new Date().toLocaleTimeString('id-ID');
-            const status = mode === 'Islam' ? 'DZUHUR' : mode === 'Haid' ? 'HAID' : mode === 'Keputrian' ? 'KEPUTRIAN' : 'IBADAH';
-            await presensiRef.set({ nama, kelas, absen, jk, agama, jam, status, totalHadir, timestamp: Date.now() });
-
-            const msg = mode === 'Haid' ? 'Tercatat Haid' : mode === 'Keputrian' ? 'Hadir Keputrian' : `Hadir ke-${totalHadir}`;
-            feedback('✅', nama, msg, 'background:linear-gradient(135deg,#006644,#00ff88)');
-            showToast(`✨ ${nama} — ${msg}`, 'success');
-            playBeep('success');
-            updateDashboard();
-        } catch(e) {
-            feedback('❌', 'GAGAL', e.toString(), 'background:linear-gradient(135deg,#990000,#ff4444)');
-            showToast(e.toString(), 'error');
-            playBeep('error');
+            const today=new Date().toLocaleDateString('id-ID').replace(/\//g,'-');
+            const pr=db.ref('presensi/'+today+'/'+kelas+'_'+absen);
+            if((await pr.once('value')).exists())throw'Sudah absen!';
+            let th=(ds.totalHadir||0)+1;
+            await ref.set({...ds,nama,kelas,absen,jk,agama,totalHadir:th,lastUpdate:Date.now()});
+            const jam=(mode==='Haid'||mode==='Keputrian')?mode.toUpperCase():new Date().toLocaleTimeString('id-ID');
+            const status=mode==='Islam'?'DZUHUR':mode==='Haid'?'HAID':mode==='Keputrian'?'KEPUTRIAN':'IBADAH';
+            await pr.set({nama,kelas,absen,jk,agama,jam,status,totalHadir:th,timestamp:Date.now()});
+            const msg=mode==='Haid'?'Tercatat Haid':mode==='Keputrian'?'Hadir Keputrian':`Hadir ke-${th}`;
+            feedback('✅',nama,msg,'var(--accent-green)');
+            showToast(`${nama} — ${msg}`,'success');playBeep('success');updateDashboard();
+        }catch(e){
+            feedback('❌','GAGAL',e.toString(),'var(--accent-red)');
+            showToast(e.toString(),'error');playBeep('error');
         }
-        document.getElementById('loadingOverlay').classList.remove('show');
-        setTimeout(() => { try { scanner?.resume(); } catch(e) {} }, 2000);
+        document.getElementById('loadingScreen').classList.remove('show');
+        setTimeout(()=>{try{scanner?.resume();}catch(e){}},2000);
     }
 
-    function feedback(icon, name, msg, bg) {
-        const fb = document.getElementById('feedback');
-        document.getElementById('fbIcon').innerText = icon;
-        document.getElementById('fbNama').innerText = name;
-        document.getElementById('fbMsg').innerText = msg;
-        document.getElementById('fbBox').style = `text-align:center; padding:28px 36px; border-radius:18px; ${bg};`;
+    function feedback(icon,name,msg,bg) {
+        const fb=document.getElementById('feedback');
+        document.getElementById('fbIcon').innerText=icon;
+        document.getElementById('fbNama').innerText=name;
+        document.getElementById('fbMsg').innerText=msg;
+        document.getElementById('fbBox').style=`text-align:center;padding:24px 32px;border-radius:12px;background:${bg};`;
         fb.classList.add('show');
-        setTimeout(() => fb.classList.remove('show'), 2000);
+        setTimeout(()=>fb.classList.remove('show'),2000);
     }
 
-    // ── MANUAL ABSEN ───────────────────────────────
     async function loadManualAbsenOptions() {
-        const kelas = document.getElementById('manualKelas')?.value;
-        const manualAbsen = document.getElementById('manualAbsen');
-        const manualNama = document.getElementById('manualNama');
-        if (!manualAbsen || !manualNama) return;
-        manualAbsen.innerHTML = '<option value="">Pilih</option>';
-        manualNama.value = '';
-        if (!kelas) return;
-        const snap = await db.ref('siswa/' + kelas).once('value');
-        const data = snap.val() || {};
-        Object.keys(data).map(Number).sort((a,b)=>a-b).forEach(no => {
-            manualAbsen.innerHTML += `<option value="${no}">${no} — ${data[no].nama || '-'}</option>`;
+        const kelas=document.getElementById('manualKelas')?.value;
+        const ma=document.getElementById('manualAbsen'),mn=document.getElementById('manualNama');
+        if(!ma||!mn)return;
+        ma.innerHTML='<option value="">Pilih</option>';mn.value='';
+        if(!kelas)return;
+        const snap=await db.ref('siswa/'+kelas).once('value');
+        const d=snap.val()||{};
+        Object.keys(d).map(Number).sort((a,b)=>a-b).forEach(no=>{
+            ma.innerHTML+=`<option value="${no}">${no} — ${d[no].nama||'-'}</option>`;
         });
-        manualAbsen.onchange = async function() {
-            const absen = this.value;
-            if (!absen) { manualNama.value = ''; return; }
-            const s = await db.ref('siswa/' + kelas + '/' + absen).once('value');
-            manualNama.value = s.val()?.nama || '';
+        ma.onchange=async function(){
+            const a=this.value;
+            if(!a){mn.value='';return;}
+            const s=await db.ref('siswa/'+kelas+'/'+a).once('value');
+            mn.value=s.val()?.nama||'';
         };
     }
 
     window.absenManualTidakHadir = async function() {
-        const kelas = document.getElementById('manualKelas')?.value;
-        const absen = document.getElementById('manualAbsen')?.value;
-        if (!kelas || !absen) { showToast('Pilih kelas & absen!', 'error'); return; }
-        document.getElementById('loadingOverlay').classList.add('show');
-        try {
-            const siswaSnap = await db.ref('siswa/' + kelas + '/' + absen).once('value');
-            if (!siswaSnap.exists()) throw new Error('Tidak ditemukan');
-            const siswa = siswaSnap.val();
-            const today = new Date().toLocaleDateString('id-ID').replace(/\//g, '-');
-            const ref = db.ref('presensi/' + today + '/' + kelas + '_' + absen);
-            if ((await ref.once('value')).exists()) throw new Error('Sudah ada presensi');
-            await ref.set({
-                nama: siswa.nama, kelas, absen, jk: siswa.jk || '', agama: siswa.agama || '',
-                jam: 'TIDAK HADIR', status: 'TIDAK HADIR', totalHadir: siswa.totalHadir || 0,
-                timestamp: Date.now(), manual: true
-            });
-            showToast(`${siswa.nama} ditandai tidak hadir`, 'success');
-            updateDashboard();
-        } catch(e) { showToast(e.message, 'error'); }
-        document.getElementById('loadingOverlay').classList.remove('show');
+        const kelas=document.getElementById('manualKelas')?.value;
+        const absen=document.getElementById('manualAbsen')?.value;
+        if(!kelas||!absen){showToast('Pilih kelas & absen!','error');return;}
+        document.getElementById('loadingScreen').classList.add('show');
+        try{
+            const ss=await db.ref('siswa/'+kelas+'/'+absen).once('value');
+            if(!ss.exists())throw new Error('Tidak ditemukan');
+            const siswa=ss.val();
+            const today=new Date().toLocaleDateString('id-ID').replace(/\//g,'-');
+            const ref=db.ref('presensi/'+today+'/'+kelas+'_'+absen);
+            if((await ref.once('value')).exists())throw new Error('Sudah ada presensi');
+            await ref.set({nama:siswa.nama,kelas,absen,jk:siswa.jk||'',agama:siswa.agama||'',jam:'TIDAK HADIR',status:'TIDAK HADIR',totalHadir:siswa.totalHadir||0,timestamp:Date.now(),manual:true});
+            showToast(`${siswa.nama} ditandai tidak hadir`,'success');updateDashboard();
+        }catch(e){showToast(e.message,'error');}
+        document.getElementById('loadingScreen').classList.remove('show');
     };
 
     window.alpakanSemuaKosong = async function() {
-        const tanggalTarget = document.getElementById('tanggalHarian')?.value?.replace('__ALL__', '') || new Date().toLocaleDateString('id-ID').replace(/\//g, '-');
-        if (!confirm(`Alpakan semua yang belum absen di ${tanggalTarget}?`)) return;
-        document.getElementById('loadingOverlay').classList.add('show');
-        try {
-            const siswaSnap = await db.ref('siswa').once('value');
-            const semua = siswaSnap.val() || {};
-            const presensiSnap = await db.ref('presensi/' + tanggalTarget).once('value');
-            const presensi = presensiSnap.val() || {};
-            const updates = {};
-            let total = 0;
-            for (let k in semua) for (let a in semua[k]) {
-                if (presensi[`${k}_${a}`]) continue;
-                const s = semua[k][a] || {};
-                updates[`presensi/${tanggalTarget}/${k}_${a}`] = {
-                    nama: s.nama || '-', kelas: k, absen: a, jk: s.jk || '', agama: s.agama || '',
-                    jam: 'TIDAK HADIR', status: 'TIDAK HADIR', totalHadir: s.totalHadir || 0,
-                    timestamp: Date.now(), manual: true, autoAlpa: true
-                };
-                total++;
+        const tt=document.getElementById('tanggalHarian')?.value?.replace('__ALL__','')||new Date().toLocaleDateString('id-ID').replace(/\//g,'-');
+        if(!confirm(`Alpakan semua yang belum absen di ${tt}?`))return;
+        document.getElementById('loadingScreen').classList.add('show');
+        try{
+            const ss=await db.ref('siswa').once('value'),s=ss.val()||{};
+            const ps=await db.ref('presensi/'+tt).once('value'),p=ps.val()||{};
+            const up={};let t=0;
+            for(let k in s)for(let a in s[k]){
+                if(p[`${k}_${a}`])continue;
+                const d=s[k][a]||{};
+                up[`presensi/${tt}/${k}_${a}`]={nama:d.nama||'-',kelas:k,absen:a,jk:d.jk||'',agama:d.agama||'',jam:'TIDAK HADIR',status:'TIDAK HADIR',totalHadir:d.totalHadir||0,timestamp:Date.now(),manual:true,autoAlpa:true};
+                t++;
             }
-            if (total === 0) showToast('Semua sudah absen', 'success');
-            else { await db.ref().update(updates); showToast(`${total} siswa ALPA`, 'success'); updateDashboard(); }
-        } catch(e) { showToast('Gagal', 'error'); }
-        document.getElementById('loadingOverlay').classList.remove('show');
+            if(t===0)showToast('Semua sudah absen','success');
+            else{await db.ref().update(up);showToast(`${t} siswa ALPA`,'success');updateDashboard();}
+        }catch(e){showToast('Gagal','error');}
+        document.getElementById('loadingScreen').classList.remove('show');
     };
 
-    // ── DOWNLOAD ───────────────────────────────
-    function agamaIsIslam(a) { return String(a||'').trim().toLowerCase() === 'islam'; }
-    function isHaidCell(h, s) { return h && (String(h.status||'').toUpperCase()==='HAID'||String(h.jam||'').toUpperCase()==='HAID') && agamaIsIslam(h.agama||s?.agama||'') && String(h.jk||s?.jk||'').toUpperCase()==='P'; }
-    function isKeputrianCell(h) { return h && (String(h.status||'').toUpperCase()==='KEPUTRIAN'||String(h.jam||'').toUpperCase()==='KEPUTRIAN'); }
-    function isNonMuslimHadirCell(h, s) { return h && String(h.status||'').toUpperCase()!=='TIDAK HADIR' && String(h.status||'').toUpperCase()!=='HAID' && String(h.status||'').toUpperCase()!=='KEPUTRIAN' && !agamaIsIslam(h.agama||s?.agama||''); }
-    function isManualCell(h) { return !!h?.manual; }
+    function agamaIsIslam(a){return String(a||'').trim().toLowerCase()==='islam';}
+    function isHaidCell(h,s){return h&&(String(h.status||'').toUpperCase()==='HAID'||String(h.jam||'').toUpperCase()==='HAID')&&agamaIsIslam(h.agama||s?.agama||'')&&String(h.jk||s?.jk||'').toUpperCase()==='P';}
+    function isKeputrianCell(h){return h&&(String(h.status||'').toUpperCase()==='KEPUTRIAN'||String(h.jam||'').toUpperCase()==='KEPUTRIAN');}
+    function isNonMuslimHadirCell(h,s){return h&&String(h.status||'').toUpperCase()!=='TIDAK HADIR'&&String(h.status||'').toUpperCase()!=='HAID'&&String(h.status||'').toUpperCase()!=='KEPUTRIAN'&&!agamaIsIslam(h.agama||s?.agama||'');}
+    function isManualCell(h){return!!h?.manual;}
 
-    function beriWarnaJam(ws, r, c, color) {
-        const ref = XLSX.utils.encode_cell({r, c});
-        if (ws[ref]) ws[ref].s = { fill: { patternType: 'solid', fgColor: { rgb: color } }, font: { bold: true, color: { rgb: '000000' } }, alignment: { horizontal: 'center', vertical: 'center' } };
+    function beriWarnaJam(ws,r,c,color){
+        const ref=XLSX.utils.encode_cell({r,c});
+        if(ws[ref])ws[ref].s={fill:{patternType:'solid',fgColor:{rgb:color}},font:{bold:true,color:{rgb:'000000'}},alignment:{horizontal:'center',vertical:'center'}};
     }
 
     window.downloadHarian = async function() {
-        const key = document.getElementById('tanggalHarian')?.value;
-        if (!key) { showToast('Pilih tanggal', 'error'); return; }
-        if (key === '__ALL__') { await downloadRekapBulanan(); return; }
-        document.getElementById('loadingOverlay').classList.add('show');
-        try {
-            const [d, m, y] = key.split('-').map(Number);
-            const tgl = new Date(y, m-1, d);
-            const header = `${NAMA_HARI[tgl.getDay()]}, ${tgl.toLocaleDateString('id-ID')}`;
-            const zip = new JSZip();
-            const siswaSnap = await db.ref('siswa').once('value');
-            const semua = siswaSnap.val() || {};
-            const presensiSnap = await db.ref('presensi/' + key).once('value');
-            const presensi = presensiSnap.val() || {};
-            for (let kelas in semua) {
-                const daftar = Object.keys(semua[kelas]).map(Number).sort((a,b)=>a-b);
-                const rows = [['NO', 'NAMA', header, 'STATUS']];
-                const warna = [];
-                let hadir = 0;
-                daftar.forEach(no => {
-                    const s = semua[kelas][no] || {};
-                    const h = presensi[`${kelas}_${no}`];
-                    const ri = rows.length;
-                    if (h) {
-                        if (h.status === 'TIDAK HADIR') { rows.push([no, s.nama||h.nama||'-', 'TIDAK HADIR', '❌']); warna.push({r:ri, c:2, color:'FF0000'}); }
-                        else {
-                            rows.push([no, s.nama||h.nama||'-', h.jam||'HADIR', '✅']); hadir++;
-                            if (isManualCell(h)) warna.push({r:ri, c:2, color:'FF0000'});
-                            else if (isHaidCell(h,s)) warna.push({r:ri, c:2, color:'FFC0CB'});
-                            else if (isKeputrianCell(h)) warna.push({r:ri, c:2, color:'D8BFD8'});
-                            else if (isNonMuslimHadirCell(h,s)) warna.push({r:ri, c:2, color:'FFFF00'});
+        const key=document.getElementById('tanggalHarian')?.value;
+        if(!key){showToast('Pilih tanggal','error');return;}
+        if(key==='__ALL__'){await downloadRekapBulanan();return;}
+        document.getElementById('loadingScreen').classList.add('show');
+        try{
+            const[d,m,y]=key.split('-').map(Number),tgl=new Date(y,m-1,d);
+            const header=`${NAMA_HARI[tgl.getDay()]}, ${tgl.toLocaleDateString('id-ID')}`;
+            const zip=new JSZip();
+            const ss=await db.ref('siswa').once('value'),s=ss.val()||{};
+            const ps=await db.ref('presensi/'+key).once('value'),p=ps.val()||{};
+            for(let k in s){
+                const daftar=Object.keys(s[k]).map(Number).sort((a,b)=>a-b);
+                const rows=[['NO','NAMA',header,'STATUS']],warna=[];
+                let hd=0;
+                daftar.forEach(no=>{
+                    const si=s[k][no]||{},h=p[`${k}_${no}`],ri=rows.length;
+                    if(h){
+                        if(h.status==='TIDAK HADIR'){rows.push([no,si.nama||h.nama||'-','TIDAK HADIR','❌']);warna.push({r:ri,c:2,color:'FF0000'});}
+                        else{
+                            rows.push([no,si.nama||h.nama||'-',h.jam||'HADIR','✅']);hd++;
+                            if(isManualCell(h))warna.push({r:ri,c:2,color:'FF0000'});
+                            else if(isHaidCell(h,si))warna.push({r:ri,c:2,color:'FFC0CB'});
+                            else if(isKeputrianCell(h))warna.push({r:ri,c:2,color:'D8BFD8'});
+                            else if(isNonMuslimHadirCell(h,si))warna.push({r:ri,c:2,color:'FFFF00'});
                         }
-                    } else rows.push([no, s.nama||'-', '', '']);
+                    }else rows.push([no,si.nama||'-','','']);
                 });
-                rows.push([], ['', `TOTAL: ${hadir}`, '', '']);
-                const ws = XLSX.utils.aoa_to_sheet(rows);
-                warna.forEach(w => beriWarnaJam(ws, w.r, w.c, w.color));
-                ws['!cols'] = [{wch:8},{wch:28},{wch:20},{wch:8}];
-                const wb = XLSX.utils.book_new();
-                XLSX.utils.book_append_sheet(wb, ws, 'Presensi');
-                zip.file(`HARIAN_${kelas}_${key}.xlsx`, XLSX.write(wb, { bookType: 'xlsx', type: 'array' }));
+                rows.push([],['',`TOTAL: ${hd}`,'','']);
+                const ws=XLSX.utils.aoa_to_sheet(rows);
+                warna.forEach(w=>beriWarnaJam(ws,w.r,w.c,w.color));
+                ws['!cols']=[{wch:8},{wch:28},{wch:20},{wch:8}];
+                const wb=XLSX.utils.book_new();
+                XLSX.utils.book_append_sheet(wb,ws,'Presensi');
+                zip.file(`HARIAN_${k}_${key}.xlsx`,XLSX.write(wb,{bookType:'xlsx',type:'array'}));
             }
-            const blob = await zip.generateAsync({ type: 'blob' });
-            const a = document.createElement('a');
-            a.href = URL.createObjectURL(blob);
-            a.download = `HARIAN_${key}.zip`;
-            a.click();
-            showToast('✅ Download selesai!', 'success');
-        } catch(e) { showToast('Gagal', 'error'); }
-        document.getElementById('loadingOverlay').classList.remove('show');
+            const blob=await zip.generateAsync({type:'blob'});
+            const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=`HARIAN_${key}.zip`;a.click();
+            showToast('Download selesai!','success');
+        }catch(e){showToast('Gagal','error');}
+        document.getElementById('loadingScreen').classList.remove('show');
     };
 
     async function downloadRekapBulanan() {
-        document.getElementById('loadingOverlay').classList.add('show');
-        try {
-            const bulanVal = document.getElementById('pilihBulan')?.value;
-            let tgl = new Date();
-            if (bulanVal) { const [y, m] = bulanVal.split('-'); tgl = new Date(y, m-1, 1); }
-            const bulan = tgl.getMonth(), tahun = tgl.getFullYear();
-            const ftgl = d => d.toLocaleDateString('id-ID').replace(/\//g, '-');
-            const fhdr = d => `${NAMA_HARI[d.getDay()]} ${d.getDate()}/${d.getMonth()+1}`;
-            const semuaTanggal = [];
-            for (let i = 1; i <= new Date(tahun, bulan+1, 0).getDate(); i++) {
-                const d = new Date(tahun, bulan, i);
-                if (d.getDay() >= 1 && d.getDay() <= 5) semuaTanggal.push(d);
-            }
-            const presensiBulanan = {};
-            for (let d of semuaTanggal) { const k = ftgl(d); presensiBulanan[k] = (await db.ref('presensi/' + k).once('value')).val() || {}; }
-            const siswaSnap = await db.ref('siswa').once('value');
-            const semua = siswaSnap.val() || {};
-            const zip = new JSZip();
-            const namaBulan = tgl.toLocaleDateString('id-ID', { month: 'long', year: 'numeric' }).replace(/\s/g, '_');
-            for (let kelas in semua) {
-                const daftar = Object.keys(semua[kelas]).map(Number).sort((a,b)=>a-b);
-                const header = ['NO', 'NAMA', ...semuaTanggal.map(fhdr), 'TOTAL'];
-                const rows = [header];
-                const warna = [];
-                daftar.forEach(no => {
-                    const s = semua[kelas][no] || {};
-                    const row = [no, s.nama||'-'];
-                    const ri = rows.length;
-                    let total = 0;
-                    semuaTanggal.forEach((d, i) => {
-                        const h = (presensiBulanan[ftgl(d)] || {})[`${kelas}_${no}`];
-                        const ci = 2 + i;
-                        if (h) {
-                            if (h.status === 'TIDAK HADIR') { row.push('TIDAK HADIR'); warna.push({r:ri, c:ci, color:'FF0000'}); }
-                            else {
-                                row.push(h.jam||'HADIR'); total++;
-                                if (isManualCell(h)) warna.push({r:ri, c:ci, color:'FF0000'});
-                                else if (isHaidCell(h,s)) warna.push({r:ri, c:ci, color:'FFC0CB'});
-                                else if (isKeputrianCell(h)) warna.push({r:ri, c:ci, color:'D8BFD8'});
-                                else if (isNonMuslimHadirCell(h,s)) warna.push({r:ri, c:ci, color:'FFFF00'});
+        document.getElementById('loadingScreen').classList.add('show');
+        try{
+            const bv=document.getElementById('pilihBulan')?.value;
+            let tgl=new Date();
+            if(bv){const[y,m]=bv.split('-');tgl=new Date(y,m-1,1);}
+            const bln=tgl.getMonth(),thn=tgl.getFullYear();
+            const ft=d=>d.toLocaleDateString('id-ID').replace(/\//g,'-');
+            const fh=d=>`${NAMA_HARI[d.getDay()]} ${d.getDate()}/${d.getMonth()+1}`;
+            const st=[];
+            for(let i=1;i<=new Date(thn,bln+1,0).getDate();i++){const d=new Date(thn,bln,i);if(d.getDay()>=1&&d.getDay()<=5)st.push(d);}
+            const pb={};
+            for(let d of st){const k=ft(d);pb[k]=(await db.ref('presensi/'+k).once('value')).val()||{};}
+            const ss=await db.ref('siswa').once('value'),s=ss.val()||{};
+            const zip=new JSZip();
+            const nb=tgl.toLocaleDateString('id-ID',{month:'long',year:'numeric'}).replace(/\s/g,'_');
+            for(let k in s){
+                const df=Object.keys(s[k]).map(Number).sort((a,b)=>a-b);
+                const hdr=['NO','NAMA',...st.map(fh),'TOTAL'],rows=[hdr],warna=[];
+                df.forEach(no=>{
+                    const si=s[k][no]||{},row=[no,si.nama||'-'];const ri=rows.length;let t=0;
+                    st.forEach((d,i)=>{
+                        const h=(pb[ft(d)]||{})[`${k}_${no}`],ci=2+i;
+                        if(h){
+                            if(h.status==='TIDAK HADIR'){row.push('TIDAK HADIR');warna.push({r:ri,c:ci,color:'FF0000'});}
+                            else{
+                                row.push(h.jam||'HADIR');t++;
+                                if(isManualCell(h))warna.push({r:ri,c:ci,color:'FF0000'});
+                                else if(isHaidCell(h,si))warna.push({r:ri,c:ci,color:'FFC0CB'});
+                                else if(isKeputrianCell(h))warna.push({r:ri,c:ci,color:'D8BFD8'});
+                                else if(isNonMuslimHadirCell(h,si))warna.push({r:ri,c:ci,color:'FFFF00'});
                             }
-                        } else row.push('');
+                        }else row.push('');
                     });
-                    row.push(total); rows.push(row);
+                    row.push(t);rows.push(row);
                 });
-                const ws = XLSX.utils.aoa_to_sheet(rows);
-                warna.forEach(w => beriWarnaJam(ws, w.r, w.c, w.color));
-                ws['!cols'] = [{wch:8},{wch:28},...semuaTanggal.map(() => ({wch:14})),{wch:10}];
-                const wb = XLSX.utils.book_new();
-                XLSX.utils.book_append_sheet(wb, ws, 'Rekap');
-                zip.file(`REKAP_${kelas}_${namaBulan}.xlsx`, XLSX.write(wb, { bookType: 'xlsx', type: 'array' }));
+                const ws=XLSX.utils.aoa_to_sheet(rows);
+                warna.forEach(w=>beriWarnaJam(ws,w.r,w.c,w.color));
+                ws['!cols']=[{wch:8},{wch:28},...st.map(()=>({wch:14})),{wch:10}];
+                const wb=XLSX.utils.book_new();
+                XLSX.utils.book_append_sheet(wb,ws,'Rekap');
+                zip.file(`REKAP_${k}_${nb}.xlsx`,XLSX.write(wb,{bookType:'xlsx',type:'array'}));
             }
-            const blob = await zip.generateAsync({ type: 'blob' });
-            const a = document.createElement('a');
-            a.href = URL.createObjectURL(blob);
-            a.download = `REKAP_${namaBulan}.zip`;
-            a.click();
-            showToast('✅ Download rekap selesai!', 'success');
-        } catch(e) { showToast('Gagal', 'error'); }
-        document.getElementById('loadingOverlay').classList.remove('show');
+            const blob=await zip.generateAsync({type:'blob'});
+            const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=`REKAP_${nb}.zip`;a.click();
+            showToast('Download selesai!','success');
+        }catch(e){showToast('Gagal','error');}
+        document.getElementById('loadingScreen').classList.remove('show');
     };
 
-    // ── IMPORT EXCEL ───────────────────────────────
     window.importExcel = async function() {
-        const file = document.getElementById('fileExcel')?.files[0];
-        if (!file) { showToast('Pilih file!', 'error'); return; }
-        document.getElementById('loadingOverlay').classList.add('show');
-        const progress = document.getElementById('importProgress');
-        const result = document.getElementById('importResult');
-        progress.style.display = '';
-        result.style.display = 'none';
-        progress.innerText = 'Membaca file...';
-        try {
-            const wb = XLSX.read(await file.arrayBuffer(), { type: 'array' });
-            const semua = {};
-            wb.SheetNames.forEach(sn => {
-                const kelas = sn.trim().replace(/\./g, '-');
-                if (!/^X/.test(kelas)) return;
-                const ws = wb.Sheets[sn];
-                const rows = XLSX.utils.sheet_to_json(ws, { header: 1, defval: '' });
-                let hi = -1;
-                for (let i = 0; i < rows.length; i++) {
-                    const r = rows[i].map(c => String(c).toLowerCase());
-                    if (r.some(c => c.includes('nama')) && r.some(c => c === 'no' || c.includes('no'))) { hi = i; break; }
+        const file=document.getElementById('fileExcel')?.files[0];
+        if(!file){showToast('Pilih file!','error');return;}
+        document.getElementById('loadingScreen').classList.add('show');
+        const pg=document.getElementById('importProgress'),rs=document.getElementById('importResult');
+        pg.style.display='';rs.style.display='none';pg.innerText='Membaca...';
+        try{
+            const wb=XLSX.read(await file.arrayBuffer(),{type:'array'});
+            const semua={};
+            wb.SheetNames.forEach(sn=>{
+                const k=sn.trim().replace(/\./g,'-');
+                if(!/^X/.test(k))return;
+                const ws=wb.Sheets[sn],rows=XLSX.utils.sheet_to_json(ws,{header:1,defval:''});
+                let hi=-1;
+                for(let i=0;i<rows.length;i++){const r=rows[i].map(c=>String(c).toLowerCase());if(r.some(c=>c.includes('nama'))&&r.some(c=>c==='no'||c.includes('no'))){hi=i;break;}}
+                if(hi===-1)return;
+                const hdr=rows[hi].map(c=>String(c).toLowerCase().trim());
+                const iNo=hdr.findIndex(h=>h==='no'||h==='no.');
+                const iNama=hdr.findIndex(h=>h.includes('nama'));
+                const iJK=hdr.findIndex(h=>h==='jk'||h==='l/p'||h.includes('jenis'));
+                const iAgama=hdr.findIndex(h=>h.includes('agama'));
+                if(iNama===-1)return;
+                const sw=[];
+                for(let i=hi+1;i<rows.length;i++){
+                    const row=rows[i],nama=String(row[iNama]||'').trim();
+                    if(!nama||nama.toLowerCase().includes('jumlah'))continue;
+                    sw.push({no:iNo!==-1?String(row[iNo]||'').trim():String(i-hi),nama:nama.toUpperCase(),jk:iJK!==-1?String(row[iJK]||'L').trim().toUpperCase():'L',agama:iAgama!==-1?String(row[iAgama]||'Islam').trim():'Islam'});
                 }
-                if (hi === -1) return;
-                const hdr = rows[hi].map(c => String(c).toLowerCase().trim());
-                const iNo = hdr.findIndex(h => h === 'no' || h === 'no.');
-                const iNama = hdr.findIndex(h => h.includes('nama'));
-                const iJK = hdr.findIndex(h => h === 'jk' || h === 'l/p' || h.includes('jenis'));
-                const iAgama = hdr.findIndex(h => h.includes('agama'));
-                if (iNama === -1) return;
-                const siswas = [];
-                for (let i = hi + 1; i < rows.length; i++) {
-                    const row = rows[i];
-                    const nama = String(row[iNama] || '').trim();
-                    if (!nama || nama.toLowerCase().includes('jumlah')) continue;
-                    siswas.push({
-                        no: iNo !== -1 ? String(row[iNo] || '').trim() : String(i - hi),
-                        nama: nama.toUpperCase(),
-                        jk: iJK !== -1 ? String(row[iJK] || 'L').trim().toUpperCase() : 'L',
-                        agama: iAgama !== -1 ? String(row[iAgama] || 'Islam').trim() : 'Islam'
-                    });
-                }
-                if (siswas.length > 0) semua[kelas] = siswas;
+                if(sw.length>0)semua[k]=sw;
             });
-            const kelasList = Object.keys(semua);
-            if (kelasList.length === 0) throw new Error('Tidak ada data');
-            const zip = new JSZip();
-            let total = 0;
-            for (let kelas of kelasList) {
-                const folder = zip.folder(kelas);
-                for (let s of semua[kelas]) {
-                    await db.ref('siswa/' + kelas + '/' + s.no).set({
-                        nama: s.nama, kelas, absen: s.no, jk: s.jk === 'P' ? 'P' : 'L', agama: s.agama,
-                        totalHadir: 0, terdaftar: Date.now()
-                    });
-                    const canvas = document.createElement('canvas');
-                    canvas.width = 300; canvas.height = 350;
-                    const ctx = canvas.getContext('2d');
-                    ctx.fillStyle = '#fff'; ctx.fillRect(0, 0, 300, 350);
-                    const div = document.createElement('div');
-                    div.style.cssText = 'position:absolute;left:-9999px;';
-                    document.body.appendChild(div);
-                    await new Promise(r => { new QRCode(div, { text: `${s.nama}|${kelas}|${s.no}|${s.jk}|${s.agama}`, width: 250, height: 250 }); setTimeout(r, 200); });
-                    const img = div.querySelector('img') || div.querySelector('canvas');
-                    if (img) {
-                        const i = new Image();
-                        i.src = img.tagName === 'CANVAS' ? img.toDataURL() : img.src;
-                        await new Promise(r => { i.onload = r; });
-                        ctx.drawImage(i, 25, 10, 250, 250);
-                    }
+            const kl=Object.keys(semua);
+            if(kl.length===0)throw new Error('Tidak ada data');
+            const zip=new JSZip();let t=0;
+            for(let k of kl){
+                const folder=zip.folder(k);
+                for(let s of semua[k]){
+                    await db.ref('siswa/'+k+'/'+s.no).set({nama:s.nama,kelas:k,absen:s.no,jk:s.jk==='P'?'P':'L',agama:s.agama,totalHadir:0,terdaftar:Date.now()});
+                    const cv=document.createElement('canvas');cv.width=300;cv.height=350;
+                    const ctx=cv.getContext('2d');ctx.fillStyle='#fff';ctx.fillRect(0,0,300,350);
+                    const div=document.createElement('div');div.style.cssText='position:absolute;left:-9999px;';document.body.appendChild(div);
+                    await new Promise(r=>{new QRCode(div,{text:`${s.nama}|${k}|${s.no}|${s.jk}|${s.agama}`,width:250,height:250});setTimeout(r,200);});
+                    const img=div.querySelector('img')||div.querySelector('canvas');
+                    if(img){const i=new Image();i.src=img.tagName==='CANVAS'?img.toDataURL():img.src;await new Promise(r=>{i.onload=r;});ctx.drawImage(i,25,10,250,250);}
                     document.body.removeChild(div);
-                    ctx.fillStyle = '#000'; ctx.font = 'bold 11px Arial'; ctx.textAlign = 'center';
-                    ctx.fillText(s.nama.substring(0, 28), 150, 275);
-                    ctx.font = '10px Arial'; ctx.fillText(`${kelas} | Absen ${s.no} | ${s.jk} | ${s.agama}`, 150, 295);
-                    folder.file(`QR_${s.no}.png`, canvas.toDataURL('image/png').split(',')[1], { base64: true });
-                    total++;
+                    ctx.fillStyle='#000';ctx.font='bold 11px Arial';ctx.textAlign='center';ctx.fillText(s.nama.substring(0,28),150,275);
+                    ctx.font='10px Arial';ctx.fillText(`${k} | Absen ${s.no} | ${s.jk} | ${s.agama}`,150,295);
+                    folder.file(`QR_${s.no}.png`,cv.toDataURL('image/png').split(',')[1],{base64:true});t++;
                 }
-                progress.innerText = `Generate: ${total} siswa...`;
+                pg.innerText=`Generate: ${t} siswa...`;
             }
-            const blob = await zip.generateAsync({ type: 'blob' });
-            const a = document.createElement('a');
-            a.href = URL.createObjectURL(blob);
-            a.download = `BULK_QR_${new Date().toLocaleDateString('id-ID').replace(/\//g,'-')}.zip`;
-            a.click();
-            result.style.display = '';
-            result.innerHTML = `<div style="background:rgba(0,255,136,0.1); border:1px solid rgba(0,255,136,0.2); border-radius:10px; padding:12px; font-size:12px; color:var(--emerald); text-align:center;">✅ ${total} siswa dari ${kelasList.length} kelas</div>`;
-            progress.style.display = 'none';
-            showToast(`✨ ${total} QR berhasil!`, 'success');
-            updateDashboard();
-            loadManualAbsenOptions();
-        } catch(e) { showToast('Gagal: ' + e.message, 'error'); progress.innerText = '❌ ' + e.message; }
-        document.getElementById('loadingOverlay').classList.remove('show');
+            const blob=await zip.generateAsync({type:'blob'});
+            const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=`BULK_QR_${new Date().toLocaleDateString('id-ID').replace(/\//g,'-')}.zip`;a.click();
+            rs.style.display='';rs.innerHTML=`<div style="background:rgba(16,185,129,0.08);border:1px solid rgba(16,185,129,0.2);border-radius:8px;padding:10px;font-size:11px;color:var(--accent-green);text-align:center;">✅ ${t} siswa dari ${kl.length} kelas</div>`;
+            pg.style.display='none';showToast(`${t} QR berhasil!`,'success');updateDashboard();loadManualAbsenOptions();
+        }catch(e){showToast('Gagal: '+e.message,'error');pg.innerText='❌ '+e.message;}
+        document.getElementById('loadingScreen').classList.remove('show');
     };
 
-    // ── NAIK KELAS ───────────────────────────────
     window.startScanNaikKelas = function() {
-        document.getElementById('btnStartNaik').style.display = 'none';
-        document.getElementById('btnStopNaik').style.display = '';
-        scannerNaik = new Html5Qrcode("readerNaik");
-        scannerNaik.start({ facingMode: "environment" }, { fps: 10, qrbox: 180 },
-            (text) => { scannerNaik.pause(); prosesQRNaik(text); }, () => {}
-        ).catch(e => {
-            showToast('Gagal: ' + e, 'error');
-            document.getElementById('btnStartNaik').style.display = '';
-            document.getElementById('btnStopNaik').style.display = 'none';
+        document.getElementById('btnStartNaik').style.display='none';document.getElementById('btnStopNaik').style.display='';
+        scannerNaik=new Html5Qrcode("readerNaik");
+        scannerNaik.start({facingMode:"environment"},{fps:10,qrbox:180},text=>{scannerNaik.pause();prosesQRNaik(text);},()=>{}).catch(e=>{
+            showToast('Gagal: '+e,'error');
+            document.getElementById('btnStartNaik').style.display='';document.getElementById('btnStopNaik').style.display='none';
         });
     };
 
     window.stopScanNaikKelas = function() {
-        try { if (scannerNaik?.isScanning) scannerNaik.stop(); } catch(e) {}
-        document.getElementById('btnStartNaik').style.display = '';
-        document.getElementById('btnStopNaik').style.display = 'none';
+        try{if(scannerNaik?.isScanning)scannerNaik.stop();}catch(e){}
+        document.getElementById('btnStartNaik').style.display='';document.getElementById('btnStopNaik').style.display='none';
     };
 
     async function prosesQRNaik(text) {
-        try {
-            let { nama, kelas: kl, absen: al } = parseQRPresensi(text);
-            if (listSiswaScanned.find(s => s.nama.toUpperCase() === nama.toUpperCase())) {
-                showFeedbackNaik('⚠️', nama, 'Sudah discan!', 'background:linear-gradient(135deg,#664400,#ffaa00)');
-                setTimeout(() => scannerNaik?.resume(), 1500);
-                return;
+        try{
+            let{nama,kelas:kl,absen:al}=parseQRPresensi(text);
+            if(listSiswaScanned.find(s=>s.nama.toUpperCase()===nama.toUpperCase())){
+                showFeedbackNaik('⚠️',nama,'Sudah discan!','var(--accent-amber)');
+                setTimeout(()=>scannerNaik?.resume(),1500);return;
             }
-            const snap = await db.ref('siswa/' + kl + '/' + al).once('value');
-            if (!snap.exists()) throw 'Tidak ditemukan';
-            const data = { ...snap.val(), kelasLama: kl, absenLama: al };
-            if (data.nama && normalisasiNamaQR(data.nama) !== normalisasiNamaQR(nama)) throw 'Data tidak cocok';
-            listSiswaScanned.push(data);
-            renderListNaik();
-            showFeedbackNaik('✅', data.nama || nama, `Ditambahkan (${listSiswaScanned.length})`, 'background:linear-gradient(135deg,#006644,#00ff88)');
+            const snap=await db.ref('siswa/'+kl+'/'+al).once('value');
+            if(!snap.exists())throw'Tidak ditemukan';
+            const data={...snap.val(),kelasLama:kl,absenLama:al};
+            if(data.nama&&normalisasiNamaQR(data.nama)!==normalisasiNamaQR(nama))throw'Data tidak cocok';
+            listSiswaScanned.push(data);renderListNaik();
+            showFeedbackNaik('✅',data.nama||nama,`Ditambahkan (${listSiswaScanned.length})`,'var(--accent-green)');
             playBeep('success');
-        } catch(e) {
-            showFeedbackNaik('❌', 'GAGAL', e.toString(), 'background:linear-gradient(135deg,#990000,#ff4444)');
+        }catch(e){
+            showFeedbackNaik('❌','GAGAL',e.toString(),'var(--accent-red)');
             playBeep('error');
         }
-        setTimeout(() => { try { scannerNaik?.resume(); } catch(e) {} }, 1800);
+        setTimeout(()=>{try{scannerNaik?.resume();}catch(e){}},1800);
     }
 
-    function showFeedbackNaik(icon, nama, msg, bg) {
-        const fb = document.getElementById('feedbackNaik');
-        document.getElementById('fbNaikIcon').innerText = icon;
-        document.getElementById('fbNaikNama').innerText = nama;
-        document.getElementById('fbNaikMsg').innerText = msg;
-        document.getElementById('fbNaikBox').style = `text-align:center; padding:24px 32px; border-radius:14px; ${bg};`;
+    function showFeedbackNaik(icon,nama,msg,bg){
+        const fb=document.getElementById('feedbackNaik');
+        document.getElementById('fbNaikIcon').innerText=icon;
+        document.getElementById('fbNaikNama').innerText=nama;
+        document.getElementById('fbNaikMsg').innerText=msg;
+        document.getElementById('fbNaikBox').style=`text-align:center;padding:20px 28px;border-radius:10px;background:${bg};`;
         fb.classList.add('show');
-        setTimeout(() => fb.classList.remove('show'), 1800);
+        setTimeout(()=>fb.classList.remove('show'),1800);
     }
 
-    function renderListNaik() {
-        const c = document.getElementById('listScanNaik');
-        if (!c) return;
-        if (listSiswaScanned.length === 0) {
-            c.innerHTML = '<div class="empty-state"><i class="fas fa-user-plus"></i><p>Belum ada scan</p></div>';
-            return;
-        }
-        c.innerHTML = listSiswaScanned.map((s, i) => `
-            <div style="display:flex; justify-content:space-between; align-items:center; padding:10px 14px; background:rgba(20,20,50,0.3); border:1px solid rgba(255,255,255,0.04); border-radius:10px;">
-                <div>
-                    <div style="font-size:12px; font-weight:700; color:#eee;">${s.nama}</div>
-                    <div style="font-size:10px; color:#555;">${s.kelasLama || '?'} → dipindah</div>
-                </div>
-                <button onclick="hapusScanNaik(${i})" style="background:rgba(255,107,107,0.1); color:var(--coral); border:none; border-radius:6px; padding:4px 8px; cursor:pointer;">✕</button>
+    function renderListNaik(){
+        const c=document.getElementById('listScanNaik');
+        if(!c)return;
+        if(listSiswaScanned.length===0){c.innerHTML='<div class="empty-state"><i class="fas fa-user-plus"></i><p>Belum ada scan</p></div>';return;}
+        c.innerHTML=listSiswaScanned.map((s,i)=>`
+            <div style="display:flex;justify-content:space-between;align-items:center;padding:10px 12px;background:var(--bg-card);border:1px solid var(--border);border-radius:8px;">
+                <div><div style="font-size:12px;font-weight:700;color:var(--text-primary);">${s.nama}</div><div style="font-size:10px;color:var(--text-muted);">${s.kelasLama||'?'} → dipindah</div></div>
+                <button onclick="hapusScanNaik(${i})" class="btn-icon danger" style="width:26px;height:26px;font-size:10px;"><i class="fas fa-times"></i></button>
             </div>
         `).join('');
     }
 
-    window.hapusScanNaik = function(i) { listSiswaScanned.splice(i, 1); renderListNaik(); };
-    window.resetNaikKelas = function() { listSiswaScanned = []; renderListNaik(); showToast('Reset', 'success'); };
+    window.hapusScanNaik = function(i){listSiswaScanned.splice(i,1);renderListNaik();};
+    window.resetNaikKelas = function(){listSiswaScanned=[];renderListNaik();showToast('Reset','success');};
 
     window.simpanNaikKelas = async function() {
-        if (listSiswaScanned.length === 0) { showToast('Kosong!', 'error'); return; }
-        const tujuan = document.getElementById('kelasTujuan')?.value;
-        if (!tujuan) { showToast('Pilih kelas!', 'error'); return; }
-        document.getElementById('loadingOverlay').classList.add('show');
-        try {
-            const sorted = [...listSiswaScanned].sort((a,b) => a.nama.localeCompare(b.nama));
-            for (let i = 0; i < sorted.length; i++) {
-                const s = sorted[i];
-                if (s.kelasLama && s.absenLama) await db.ref('siswa/' + s.kelasLama + '/' + s.absenLama).remove();
-                await db.ref('siswa/' + tujuan + '/' + (i + 1)).set({
-                    nama: s.nama, kelas: tujuan, absen: String(i + 1),
-                    jk: s.jk || 'L', agama: s.agama || 'Islam',
-                    totalHadir: s.totalHadir || 0, terdaftar: s.terdaftar || Date.now()
-                });
+        if(listSiswaScanned.length===0){showToast('Kosong!','error');return;}
+        const tujuan=document.getElementById('kelasTujuan')?.value;
+        if(!tujuan){showToast('Pilih kelas!','error');return;}
+        document.getElementById('loadingScreen').classList.add('show');
+        try{
+            const sorted=[...listSiswaScanned].sort((a,b)=>a.nama.localeCompare(b.nama));
+            for(let i=0;i<sorted.length;i++){
+                const s=sorted[i];
+                if(s.kelasLama&&s.absenLama)await db.ref('siswa/'+s.kelasLama+'/'+s.absenLama).remove();
+                await db.ref('siswa/'+tujuan+'/'+(i+1)).set({nama:s.nama,kelas:tujuan,absen:String(i+1),jk:s.jk||'L',agama:s.agama||'Islam',totalHadir:s.totalHadir||0,terdaftar:s.terdaftar||Date.now()});
             }
-            showToast(`✨ ${sorted.length} siswa ke ${tujuan}!`, 'success');
-            listSiswaScanned = []; renderListNaik(); updateDashboard(); loadManualAbsenOptions();
-        } catch(e) { showToast('Gagal', 'error'); }
-        document.getElementById('loadingOverlay').classList.remove('show');
+            showToast(`${sorted.length} siswa ke ${tujuan}!`,'success');
+            listSiswaScanned=[];renderListNaik();updateDashboard();loadManualAbsenOptions();
+        }catch(e){showToast('Gagal','error');}
+        document.getElementById('loadingScreen').classList.remove('show');
     };
 
-    // ── RESET ───────────────────────────────
     window.resetTotalHadir = async function() {
-        if (!confirm('⚠️ Reset semua total hadir ke 0? Tidak bisa dibatalkan!')) return;
-        document.getElementById('loadingOverlay').classList.add('show');
-        try {
-            const snap = await db.ref('siswa').once('value');
-            const data = snap.val() || {};
-            const updates = {};
-            for (let k in data) for (let a in data[k]) updates[`siswa/${k}/${a}/totalHadir`] = 0;
-            await db.ref().update(updates);
-            showToast('✅ Berhasil direset!', 'success');
-            updateDashboard();
-        } catch(e) { showToast('Gagal', 'error'); }
-        document.getElementById('loadingOverlay').classList.remove('show');
+        if(!confirm('Reset semua total hadir ke 0? Tidak bisa dibatalkan!'))return;
+        document.getElementById('loadingScreen').classList.add('show');
+        try{
+            const snap=await db.ref('siswa').once('value'),d=snap.val()||{},up={};
+            for(let k in d)for(let a in d[k])up[`siswa/${k}/${a}/totalHadir`]=0;
+            await db.ref().update(up);
+            showToast('Berhasil direset!','success');updateDashboard();
+        }catch(e){showToast('Gagal','error');}
+        document.getElementById('loadingScreen').classList.remove('show');
     };
 
-    // ── SW CLEANUP ───────────────────────────────
-    if ('serviceWorker' in navigator) {
-        navigator.serviceWorker.getRegistrations().then(r => r.forEach(reg => reg.unregister())).catch(() => {});
+    if('serviceWorker' in navigator){
+        navigator.serviceWorker.getRegistrations().then(r=>r.forEach(reg=>reg.unregister())).catch(()=>{});
     }
-
     renderListNaik();
 </script>
 </body>
