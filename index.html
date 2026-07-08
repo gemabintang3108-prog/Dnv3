@@ -1573,54 +1573,98 @@
 
     function normalisasiNamaQR(v){return(v||'').toString().trim().replace(/\s+/g,' ').toUpperCase();}
 
-    function parseQRPresensi(text) {
-        if(!text?.toString().trim())throw'QR kosong';
-        const raw=text.toString().trim();
-        if(raw.includes('|')){
-            const p=raw.split('|').map(v=>v.trim());
-            if(p.length!==5)throw'Bukan QR presensi';
-            const[nama,kl,al,jk,ag]=p;
-            if(!nama||!kl||!al||!jk||!ag)throw'Data tidak lengkap';
-            return{nama:nama.trim(),kelas:kl.toUpperCase(),absen:al.replace(/\D/g,''),jk:jk.toUpperCase(),agama:ag.trim()};
-        }
-        throw'Format tidak dikenal';
+// ── PARSE QR (tetap sama) ──
+function parseQRPresensi(text) {
+    if(!text?.toString().trim()) throw 'QR kosong';
+    const raw = text.toString().trim();
+    if(raw.includes('|')){
+        const p = raw.split('|').map(v => v.trim());
+        if(p.length !== 5) throw 'Bukan QR presensi';
+        const [nama, kl, al, jk, ag] = p;
+        if(!nama || !kl || !al || !jk || !ag) throw 'Data tidak lengkap';
+        return { nama: nama.trim(), kelas: kl.toUpperCase(), absen: al.replace(/\D/g,''), jk: jk.toUpperCase(), agama: ag.trim() };
     }
+    throw 'Format tidak dikenal';
+}
 
-    async function prosesQR(text) {
-        mode=getModeAktif();
-        document.getElementById('loadingOverlay').classList.add('show');
-        try{
-            let{nama,kelas,absen,jk,agama}=parseQRPresensi(text);
-            const ref=db.ref('siswa/'+kelas+'/'+absen);
-            const snap=await ref.once('value');
-            if(!snap.exists())throw'Siswa tidak ditemukan';
-            let ds=snap.val()||{};
-            if(ds.nama&&normalisasiNamaQR(ds.nama)!==normalisasiNamaQR(nama))throw'QR tidak cocok';
-            nama=ds.nama||nama;jk=(ds.jk||jk||'L').toUpperCase();agama=ds.agama||agama||'Islam';
-            if(mode==='Haid'||mode==='Keputrian'){if(jk!=='P')throw`Mode ${mode} hanya untuk perempuan!`;}
-            else{
-                const am=agama==='Islam'?'Islam':'NonIslam';
-                if(am!==mode)throw agama==='Islam'?'Gunakan mode Islam':'Gunakan mode Non Islam';
+// ── PROSES QR (DIPERBAIKI) ──
+async function prosesQR(text) {
+    mode = getModeAktif();
+    document.getElementById('loadingOverlay').classList.add('show');
+    try {
+        let { nama, kelas, absen, jk, agama } = parseQRPresensi(text);
+        
+        // Cari data berdasarkan QR
+        let ref = db.ref('siswa/' + kelas + '/' + absen);
+        let snap = await ref.once('value');
+        let ds = snap.val();
+        
+        // 🔥 Jika tidak ditemukan, cari berdasarkan NAMA
+        if (!ds) {
+            const allSiswa = await db.ref('siswa').once('value');
+            const data = allSiswa.val() || {};
+            let found = false;
+            
+            for (let k in data) {
+                for (let a in data[k]) {
+                    const siswa = data[k][a];
+                    if (siswa.nama && siswa.nama.toUpperCase() === nama.toUpperCase()) {
+                        ds = siswa;
+                        kelas = k;
+                        absen = a;
+                        ref = db.ref('siswa/' + k + '/' + a);
+                        found = true;
+                        break;
+                    }
+                }
+                if (found) break;
             }
-            const today=new Date().toLocaleDateString('id-ID').replace(/\//g,'-');
-            const pr=db.ref('presensi/'+today+'/'+kelas+'_'+absen);
-            if((await pr.once('value')).exists())throw'Sudah absen!';
-            let th=(ds.totalHadir||0)+1;
-            await ref.set({...ds,nama,kelas,absen,jk,agama,totalHadir:th,lastUpdate:Date.now()});
-            const jam=(mode==='Haid'||mode==='Keputrian')?mode.toUpperCase():new Date().toLocaleTimeString('id-ID');
-            const status=mode==='Islam'?'DZUHUR':mode==='Haid'?'HAID':mode==='Keputrian'?'KEPUTRIAN':'IBADAH';
-            await pr.set({nama,kelas,absen,jk,agama,jam,status,totalHadir:th,timestamp:Date.now()});
-            const msg=mode==='Haid'?'Tercatat Haid':mode==='Keputrian'?'Hadir Keputrian':`Hadir ke-${th}`;
-            feedback('✅',nama,msg,'var(--accent-green)');
-            showToast(`${nama} — ${msg}`,'success');playBeep('success');updateDashboard();
-        }catch(e){
-            feedback('❌','GAGAL',e.toString(),'var(--accent-red)');
-            showToast(e.toString(),'error');playBeep('error');
+            
+            if (!found) throw 'Siswa tidak ditemukan. Pastikan QR sudah terdaftar.';
+            
+            // Update variabel dengan data asli dari Firebase
+            nama = ds.nama;
+            jk = ds.jk || 'L';
+            agama = ds.agama || 'Islam';
         }
-        document.getElementById('loadingOverlay').classList.remove('show');
-        setTimeout(()=>{try{scanner?.resume();}catch(e){}},2000);
+        
+        // Validasi mode
+        if (mode === 'Haid' || mode === 'Keputrian') {
+            if (jk !== 'P') throw `Mode ${mode} hanya untuk perempuan!`;
+        } else {
+            const am = agama === 'Islam' ? 'Islam' : 'NonIslam';
+            if (am !== mode) throw agama === 'Islam' ? 'Gunakan mode Islam' : 'Gunakan mode Non Islam';
+        }
+        
+        // Cek apakah sudah absen hari ini
+        const today = new Date().toLocaleDateString('id-ID').replace(/\//g,'-');
+        const pr = db.ref('presensi/' + today + '/' + kelas + '_' + absen);
+        if ((await pr.once('value')).exists()) throw 'Sudah absen!';
+        
+        // Update total hadir
+        let th = (ds.totalHadir || 0) + 1;
+        await ref.set({ ...ds, nama, kelas, absen, jk, agama, totalHadir: th, lastUpdate: Date.now() });
+        
+        // Catat presensi
+        const jam = (mode === 'Haid' || mode === 'Keputrian') ? mode.toUpperCase() : new Date().toLocaleTimeString('id-ID');
+        const status = mode === 'Islam' ? 'DZUHUR' : mode === 'Haid' ? 'HAID' : mode === 'Keputrian' ? 'KEPUTRIAN' : 'IBADAH';
+        await pr.set({ nama, kelas, absen, jk, agama, jam, status, totalHadir: th, timestamp: Date.now() });
+        
+        const msg = mode === 'Haid' ? 'Tercatat Haid' : mode === 'Keputrian' ? 'Hadir Keputrian' : `Hadir ke-${th}`;
+        feedback('✅', nama, msg, 'var(--accent-green)');
+        showToast(`${nama} — ${msg}`, 'success');
+        playBeep('success');
+        updateDashboard();
+        
+    } catch(e) {
+        feedback('❌', 'GAGAL', e.toString(), 'var(--accent-red)');
+        showToast(e.toString(), 'error');
+        playBeep('error');
     }
-
+    document.getElementById('loadingOverlay').classList.remove('show');
+    setTimeout(() => { try { scanner?.resume(); } catch(e) {} }, 2000);
+}
+    
     function feedback(icon,name,msg,bg) {
         const fb=document.getElementById('feedback');
         document.getElementById('fbIcon').innerText=icon;
