@@ -1518,8 +1518,108 @@
         });
     };
 
-    // ── QR, Camera, Manual, Download, Import, Naik Kelas, Reset ──
-    // (Fungsi-fungsi ini sama persis seperti di kode sebelumnya, tidak ada perubahan logika)
+    // ── QR TEMPLATE HELPERS ──
+    function roundRectPath(ctx, x, y, w, h, r) {
+        ctx.beginPath();
+        ctx.moveTo(x + r, y);
+        ctx.arcTo(x + w, y, x + w, y + h, r);
+        ctx.arcTo(x + w, y + h, x, y + h, r);
+        ctx.arcTo(x, y + h, x, y, r);
+        ctx.arcTo(x, y, x + w, y, r);
+        ctx.closePath();
+    }
+
+    function generateQRImage(text, size = 340) {
+        return new Promise(resolve => {
+            const div = document.createElement('div');
+            div.style.cssText = 'position:absolute;left:-9999px;';
+            document.body.appendChild(div);
+            new QRCode(div, { text, width: size, height: size, correctLevel: QRCode.CorrectLevel.M });
+            setTimeout(() => {
+                const el = div.querySelector('img') || div.querySelector('canvas');
+                const img = new Image();
+                img.onload = () => { document.body.removeChild(div); resolve(img); };
+                img.src = el.tagName === 'CANVAS' ? el.toDataURL() : el.src;
+            }, 150);
+        });
+    }
+
+    async function generateKartuIbadah({ nama, kelas, absen, qrText }) {
+        const qrImg = await generateQRImage(qrText, 340);
+        const canvas = document.createElement('canvas');
+        canvas.width = 750; canvas.height = 1250;
+        const ctx = canvas.getContext('2d');
+
+        ctx.fillStyle = '#f3f2f5';
+        ctx.fillRect(0, 0, 750, 1250);
+
+        const topGrad = ctx.createLinearGradient(0, 0, 750, 0);
+        topGrad.addColorStop(0, '#ec4899');
+        topGrad.addColorStop(0.55, '#f97316');
+        topGrad.addColorStop(1, '#fbbf24');
+        ctx.fillStyle = topGrad;
+        ctx.fillRect(0, 0, 750, 110);
+
+        ctx.fillStyle = '#2d2a6e';
+        ctx.beginPath(); ctx.arc(65, 55, 30, 0, Math.PI * 2); ctx.fill();
+        ctx.fillStyle = '#fff';
+        ctx.font = '28px sans-serif';
+        ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+        ctx.fillText('🕌', 65, 57);
+
+        ctx.fillStyle = '#fff';
+        ctx.font = '700 28px Arial';
+        ctx.textAlign = 'left';
+        ctx.fillText('SMAN 12 Jakarta', 112, 56);
+
+        ctx.fillStyle = '#dc2626';
+        ctx.font = '900 60px Arial';
+        ctx.textAlign = 'center';
+        ctx.fillText('KARTU IBADAH', 375, 225);
+
+        ctx.fillStyle = '#1e3a5f';
+        ctx.font = '600 24px Arial';
+        ctx.fillText('Jadikanlah sabar dan Solat', 375, 300);
+        ctx.fillText('sebagai Penolongmu', 375, 332);
+
+        ctx.fillStyle = '#1e3a5f';
+        ctx.font = '700 26px Arial';
+        ctx.textAlign = 'left';
+        ctx.fillText('Scan Here!', 270, 405);
+
+        const bx = 170, by = 430, bw = 410, bh = 430, r = 18;
+        ctx.strokeStyle = '#6b21a8';
+        ctx.lineWidth = 6;
+        roundRectPath(ctx, bx, by, bw, bh, r);
+        ctx.stroke();
+        ctx.drawImage(qrImg, bx + 30, by + 45, bw - 60, bh - 90);
+
+        const gy = 900;
+        const nameGrad = ctx.createLinearGradient(bx, 0, bx + bw, 0);
+        nameGrad.addColorStop(0, '#ec4899');
+        nameGrad.addColorStop(1, '#fbbf24');
+        ctx.fillStyle = nameGrad;
+        roundRectPath(ctx, bx, gy, bw, 80, 10);
+        ctx.fill();
+        ctx.fillStyle = '#1e3a5f';
+        ctx.font = '800 26px Arial';
+        ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+        ctx.fillText(nama.toUpperCase(), bx + bw / 2, gy + 30);
+        ctx.font = '600 16px Arial';
+        ctx.fillText(`${kelas} • Absen ${absen}`, bx + bw / 2, gy + 58);
+
+        const footGrad = ctx.createLinearGradient(0, 0, 750, 0);
+        footGrad.addColorStop(0, '#ec4899');
+        footGrad.addColorStop(1, '#fbbf24');
+        ctx.fillStyle = footGrad;
+        ctx.fillRect(0, 1180, 750, 70);
+        ctx.fillStyle = '#fff';
+        ctx.font = '600 22px Arial';
+        ctx.textAlign = 'center';
+        ctx.fillText('Humas SMAN 12 Jkt', 375, 1216);
+
+        return canvas;
+    }
 
     window.buatQR = async function() {
         const nama=document.getElementById('nama').value.trim(),kelas=document.getElementById('kelas').value;
@@ -1527,9 +1627,27 @@
         if(!nama||!absen){showToast('Lengkapi data!','error');playBeep('error');return;}
         document.getElementById('loadingOverlay').classList.add('show');
         await db.ref('siswa/'+kelas+'/'+absen).set({nama:nama.toUpperCase(),kelas,absen,jk,agama,totalHadir:0,terdaftar:Date.now()});
+
+        const qrText = `${nama.toUpperCase()}|${kelas}|${absen}|${jk}|${agama}`;
+        const canvas = await generateKartuIbadah({ nama: nama.toUpperCase(), kelas, absen, qrText });
+
         const area=document.getElementById('qrArea');
-        area.innerHTML=`<div style="background:var(--bg-elevated);border:1px solid var(--border-subtle);border-radius:var(--radius-lg);padding:16px;text-align:center;margin-top:12px;"><div style="background:#fff;padding:10px;border-radius:10px;display:inline-block;" id="qrImg"></div><div style="font-size:14px;font-weight:800;color:var(--text-primary);margin-top:8px;">${nama.toUpperCase()}</div><div style="font-size:10px;color:var(--text-tertiary);margin-top:4px;">${kelas} • ${jk==='L'?'Laki-laki':'Perempuan'} • ${agama} • Absen ${absen}</div></div>`;
-        new QRCode(document.getElementById("qrImg"),{text:`${nama.toUpperCase()}|${kelas}|${absen}|${jk}|${agama}`,width:150,height:150});
+        area.innerHTML='';
+        canvas.style.cssText = 'width:100%;max-width:320px;border-radius:12px;margin-top:12px;box-shadow:var(--shadow-md);display:block;';
+        area.appendChild(canvas);
+
+        const btnDl = document.createElement('button');
+        btnDl.className = 'btn btn-primary btn-sm';
+        btnDl.style.marginTop = '10px';
+        btnDl.innerHTML = '<i class="fas fa-download"></i> Download Kartu';
+        btnDl.onclick = () => {
+            const a = document.createElement('a');
+            a.href = canvas.toDataURL('image/png');
+            a.download = `KARTU_${kelas}_${absen}_${nama.toUpperCase()}.png`;
+            a.click();
+        };
+        area.appendChild(btnDl);
+
         document.getElementById('loadingOverlay').classList.remove('show');
         showToast('QR berhasil dibuat!','success');playBeep('success');
         updateDashboard();loadManualAbsenOptions();
@@ -1829,16 +1947,10 @@
                 const folder=zip.folder(k);
                 for(let s of semua[k]){
                     await db.ref('siswa/'+k+'/'+s.no).set({nama:s.nama,kelas:k,absen:s.no,jk:s.jk==='P'?'P':'L',agama:s.agama,totalHadir:0,terdaftar:Date.now()});
-                    const cv=document.createElement('canvas');cv.width=300;cv.height=350;
-                    const ctx=cv.getContext('2d');ctx.fillStyle='#fff';ctx.fillRect(0,0,300,350);
-                    const div=document.createElement('div');div.style.cssText='position:absolute;left:-9999px;';document.body.appendChild(div);
-                    await new Promise(r=>{new QRCode(div,{text:`${s.nama}|${k}|${s.no}|${s.jk}|${s.agama}`,width:250,height:250});setTimeout(r,200);});
-                    const img=div.querySelector('img')||div.querySelector('canvas');
-                    if(img){const i=new Image();i.src=img.tagName==='CANVAS'?img.toDataURL():img.src;await new Promise(r=>{i.onload=r;});ctx.drawImage(i,25,10,250,250);}
-                    document.body.removeChild(div);
-                    ctx.fillStyle='#000';ctx.font='bold 11px Arial';ctx.textAlign='center';ctx.fillText(s.nama.substring(0,28),150,275);
-                    ctx.font='10px Arial';ctx.fillText(`${k} | Absen ${s.no} | ${s.jk} | ${s.agama}`,150,295);
-                    folder.file(`QR_${s.no}.png`,cv.toDataURL('image/png').split(',')[1],{base64:true});t++;
+                    const qrText = `${s.nama}|${k}|${s.no}|${s.jk}|${s.agama}`;
+                    const cardCanvas = await generateKartuIbadah({ nama: s.nama, kelas: k, absen: s.no, qrText });
+                    folder.file(`KARTU_${s.no}.png`, cardCanvas.toDataURL('image/png').split(',')[1], { base64: true });
+                    t++;
                 }
                 pg.innerText=`Generate: ${t} siswa...`;
             }
