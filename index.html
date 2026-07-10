@@ -80,7 +80,6 @@ const CARD_BG = {
             letter-spacing: -0.01em;
         }
 
-        /* ── AMBIENT BACKGROUND ─────────────────────────────── */
         .ambient-bg {
             position: fixed;
             inset: 0;
@@ -125,7 +124,6 @@ const CARD_BG = {
             75% { transform: translate(-30px, -20px) scale(1.05); }
         }
 
-        /* ── APP SHELL ─────────────────────────────── */
         .app-shell {
             position: relative;
             z-index: 10;
@@ -137,7 +135,6 @@ const CARD_BG = {
             overflow: hidden;
         }
 
-        /* ── TOP NAVBAR ─────────────────────────────── */
         .navbar {
             height: 60px;
             background: rgba(17, 22, 30, 0.85);
@@ -234,7 +231,6 @@ const CARD_BG = {
         .btn-nav.danger { color: var(--accent-red); border-color: rgba(248,113,113,0.25); }
         .btn-nav.danger:hover { background: rgba(248,113,113,0.08); }
 
-        /* ── SCREEN STACK ─────────────────────────────── */
         .screen-stack {
             flex: 1;
             position: relative;
@@ -258,7 +254,6 @@ const CARD_BG = {
             z-index: 2;
         }
 
-        /* ── SCREEN HEADER ─────────────────────────────── */
         .screen-header {
             height: 54px;
             background: rgba(17, 22, 30, 0.8);
@@ -303,7 +298,6 @@ const CARD_BG = {
             flex-shrink: 0;
         }
 
-        /* ── SCREEN BODY ─────────────────────────────── */
         .screen-body {
             flex: 1;
             overflow-y: auto;
@@ -312,7 +306,6 @@ const CARD_BG = {
             padding-bottom: var(--safe-bottom);
         }
 
-        /* ── HOME SCREEN ─────────────────────────────── */
         .hero-section {
             text-align: center;
             padding: 16px 0 24px;
@@ -362,7 +355,6 @@ const CARD_BG = {
             font-weight: 500;
         }
 
-        /* ── STAT CARDS ─────────────────────────────── */
         .stats-inline {
             display: grid;
             grid-template-columns: 1fr 1fr;
@@ -412,7 +404,6 @@ const CARD_BG = {
             z-index: 1;
         }
 
-        /* ── MENU GRID ─────────────────────────────── */
         .menu-grid {
             display: grid;
             grid-template-columns: 1fr 1fr;
@@ -477,7 +468,6 @@ const CARD_BG = {
             line-height: 1.4;
         }
 
-        /* ── USER FOOTER ─────────────────────────────── */
         .user-tag {
             display: flex;
             align-items: center;
@@ -498,7 +488,6 @@ const CARD_BG = {
             color: #fff;
         }
 
-        /* ── FORM ─────────────────────────────── */
         .form-group { margin-bottom: 14px; }
 
         .form-label {
@@ -553,7 +542,6 @@ const CARD_BG = {
             gap: 10px;
         }
 
-        /* ── BUTTONS ─────────────────────────────── */
         .btn {
             display: inline-flex;
             align-items: center;
@@ -614,7 +602,6 @@ const CARD_BG = {
         .btn-row { display: flex; gap: 8px; }
         .btn-row .btn { flex: 1; }
 
-        /* ── MODE BAR ─────────────────────────────── */
         .mode-selector {
             display: flex;
             background: var(--bg-elevated);
@@ -650,7 +637,6 @@ const CARD_BG = {
         .mode-option.active.mode-haid { background: var(--accent-rose); }
         .mode-option.active.mode-keputrian { background: var(--accent-purple); }
 
-        /* ── CAMERA ─────────────────────────────── */
         .camera-wrapper {
             background: #000;
             border: 1px solid var(--border-default);
@@ -716,7 +702,6 @@ const CARD_BG = {
         .scan-popup-name { font-size: 17px; font-weight: 800; color: #fff; }
         .scan-popup-msg { font-size: 11px; color: rgba(255,255,255,0.6); font-weight: 600; margin-top: 4px; letter-spacing: 0.04em; }
 
-        /* ── LOG ─────────────────────────────── */
         .log-list { display: flex; flex-direction: column; gap: 6px; }
 
         .log-entry {
@@ -753,7 +738,6 @@ const CARD_BG = {
         .chip-alpa { background: rgba(248,113,113,0.1); color: var(--accent-red); }
         .chip-haid { background: rgba(251,113,133,0.1); color: var(--accent-rose); }
 
-        /* ── EMPTY STATE ─────────────────────────────── */
         .empty-placeholder {
             display: flex; flex-direction: column; align-items: center;
             justify-content: center; padding: 36px 20px; text-align: center;
@@ -762,7 +746,6 @@ const CARD_BG = {
         .empty-placeholder i { font-size: 38px; color: var(--text-tertiary); opacity: 0.2; margin-bottom: 10px; }
         .empty-placeholder p { font-size: 12px; color: var(--text-tertiary); font-weight: 500; }
 
-        /* ── TOAST ─────────────────────────────── */
         .toast-anchor {
             position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%);
             z-index: 9999; display: flex; flex-direction: column; gap: 8px;
@@ -792,7 +775,6 @@ const CARD_BG = {
             to { transform: translateY(0); opacity: 1; }
         }
 
-        /* ── LOADING ─────────────────────────────── */
         .loading-overlay {
             position: fixed; inset: 0; background: rgba(10,14,20,0.9);
             z-index: 9998; display: none; align-items: center; justify-content: center;
@@ -817,7 +799,6 @@ const CARD_BG = {
             letter-spacing: 0.08em; text-transform: uppercase;
         }
 
-        /* ── LOGIN ─────────────────────────────── */
         .login-fullscreen {
             position: fixed; inset: 0; background: var(--bg-deep);
             z-index: 9999; display: flex; align-items: center; justify-content: center;
@@ -899,36 +880,30 @@ const CARD_BG = {
             font-size: 10px; color: var(--text-tertiary); letter-spacing: 0.03em;
         }
 
-        /* ── SCROLLBAR ─────────────────────────────── */
         ::-webkit-scrollbar { width: 4px; }
         ::-webkit-scrollbar-track { background: transparent; }
         ::-webkit-scrollbar-thumb { background: var(--border-default); border-radius: 4px; }
         ::-webkit-scrollbar-thumb:hover { background: var(--text-tertiary); }
 
-        /* ── READER RESET ─────────────────────────────── */
         #reader, #readerLogin, #readerNaik { border: none !important; }
         #reader video, #readerLogin video, #readerNaik video { border-radius: var(--radius-md); }
     </style>
 </head>
 <body>
 
-<!-- AMBIENT BACKGROUND -->
 <div class="ambient-bg">
     <div class="ambient-orb orb-1"></div>
     <div class="ambient-orb orb-2"></div>
     <div class="ambient-orb orb-3"></div>
 </div>
 
-<!-- LOADING -->
 <div id="loadingOverlay" class="loading-overlay">
     <div class="loader-ring"></div>
     <div class="loader-text">Processing...</div>
 </div>
 
-<!-- TOAST -->
 <div class="toast-anchor" id="toastContainer"></div>
 
-<!-- LOGIN -->
 <div id="loginOverlay" class="login-fullscreen">
     <div class="login-dialog">
         <div class="login-dialog-header">
@@ -960,10 +935,8 @@ const CARD_BG = {
     </div>
 </div>
 
-<!-- APP SHELL -->
 <div class="app-shell">
 
-    <!-- NAVBAR -->
     <header class="navbar">
         <div class="nav-brand">
             <div class="nav-logo">🕌</div>
@@ -982,10 +955,8 @@ const CARD_BG = {
         </button>
     </header>
 
-    <!-- SCREEN STACK -->
     <div class="screen-stack">
 
-        <!-- HOME -->
         <div class="screen active" id="screenHome">
             <div class="screen-body">
                 <div class="hero-section">
@@ -1048,7 +1019,6 @@ const CARD_BG = {
             </div>
         </div>
 
-        <!-- SCAN -->
         <div class="screen" id="screenScan">
             <div class="screen-header">
                 <button class="btn-back" onclick="navigateTo('home')"><i class="fas fa-arrow-left"></i></button>
@@ -1118,7 +1088,6 @@ const CARD_BG = {
             </div>
         </div>
 
-        <!-- ADMIN -->
         <div class="screen" id="screenAdmin">
             <div class="screen-header">
                 <button class="btn-back" onclick="navigateTo('home')"><i class="fas fa-arrow-left"></i></button>
@@ -1171,7 +1140,6 @@ const CARD_BG = {
             </div>
         </div>
 
-        <!-- NAIK KELAS -->
         <div class="screen" id="screenNaikKelas">
             <div class="screen-header">
                 <button class="btn-back" onclick="navigateTo('home')"><i class="fas fa-arrow-left"></i></button>
@@ -1208,7 +1176,6 @@ const CARD_BG = {
             </div>
         </div>
 
-        <!-- LAPORAN -->
         <div class="screen" id="screenLaporan">
             <div class="screen-header">
                 <button class="btn-back" onclick="navigateTo('home')"><i class="fas fa-arrow-left"></i></button>
@@ -1239,7 +1206,6 @@ const CARD_BG = {
             </div>
         </div>
 
-        <!-- IMPORT -->
         <div class="screen" id="screenImport">
             <div class="screen-header">
                 <button class="btn-back" onclick="navigateTo('home')"><i class="fas fa-arrow-left"></i></button>
@@ -1261,7 +1227,6 @@ const CARD_BG = {
             </div>
         </div>
 
-        <!-- RESET -->
         <div class="screen" id="screenReset">
             <div class="screen-header">
                 <button class="btn-back" onclick="navigateTo('home')"><i class="fas fa-arrow-left"></i></button>
@@ -1301,7 +1266,6 @@ const CARD_BG = {
     const KELAS_LIST = ["X-1","X-2","X-3","X-4","X-5","X-6","XI-1","XI-2","XI-3","XI-4","XI-5","XI-6","XII-1","XII-2","XII-3","XII-4","XII-5","XII-6"];
     const NAMA_HARI = ['Minggu','Senin','Selasa','Rabu','Kamis','Jumat','Sabtu'];
 
-    // ── KARTU IBADAH: preset warna, koordinat template, & generator ──
     const COLOR_PRESETS = [
         { key:'navy',   label:'Navy',         accent:'#0a0a17' },
         { key:'merah',  label:'Merah/Maroon', accent:'#8a0730' },
@@ -1312,7 +1276,6 @@ const CARD_BG = {
 
     const CARD_W = 590, CARD_H = 1004;
 
-    // Koordinat presisi per template (piksel asli di kanvas 590x1004)
     const TEMPLATE_META = {
         hijau:  { qrBox:[132,364,429,662], quoteRect:[20,296,550,42], badgeCenterY:718 },
         pink:   { qrBox:[160,362,447,649], quoteRect:[20,296,550,42], badgeCenterY:705 },
@@ -1322,8 +1285,6 @@ const CARD_BG = {
     };
     const CARD_CENTER_X = CARD_W/2;
 
-    // ── OFFSET TUNING QR: geser/perbesar QR biar pas & nutup bayangan frame.
-    // Ubah dx/dy (piksel, + = kanan/bawah) dan scale kalau masih meleset.
     const TEMPLATE_ADJUST = {
         hijau:  { dx: 15, dy: 15, scale: 1.06 },
         pink:   { dx: 15, dy: 15, scale: 1.06 },
@@ -1382,14 +1343,11 @@ const CARD_BG = {
         return 'KRH-'+Date.now().toString(36).toUpperCase()+Math.floor(Math.random()*99);
     }
 
-    // ── PENGECEKAN DUPLIKAT ──────────────────────────────────
-    // Cek apakah slot kelas+absen sudah dipakai siswa lain
     async function cekSlotSudahDipakai(kelas, absen) {
         const snap = await db.ref('siswa/'+kelas+'/'+absen).once('value');
         return snap.exists() ? snap.val() : null;
     }
 
-    // Cek apakah nama (case-insensitive, trimmed) sudah terdaftar di kelas manapun
     async function cekNamaSudahAda(namaUpper, kecualiKelas, kecualiAbsen) {
         const snap = await db.ref('siswa').once('value');
         const data = snap.val() || {};
@@ -1432,9 +1390,6 @@ const CARD_BG = {
             ctx.fillRect(qx,qy,qw,qh);
         }
 
-        // Gambar QR pas di kotak frame yang sudah disediakan template,
-        // digeser & diperbesar sedikit lewat TEMPLATE_ADJUST supaya
-        // menutup bayangan/frame biru dan tidak nge-gap ke kiri-atas.
         const [fx0,fy0,fx1,fy1] = meta.qrBox;
         const adj = TEMPLATE_ADJUST[preset.key] || {dx:0,dy:0,scale:1};
         const frameW = fx1-fx0, frameH = fy1-fy0;
@@ -1447,7 +1402,6 @@ const CARD_BG = {
         ctx.fillRect(qrX-4,qrY-4,qrSize+8,qrSize+8);
         ctx.drawImage(qrImg, qrX, qrY, qrSize, qrSize);
 
-        // Gambar badge nama di bawah QR — font diperbesar & badge lebih lebar
         const displayName = (nama||'').toUpperCase();
         let fontSize = 32;
         ctx.font = `800 ${fontSize}px Arial`;
@@ -1463,7 +1417,11 @@ const CARD_BG = {
         const badgeW = Math.min(maxBadgeW, textW+padX*2);
         const badgeX = CARD_CENTER_X - badgeW/2;
         const badgeY = meta.badgeCenterY - badgeH/2;
-        fillRound(ctx, badgeX, badgeY, badgeW, badgeH, badgeH/2, preset.accent);
+        
+        // PERBAIKAN: Gunakan preset.accent dengan fallback
+        const badgeColor = preset.accent || '#0a0a17';
+        fillRound(ctx, badgeX, badgeY, badgeW, badgeH, badgeH/2, badgeColor);
+        
         ctx.fillStyle = '#ffffff';
         ctx.textAlign = 'center';
         ctx.textBaseline = 'middle';
@@ -1476,7 +1434,6 @@ const CARD_BG = {
         return new Promise(resolve=>canvas.toBlob(b=>resolve(b),'image/png',0.92));
     }
 
-    // ── Sheet cetak: susun beberapa kartu per halaman A4 ──
     const SHEET_COLS=3, SHEET_ROWS=4, SHEET_PER_PAGE=SHEET_COLS*SHEET_ROWS;
     async function buatHalamanCetak(kartuList) {
         const PAGE_W=1654, PAGE_H=2339, MARGIN=50, GUTTER=18;
@@ -1733,7 +1690,6 @@ const CARD_BG = {
         });
     };
 
-    // ── TAMBAH SISWA (dengan pengecekan duplikat slot & nama) ──
     window.buatQR = async function() {
         const nama=document.getElementById('nama').value.trim(),kelas=document.getElementById('kelas').value;
         const absen=document.getElementById('absen').value.trim(),jk=document.getElementById('jk').value,agama=document.getElementById('agama').value;
@@ -2048,7 +2004,7 @@ const CARD_BG = {
         document.getElementById('loadingOverlay').classList.remove('show');
     };
 
-    let importParsedData = null; // { kelas: [ {no,nama,jk,agama}, ... ] }
+    let importParsedData = null;
 
     window.bacaExcel = async function() {
         const file=document.getElementById('fileExcel')?.files[0];
@@ -2110,7 +2066,6 @@ const CARD_BG = {
         document.getElementById('loadingOverlay').classList.remove('show');
     };
 
-    // ── LANJUTKAN IMPORT EXCEL (dengan skip duplikat slot & nama) ──
     window.lanjutkanImportExcel = async function() {
         if(!importParsedData){showToast('Baca file dulu','error');return;}
         const semua=importParsedData;
@@ -2126,8 +2081,8 @@ const CARD_BG = {
         try{
             const zip=new JSZip();
             let t=0;
-            const semuaDilewati=[]; // kumpulan pesan duplikat dari semua kelas
-            const namaTerpakaiSesiIni=new Set(); // cegah duplikat nama antar-baris di file yang sama
+            const semuaDilewati=[];
+            const namaTerpakaiSesiIni=new Set();
 
             for(let k of kl){
                 const colorKey = warnaPerJenjang[jenjangDariKelas(k)] || 'navy';
@@ -2141,7 +2096,6 @@ const CARD_BG = {
                     }
                     const namaKey = k+'|'+s.nama;
                     if (namaTerpakaiSesiIni.has(s.nama) ) {
-                        // sudah dicek dulu di bawah, biarkan lolos ke cek DB jika beda kelas
                     }
                     const namaBentrok = await cekNamaSudahAda(s.nama, null, null);
                     if (namaBentrok) {
@@ -2160,7 +2114,6 @@ const CARD_BG = {
                     t++;
                     pg.innerText=`Generate kartu: ${t} siswa...`;
                 }
-                // Susun halaman siap cetak (grid per halaman) untuk kelas ini
                 if (kartuCanvasList.length>0) {
                     const folderCetak=zip.folder('Cetak_SiapPrint/'+k);
                     for(let i=0;i<kartuCanvasList.length;i+=SHEET_PER_PAGE){
@@ -2261,8 +2214,6 @@ const CARD_BG = {
         try{
             const sorted=[...listSiswaScanned].sort((a,b)=>a.nama.localeCompare(b.nama));
 
-            // Cek dulu apakah ada nomor absen baru yang bakal bentrok dengan siswa
-            // yang SUDAH ADA di kelas tujuan (di luar siswa yang sedang dipindah).
             const existingSnap = await db.ref('siswa/'+tujuan).once('value');
             const existingData = existingSnap.val() || {};
             const pindahDariAbsenLama = new Set(sorted.map(s=>s.kelasLama===tujuan?String(s.absenLama):null).filter(Boolean));
@@ -2271,7 +2222,6 @@ const CARD_BG = {
                 const absenBaru = String(i+1);
                 const existing = existingData[absenBaru];
                 if (existing && !(sorted[i].kelasLama===tujuan && String(sorted[i].absenLama)===absenBaru)) {
-                    // Slot absenBaru sudah ditempati siswa lain yang bukan bagian dari proses ini
                     const masihDipindah = sorted.some(s=>s.kelasLama===tujuan && String(s.absenLama)===absenBaru);
                     if (!masihDipindah) konflik.push(`Absen ${absenBaru} di ${tujuan} sudah dipakai "${existing.nama}"`);
                 }
@@ -2285,7 +2235,7 @@ const CARD_BG = {
                 const absenBaru=String(i+1);
                 if(s.kelasLama&&s.absenLama)await db.ref('siswa/'+s.kelasLama+'/'+s.absenLama).remove();
                 let kode=s.kodeUnik;
-                if(!kode) kode=await generateKodeUnik(); // fallback utk data lama sebelum fitur kode unik
+                if(!kode) kode=await generateKodeUnik();
                 await db.ref('siswa/'+tujuan+'/'+absenBaru).set({nama:s.nama,kelas:tujuan,absen:absenBaru,jk:s.jk||'L',agama:s.agama||'Islam',kodeUnik:kode,warnaKartu:s.warnaKartu||'navy',totalHadir:s.totalHadir||0,terdaftar:s.terdaftar||Date.now()});
                 await db.ref('kodeIndex/'+kode).set({kelas:tujuan,absen:absenBaru});
             }
