@@ -1392,32 +1392,24 @@ async function generateKartuCanvas({ nama, agama, kode, colorKey }) {
     // ===== 1. CEK AGAMA & PILIH TEMPLATE =====
     const isMuslim = String(agama || '').trim().toLowerCase() === 'islam';
     const prefix = isMuslim ? 'muslim' : 'nonmuslim';
-    
-    // Pilih template berdasarkan colorKey
     const templateFile = `templates/${prefix}_${colorKey}.png`;
-    console.log('Loading template:', templateFile); // LOG UNTUK DEBUG
     
     let bg;
     try {
         bg = await loadImageFromFile(templateFile);
-        console.log('Template loaded:', templateFile);
     } catch(e) {
-        console.warn('Gagal load:', templateFile, 'pake fallback');
-        // Fallback ke navy
         const fallbackFile = isMuslim ? 'templates/muslim_navy.png' : 'templates/nonmuslim_navy.png';
-        console.log('Loading fallback:', fallbackFile);
         bg = await loadImageFromFile(fallbackFile);
     }
     
     // ===== 2. GAMBAR BACKGROUND =====
     ctx.drawImage(bg, 0, 0, CARD_W, CARD_H);
     
-    // ===== 3. GAMBAR QR CODE DI TENGAH =====
+    // ===== 3. GAMBAR QR CODE =====
     const qrSize = 300;
     const qrX = (CARD_W - qrSize) / 2;
     const qrY = 380;
     
-    // Background putih buat QR
     ctx.fillStyle = '#ffffff';
     ctx.shadowColor = 'rgba(0,0,0,0.15)';
     ctx.shadowBlur = 12;
@@ -1426,46 +1418,60 @@ async function generateKartuCanvas({ nama, agama, kode, colorKey }) {
     ctx.fill();
     ctx.shadowBlur = 0;
     
-    // Generate QR
     const qrUrl = await qrDataUrl(kode, 350);
     const qrImg = await loadImage(qrUrl);
     ctx.drawImage(qrImg, qrX, qrY, qrSize, qrSize);
     
-    // ===== 4. NAMA SISWA DI BAWAH QR =====
+    // ===== 4. NAMA SISWA (DIPERBAIKI) =====
     const displayName = (nama || '').toUpperCase();
-    let fontSize = 32;
-    ctx.font = `800 ${fontSize}px Arial, sans-serif`;
-    let textW = ctx.measureText(displayName).width;
-    const maxW = CARD_W * 0.8;
     
+    // UKURAN FONT OTOMATIS MENYESUAIKAN PANJANG NAMA
+    let fontSize = 36;  // Mulai dari 36
+    ctx.font = `900 ${fontSize}px Arial, sans-serif`;  // 900 = lebih tebel
+    let textW = ctx.measureText(displayName).width;
+    const maxW = CARD_W * 0.78;  // Maksimal 78% dari lebar kartu
+    
+    // KECILIN FONT KALO KEPANJANGAN
     while (textW > maxW && fontSize > 14) {
         fontSize -= 2;
-        ctx.font = `800 ${fontSize}px Arial, sans-serif`;
+        ctx.font = `900 ${fontSize}px Arial, sans-serif`;
         textW = ctx.measureText(displayName).width;
     }
     
-    const namaY = qrY + qrSize + 75;
-    const badgeH = fontSize * 2.0 + 14;
-    const badgeW = Math.min(textW + 40, CARD_W * 0.85);
+    // POSISI NAMA (DI BAWAH QR)
+    const namaY = qrY + qrSize + 60;
+    const badgeH = fontSize * 2.2 + 16;  // Tinggi badge sesuai font
+    const badgeW = Math.min(textW + 60, CARD_W * 0.88);  // Lebar badge
     const badgeX = (CARD_W - badgeW) / 2;
     
-    // Badge nama
+    // ===== BADGE NAMA (OPAQUE, GA TRANSPARAN) =====
     ctx.shadowBlur = 0;
-ctx.fillStyle = 'rgba(0, 0, 0, 0.2)';  // BAYANGAN TIPIS
-ctx.beginPath();
-ctx.roundRect(badgeX, namaY, badgeW, badgeH, badgeH/2);
-ctx.fill();
-
     
+    // BADGE DENGAN WARNA GELAP (TIDAK TRANSPARAN)
+    ctx.fillStyle = '#0a0a1a';  // Hitam pekat, bukan rgba
+    ctx.beginPath();
+    ctx.roundRect(badgeX, namaY, badgeW, badgeH, badgeH/2);
+    ctx.fill();
+    
+    // BORDER BADGE (EMAS TIPIS)
+    ctx.strokeStyle = 'rgba(255, 215, 0, 0.25)';
+    ctx.lineWidth = 1.5;
+    ctx.beginPath();
+    ctx.roundRect(badgeX, namaY, badgeW, badgeH, badgeH/2);
+    ctx.stroke();
+    
+    // ===== TEKS NAMA (PUTIH, TEBEL, JELAS) =====
     ctx.fillStyle = '#ffffff';
     ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
-    ctx.font = `800 ${fontSize}px Arial, sans-serif`;
+    ctx.font = `900 ${fontSize}px Arial, sans-serif`;  // 900 = paling tebel
+    ctx.shadowColor = 'rgba(0,0,0,0.3)';
+    ctx.shadowBlur = 4;  // Bayangan biar makin jelas
     ctx.fillText(displayName, CARD_W/2, namaY + badgeH/2 + 1);
+    ctx.shadowBlur = 0;
     
     return canvas;
 }
-
   function canvasToBlob(canvas) {
         return new Promise(resolve=>canvas.toBlob(b=>resolve(b),'image/png',0.92));
     }
