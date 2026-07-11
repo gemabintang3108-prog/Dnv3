@@ -16,6 +16,7 @@
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
     <script src="https://unpkg.com/html5-qrcode"></script>
     <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/xlsx-js-style@1.2.0/dist/xlsx.bundle.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
@@ -1375,63 +1376,109 @@ const CARD_BG = {
         ctx.fill();
     }
 
-    async function generateKartuCanvas({ nama, agama, kode, colorKey }) {
-        const preset = COLOR_PRESETS.find(p=>p.key===colorKey) || COLOR_PRESETS[0];
-        const meta = TEMPLATE_META[preset.key] || TEMPLATE_META.navy;
-        const bg = await getBgImage(preset.key);
-        const canvas = document.createElement('canvas');
-        canvas.width = CARD_W; canvas.height = CARD_H;
-        const ctx = canvas.getContext('2d');
-        ctx.drawImage(bg,0,0,CARD_W,CARD_H);
+   // ===== FUNGSI LOAD GAMBAR DARI FILE (PAKAI PATH RELATIVE) =====
+function loadImageFromFile(src) {
+    return new Promise((resolve, reject) => {
+        const img = new Image();
+        img.onload = () => resolve(img);
+        img.onerror = () => {
+            console.error('Gagal load:', src);
+            reject(new Error('Gagal load: ' + src));
+        };
+        // PASTIKAN PATHNYA RELATIVE DARI INDEX.HTML
+        img.src = src;
+    });
+}
 
-        const isMuslim = String(agama||'').trim().toLowerCase()==='islam';
-        if (!isMuslim) {
-            const [qx,qy,qw,qh] = meta.quoteRect;
-            ctx.fillStyle = '#f3f4f6';
-            ctx.fillRect(qx,qy,qw,qh);
-        }
-
-        const [fx0,fy0,fx1,fy1] = meta.qrBox;
-        const adj = TEMPLATE_ADJUST[preset.key] || {dx:0,dy:0,scale:1};
-        const frameW = fx1-fx0, frameH = fy1-fy0;
-        const qrSize = Math.min(frameW,frameH)*0.98*adj.scale;
-        const qrX = fx0 + (frameW-qrSize)/2 + adj.dx;
-        const qrY = fy0 + (frameH-qrSize)/2 + adj.dy;
-        const qrUrl = await qrDataUrl(kode, 500);
-        const qrImg = await loadImage(qrUrl);
-        ctx.fillStyle = '#ffffff';
-        ctx.fillRect(qrX-4,qrY-4,qrSize+8,qrSize+8);
-        ctx.drawImage(qrImg, qrX, qrY, qrSize, qrSize);
-
-        const displayName = (nama||'').toUpperCase();
-        let fontSize = 32;
-        ctx.font = `800 ${fontSize}px Arial`;
-        const padX = 28;
-        let textW = ctx.measureText(displayName).width;
-        const maxBadgeW = CARD_W*0.88;
-        while ((textW+padX*2) > maxBadgeW && fontSize>14) {
-            fontSize -= 1;
-            ctx.font = `800 ${fontSize}px Arial`;
-            textW = ctx.measureText(displayName).width;
-        }
-        const badgeH = fontSize*2.0;
-        const badgeW = Math.min(maxBadgeW, textW+padX*2);
-        const badgeX = CARD_CENTER_X - badgeW/2;
-        const badgeY = meta.badgeCenterY - badgeH/2;
-        
-        // PERBAIKAN: Gunakan preset.accent dengan fallback
-        const badgeColor = preset.accent || '#0a0a17';
-        fillRound(ctx, badgeX, badgeY, badgeW, badgeH, badgeH/2, badgeColor);
-        
-        ctx.fillStyle = '#ffffff';
-        ctx.textAlign = 'center';
-        ctx.textBaseline = 'middle';
-        ctx.fillText(displayName, CARD_CENTER_X, meta.badgeCenterY+1, badgeW-padX);
-
-        return canvas;
+async function generateKartuCanvas({ nama, agama, kode, colorKey }) {
+    const canvas = document.createElement('canvas');
+    canvas.width = CARD_W;
+    canvas.height = CARD_H;
+    const ctx = canvas.getContext('2d');
+    
+    // ===== 1. CEK AGAMA & PILIH TEMPLATE =====
+    const isMuslim = String(agama || '').trim().toLowerCase() === 'islam';
+    const prefix = isMuslim ? 'muslim' : 'nonmuslim';
+    
+    // Pilih template berdasarkan colorKey
+    const templateFile = `templates/${prefix}_${colorKey}.png`;
+    console.log('Loading template:', templateFile); // LOG UNTUK DEBUG
+    
+    let bg;
+    try {
+        bg = await loadImageFromFile(templateFile);
+        console.log('Template loaded:', templateFile);
+    } catch(e) {
+        console.warn('Gagal load:', templateFile, 'pake fallback');
+        // Fallback ke navy
+        const fallbackFile = isMuslim ? 'templates/muslim_navy.png' : 'templates/nonmuslim_navy.png';
+        console.log('Loading fallback:', fallbackFile);
+        bg = await loadImageFromFile(fallbackFile);
     }
+    
+    // ===== 2. GAMBAR BACKGROUND =====
+    ctx.drawImage(bg, 0, 0, CARD_W, CARD_H);
+    
+    // ===== 3. GAMBAR QR CODE DI TENGAH =====
+    const qrSize = 220;
+    const qrX = (CARD_W - qrSize) / 2;
+    const qrY = 370;
+    
+    // Background putih buat QR
+    ctx.fillStyle = '#ffffff';
+    ctx.shadowColor = 'rgba(0,0,0,0.15)';
+    ctx.shadowBlur = 12;
+    ctx.beginPath();
+    ctx.roundRect(qrX - 10, qrY - 10, qrSize + 20, qrSize + 20, 10);
+    ctx.fill();
+    ctx.shadowBlur = 0;
+    
+    // Generate QR
+    const qrUrl = await qrDataUrl(kode, 350);
+    const qrImg = await loadImage(qrUrl);
+    ctx.drawImage(qrImg, qrX, qrY, qrSize, qrSize);
+    
+    // ===== 4. NAMA SISWA DI BAWAH QR =====
+    const displayName = (nama || '').toUpperCase();
+    let fontSize = 32;
+    ctx.font = `800 ${fontSize}px Arial, sans-serif`;
+    let textW = ctx.measureText(displayName).width;
+    const maxW = CARD_W * 0.8;
+    
+    while (textW > maxW && fontSize > 14) {
+        fontSize -= 2;
+        ctx.font = `800 ${fontSize}px Arial, sans-serif`;
+        textW = ctx.measureText(displayName).width;
+    }
+    
+    const namaY = qrY + qrSize + 40;
+    const badgeH = fontSize * 2.0 + 14;
+    const badgeW = Math.min(textW + 40, CARD_W * 0.85);
+    const badgeX = (CARD_W - badgeW) / 2;
+    
+    // Badge nama
+    ctx.shadowBlur = 0;
+    ctx.fillStyle = 'rgba(10, 10, 30, 0.8)';
+    ctx.beginPath();
+    ctx.roundRect(badgeX, namaY, badgeW, badgeH, badgeH/2);
+    ctx.fill();
+    
+    ctx.strokeStyle = 'rgba(255, 215, 0, 0.3)';
+    ctx.lineWidth = 1.5;
+    ctx.beginPath();
+    ctx.roundRect(badgeX, namaY, badgeW, badgeH, badgeH/2);
+    ctx.stroke();
+    
+    ctx.fillStyle = '#ffffff';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.font = `800 ${fontSize}px Arial, sans-serif`;
+    ctx.fillText(displayName, CARD_W/2, namaY + badgeH/2 + 1);
+    
+    return canvas;
+}
 
-    function canvasToBlob(canvas) {
+  function canvasToBlob(canvas) {
         return new Promise(resolve=>canvas.toBlob(b=>resolve(b),'image/png',0.92));
     }
 
