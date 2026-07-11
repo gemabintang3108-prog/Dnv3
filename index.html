@@ -1426,7 +1426,7 @@ async function generateKartuCanvas({ nama, agama, kode, colorKey }) {
 const displayName = (nama || '').toUpperCase();
 
 // BATAS LEBAR NAMA (70% dari kartu, biar ga kepanjangan)
-const maxW = CARD_W * 0.70;  // ← DIPERKECIL DARI 0.85 JADI 0.70
+const maxW = CARD_W * 0.66;  // ← DIPERKECIL DARI 0.85 JADI 0.70
 
 // MULAI DARI FONT 36, TURUNIN SAMPE MASUK
 let fontSize = 36;
@@ -1452,7 +1452,7 @@ if (textW > maxW) {
 }
 
 // POSISI NAMA
-const namaY = qrY + qrSize + 67;
+const namaY = qrY + qrSize +70;
 
 // TULIS NAMA
 ctx.textAlign = 'center';
