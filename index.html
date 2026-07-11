@@ -1374,6 +1374,7 @@
         const data = snap.val() || {};
         for (let k in data) {
             for (let a in data[k]) {
+                if (!data[k][a]) continue; // skip slot kosong/rusak (celah absen)
                 if (k === kecualiKelas && String(a) === String(kecualiAbsen)) continue;
                 if ((data[k][a].nama || '').toUpperCase().trim() === namaUpper) {
                     return { kelas: k, absen: a };
@@ -1699,7 +1700,7 @@ async function generateKartuCanvas({ nama, agama, kode, colorKey }) {
             const ex=new Set(Array.from(fk.options).map(o=>o.value).filter(v=>v));
             for(let k in d){
                 if(!ex.has(k)) fk.innerHTML+=`<option value="${k}">${k}</option>`;
-                for(let a in d[k]){t++;allSiswaData.push({...d[k][a],kelas:k,absen:a});}
+                for(let a in d[k]){if(!d[k][a])continue;t++;allSiswaData.push({...d[k][a],kelas:k,absen:a});}
             }
         }
         document.getElementById('dashTotalSiswa').innerText=t;
@@ -1955,6 +1956,7 @@ async function generateKartuCanvas({ nama, agama, kode, colorKey }) {
             const ps=await db.ref('presensi/'+tt).once('value'),p=ps.val()||{};
             const up={};let t=0;
             for(let k in s)for(let a in s[k]){
+                if(!s[k][a])continue;
                 if(p[`${k}_${a}`])continue;
                 const d=s[k][a]||{};
                 up[`presensi/${tt}/${k}_${a}`]={nama:d.nama||'-',kelas:k,absen:a,jk:d.jk||'',agama:d.agama||'',jam:'TIDAK HADIR',status:'TIDAK HADIR',totalHadir:d.totalHadir||0,timestamp:Date.now(),manual:true,autoAlpa:true};
