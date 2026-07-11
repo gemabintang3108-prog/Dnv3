@@ -1300,8 +1300,7 @@
         return new Promise((resolve,reject)=>{
             const img = new Image();
             img.onload = ()=>resolve(img);
-            img.onerror = ()=>reject(new Error('Gagal load gambar QR/aset: ' + src.slice(0,60)));
-            img.crossOrigin = 'anonymous';
+            img.onerror = reject;
             img.src = src;
         });
     }
@@ -1320,27 +1319,10 @@
         div.style.cssText = 'position:absolute;left:-9999px;top:-9999px;';
         document.body.appendChild(div);
         new QRCode(div, { text, width:size, height:size, correctLevel: QRCode.CorrectLevel.M });
-        // Tunggu sampai elemen QR benar-benar ada, bukan cuma delay tetap.
-        // Di HP (terutama Android low-end) render QRCode.js bisa lebih lambat dari 150ms.
-        let el = null;
-        for (let i = 0; i < 40; i++) {
-            el = div.querySelector('img') || div.querySelector('canvas');
-            if (el && (el.tagName === 'CANVAS' || el.complete !== false)) break;
-            await new Promise(r=>setTimeout(r,50));
-        }
-        if (!el) {
-            document.body.removeChild(div);
-            throw new Error('QR code gagal dirender (elemen tidak ditemukan)');
-        }
-        let url;
-        try {
-            url = el.tagName==='CANVAS' ? el.toDataURL('image/png') : el.src;
-        } catch (err) {
-            document.body.removeChild(div);
-            throw new Error('Gagal ambil data QR: ' + (err && err.message ? err.message : err));
-        }
+        await new Promise(r=>setTimeout(r,150));
+        const el = div.querySelector('img') || div.querySelector('canvas');
+        const url = el.tagName==='CANVAS' ? el.toDataURL('image/png') : el.src;
         document.body.removeChild(div);
-        if (!url) throw new Error('QR code kosong/undefined');
         return url;
     }
 
@@ -1387,23 +1369,6 @@
         ctx.fill();
     }
 
-    // Polyfill ctx.roundRect - beberapa browser mobile (Android WebView / Samsung Internet lama)
-    // belum support CanvasRenderingContext2D.roundRect(), jadi bikin manual biar aman di HP juga.
-    function drawRoundRectPath(ctx,x,y,w,h,r) {
-        if (typeof ctx.roundRect === 'function') {
-            ctx.beginPath();
-            ctx.roundRect(x,y,w,h,r);
-            return;
-        }
-        ctx.beginPath();
-        ctx.moveTo(x+r,y);
-        ctx.arcTo(x+w,y,x+w,y+h,r);
-        ctx.arcTo(x+w,y+h,x,y+h,r);
-        ctx.arcTo(x,y+h,x,y,r);
-        ctx.arcTo(x,y,x+w,y,r);
-        ctx.closePath();
-    }
-
    // ===== FUNGSI LOAD GAMBAR DARI FILE (PAKAI PATH RELATIVE) =====
 function loadImageFromFile(src) {
     return new Promise((resolve, reject) => {
@@ -1448,7 +1413,8 @@ async function generateKartuCanvas({ nama, agama, kode, colorKey }) {
     ctx.fillStyle = '#ffffff';
     ctx.shadowColor = 'rgba(0,0,0,0.15)';
     ctx.shadowBlur = 12;
-    drawRoundRectPath(ctx, qrX - 10, qrY - 10, qrSize + 20, qrSize + 20, 10);
+    ctx.beginPath();
+    ctx.roundRect(qrX - 10, qrY - 10, qrSize + 20, qrSize + 20, 10);
     ctx.fill();
     ctx.shadowBlur = 0;
     
@@ -1457,8 +1423,7 @@ async function generateKartuCanvas({ nama, agama, kode, colorKey }) {
     ctx.drawImage(qrImg, qrX, qrY, qrSize, qrSize);
     
     // ===== NAMA SISWA (DIPERBAIKI) =====
-let displayName = (nama || '').toUpperCase();
-if (!displayName) displayName = 'TANPA NAMA';
+const displayName = (nama || '').toUpperCase();
 
 // BATAS LEBAR NAMA (70% dari kartu, biar ga kepanjangan)
 const maxW = CARD_W * 0.66;  // ← DIPERKECIL DARI 0.85 JADI 0.70
@@ -1793,7 +1758,7 @@ ctx.shadowBlur = 0;
             </div>`;
             showToast('Kartu berhasil dibuat!','success');playBeep('success');
             updateDashboard();loadManualAbsenOptions();
-        }catch(e){showToast('Gagal: '+(e && e.message ? e.message : String(e)),'error');playBeep('error');}
+        }catch(e){showToast('Gagal: '+e.message,'error');playBeep('error');}
         document.getElementById('loadingOverlay').classList.remove('show');
     };
 
@@ -2102,16 +2067,9 @@ ctx.shadowBlur = 0;
                 const iAgama=hdr.findIndex(h=>h.includes('agama'));
                 if(iNama===-1)return;
                 const sw=[];
-                const FOOTER_KEYWORDS=['perempuan','laki laki','laki-laki','jumlah','islam','kristen','katolik','katholik','hindu','budha','buddha','konghucu','total'];
                 for(let i=hi+1;i<rows.length;i++){
-                    const row=rows[i];
-                    const firstCell=String(row[0]||'').trim().toLowerCase();
-                    // Stop begitu ketemu baris rekap di bawah tabel (PEREMPUAN/LAKI LAKI/JUMLAH/ISLAM/dst)
-                    if(FOOTER_KEYWORDS.includes(firstCell))break;
-                    const nama=String(row[iNama]||'').trim();
+                    const row=rows[i],nama=String(row[iNama]||'').trim();
                     if(!nama||nama.toLowerCase().includes('jumlah'))continue;
-                    // Nama siswa gak mungkin cuma angka doang — kalau kejadian berarti ini baris rekap yang nyasar
-                    if(/^\d+$/.test(nama))continue;
                     sw.push({no:iNo!==-1?String(row[iNo]||'').trim():String(i-hi),nama:nama.toUpperCase(),jk:iJK!==-1?String(row[iJK]||'L').trim().toUpperCase():'L',agama:iAgama!==-1?String(row[iAgama]||'Islam').trim():'Islam'});
                 }
                 if(sw.length>0)semua[k]=sw;
