@@ -2068,8 +2068,11 @@ ctx.shadowBlur = 0;
                 if(iNama===-1)return;
                 const sw=[];
                 for(let i=hi+1;i<rows.length;i++){
-                    const row=rows[i],nama=String(row[iNama]||'').trim();
-                    if(!nama||nama.toLowerCase().includes('jumlah'))continue;
+                    const row=rows[i]||[],nama=String(row[iNama]||'').trim();
+                    // Baris kosong / "JUMLAH" menandai akhir tabel siswa.
+                    // Berhenti di sini supaya teks di BAWAH tabel (catatan, ttd wali kelas,
+                    // kop surat, dll) tidak ikut kebaca jadi "siswa" & bikin QR aneh.
+                    if(!nama||nama.toLowerCase().includes('jumlah'))break;
                     sw.push({no:iNo!==-1?String(row[iNo]||'').trim():String(i-hi),nama:nama.toUpperCase(),jk:iJK!==-1?String(row[iJK]||'L').trim().toUpperCase():'L',agama:iAgama!==-1?String(row[iAgama]||'Islam').trim():'Islam'});
                 }
                 if(sw.length>0)semua[k]=sw;
@@ -2188,115 +2191,4 @@ ctx.shadowBlur = 0;
         scannerNaik=new Html5Qrcode("readerNaik");
         scannerNaik.start({facingMode:"environment"},{fps:10,qrbox:180},text=>{scannerNaik.pause();prosesQRNaik(text);},()=>{}).catch(e=>{
             showToast('Gagal: '+e,'error');
-            document.getElementById('btnStartNaik').style.display='';document.getElementById('btnStopNaik').style.display='none';
-        });
-    };
-
-    window.stopScanNaikKelas = function() {
-        try{if(scannerNaik?.isScanning)scannerNaik.stop();}catch(e){}
-        document.getElementById('btnStartNaik').style.display='';document.getElementById('btnStopNaik').style.display='none';
-    };
-
-    async function prosesQRNaik(text) {
-        try{
-            const resolved = await resolveSiswaDariQR(text);
-            const kl=resolved.kelas, al=resolved.absen;
-            const nama = resolved.data?.nama || resolved.namaQR;
-            if(listSiswaScanned.find(s=>s.nama.toUpperCase()===nama.toUpperCase())){
-                showFeedbackNaik('⚠️',nama,'Sudah discan!','var(--accent-amber)');
-                setTimeout(()=>scannerNaik?.resume(),1500);return;
-            }
-            const data={...resolved.data,kelasLama:kl,absenLama:al};
-            listSiswaScanned.push(data);renderListNaik();
-            showFeedbackNaik('✅',data.nama||nama,`Ditambahkan (${listSiswaScanned.length})`,'var(--accent-green)');
-            playBeep('success');
-        }catch(e){
-            showFeedbackNaik('❌','GAGAL',e.toString(),'var(--accent-red)');
-            playBeep('error');
-        }
-        setTimeout(()=>{try{scannerNaik?.resume();}catch(e){}},1800);
-    }
-
-    function showFeedbackNaik(icon,nama,msg,bg){
-        const fb=document.getElementById('feedbackNaik');
-        document.getElementById('fbNaikIcon').innerText=icon;
-        document.getElementById('fbNaikNama').innerText=nama;
-        document.getElementById('fbNaikMsg').innerText=msg;
-        document.getElementById('fbNaikBox').style=`text-align:center;padding:20px 28px;border-radius:14px;background:${bg};`;
-        fb.classList.add('show');
-        setTimeout(()=>fb.classList.remove('show'),1800);
-    }
-
-    function renderListNaik(){
-        const c=document.getElementById('listScanNaik');
-        if(!c)return;
-        if(listSiswaScanned.length===0){c.innerHTML='<div class="empty-placeholder"><i class="fas fa-user-plus"></i><p>Belum ada scan</p></div>';return;}
-        c.innerHTML=listSiswaScanned.map((s,i)=>`
-            <div style="display:flex;justify-content:space-between;align-items:center;padding:10px 12px;background:var(--bg-elevated);border:1px solid var(--border-subtle);border-radius:var(--radius-sm);">
-                <div><div style="font-size:12px;font-weight:700;color:var(--text-primary);">${s.nama}</div><div style="font-size:10px;color:var(--text-tertiary);">${s.kelasLama||'?'} → dipindah</div></div>
-                <button onclick="hapusScanNaik(${i})" class="btn-nav danger" style="width:26px;height:26px;font-size:10px;"><i class="fas fa-times"></i></button>
-            </div>
-        `).join('');
-    }
-
-    window.hapusScanNaik = function(i){listSiswaScanned.splice(i,1);renderListNaik();};
-    window.resetNaikKelas = function(){listSiswaScanned=[];renderListNaik();showToast('Reset','success');};
-
-    window.simpanNaikKelas = async function() {
-        if(listSiswaScanned.length===0){showToast('Kosong!','error');return;}
-        const tujuan=document.getElementById('kelasTujuan')?.value;
-        if(!tujuan){showToast('Pilih kelas!','error');return;}
-        document.getElementById('loadingOverlay').classList.add('show');
-        try{
-            const sorted=[...listSiswaScanned].sort((a,b)=>a.nama.localeCompare(b.nama));
-
-            const existingSnap = await db.ref('siswa/'+tujuan).once('value');
-            const existingData = existingSnap.val() || {};
-            const pindahDariAbsenLama = new Set(sorted.map(s=>s.kelasLama===tujuan?String(s.absenLama):null).filter(Boolean));
-            const konflik = [];
-            for (let i=0;i<sorted.length;i++) {
-                const absenBaru = String(i+1);
-                const existing = existingData[absenBaru];
-                if (existing && !(sorted[i].kelasLama===tujuan && String(sorted[i].absenLama)===absenBaru)) {
-                    const masihDipindah = sorted.some(s=>s.kelasLama===tujuan && String(s.absenLama)===absenBaru);
-                    if (!masihDipindah) konflik.push(`Absen ${absenBaru} di ${tujuan} sudah dipakai "${existing.nama}"`);
-                }
-            }
-            if (konflik.length>0) {
-                throw new Error('Konflik slot: '+konflik.join('; ')+'. Kosongkan/geser dulu siswa yang bentrok sebelum memindahkan.');
-            }
-
-            for(let i=0;i<sorted.length;i++){
-                const s=sorted[i];
-                const absenBaru=String(i+1);
-                if(s.kelasLama&&s.absenLama)await db.ref('siswa/'+s.kelasLama+'/'+s.absenLama).remove();
-                let kode=s.kodeUnik;
-                if(!kode) kode=await generateKodeUnik();
-                await db.ref('siswa/'+tujuan+'/'+absenBaru).set({nama:s.nama,kelas:tujuan,absen:absenBaru,jk:s.jk||'L',agama:s.agama||'Islam',kodeUnik:kode,warnaKartu:s.warnaKartu||'navy',totalHadir:s.totalHadir||0,terdaftar:s.terdaftar||Date.now()});
-                await db.ref('kodeIndex/'+kode).set({kelas:tujuan,absen:absenBaru});
-            }
-            showToast(`${sorted.length} siswa ke ${tujuan}!`,'success');
-            listSiswaScanned=[];renderListNaik();updateDashboard();loadManualAbsenOptions();
-        }catch(e){showToast('Gagal: '+e.message,'error');}
-        document.getElementById('loadingOverlay').classList.remove('show');
-    };
-
-    window.resetTotalHadir = async function() {
-        if(!confirm('Reset semua total hadir ke 0? Tidak bisa dibatalkan!'))return;
-        document.getElementById('loadingOverlay').classList.add('show');
-        try{
-            const snap=await db.ref('siswa').once('value'),d=snap.val()||{},up={};
-            for(let k in d)for(let a in d[k])up[`siswa/${k}/${a}/totalHadir`]=0;
-            await db.ref().update(up);
-            showToast('Berhasil direset!','success');updateDashboard();
-        }catch(e){showToast('Gagal','error');}
-        document.getElementById('loadingOverlay').classList.remove('show');
-    };
-
-    if('serviceWorker' in navigator){
-        navigator.serviceWorker.getRegistrations().then(r=>r.forEach(reg=>reg.unregister())).catch(()=>{});
-    }
-    renderListNaik();
-</script>
-</body>
-</html>
+            document.getElementById('btnStartNaik').style.display='';document.getElementById('btnStopNaik
