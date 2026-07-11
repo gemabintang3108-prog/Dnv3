@@ -1415,7 +1415,7 @@ async function generateKartuCanvas({ nama, agama, kode, colorKey }) {
     // ===== 3. GAMBAR QR CODE DI TENGAH =====
     const qrSize = 300;
     const qrX = (CARD_W - qrSize) / 2;
-    const qrY = 390;
+    const qrY = 380;
     
     // Background putih buat QR
     ctx.fillStyle = '#ffffff';
@@ -1450,7 +1450,18 @@ async function generateKartuCanvas({ nama, agama, kode, colorKey }) {
     const badgeX = (CARD_W - badgeW) / 2;
     
     // Badge nama
+    ctx.shadowBlur = 0;
+ctx.fillStyle = 'rgba(0, 0, 0, 0.2)';  // BAYANGAN TIPIS
+ctx.beginPath();
+ctx.roundRect(badgeX, namaY, badgeW, badgeH, badgeH/2);
+ctx.fill();
 
+    
+    ctx.fillStyle = '#ffffff';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.font = `800 ${fontSize}px Arial, sans-serif`;
+    ctx.fillText(displayName, CARD_W/2, namaY + badgeH/2 + 1);
     
     return canvas;
 }
