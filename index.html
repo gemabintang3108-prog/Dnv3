@@ -1420,7 +1420,7 @@ async function generateKartuCanvas({ nama, agama, kode, colorKey }) {
     ctx.drawImage(bg, 0, 0, CARD_W, CARD_H);
     
     // ===== 3. GAMBAR QR CODE DI TENGAH =====
-    const qrSize = 220;
+    const qrSize = 240;
     const qrX = (CARD_W - qrSize) / 2;
     const qrY = 370;
     
@@ -1451,17 +1451,13 @@ async function generateKartuCanvas({ nama, agama, kode, colorKey }) {
         textW = ctx.measureText(displayName).width;
     }
     
-    const namaY = qrY + qrSize + 40;
+    const namaY = qrY + qrSize + 60;
     const badgeH = fontSize * 2.0 + 14;
     const badgeW = Math.min(textW + 40, CARD_W * 0.85);
     const badgeX = (CARD_W - badgeW) / 2;
     
     // Badge nama
     ctx.shadowBlur = 0;
-    ctx.fillStyle = 'rgba(10, 10, 30, 0.8)';
-    ctx.beginPath();
-    ctx.roundRect(badgeX, namaY, badgeW, badgeH, badgeH/2);
-    ctx.fill();
     
     ctx.strokeStyle = 'rgba(255, 215, 0, 0.3)';
     ctx.lineWidth = 1.5;
