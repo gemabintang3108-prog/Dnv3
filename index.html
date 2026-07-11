@@ -883,8 +883,6 @@
         #reader, #readerLogin, #readerNaik { border: none !important; }
         #reader video, #readerLogin video, #readerNaik video { border-radius: var(--radius-md); }
     </style>
-    <script src="https://cdn.jsdelivr.net/npm/eruda"></script>
-    <script>eruda.init();</script>
 </head>
 <body>
 
@@ -1290,30 +1288,6 @@
         kuning: { dx: 20, dy: 18, scale: 1.08 },
     };
 
-    // Polyfill ctx.roundRect() — belum didukung di semua browser HP
-    // (terutama WebView Android versi lama / Samsung Internet lawas)
-    if (!CanvasRenderingContext2D.prototype.roundRect) {
-        CanvasRenderingContext2D.prototype.roundRect = function(x, y, w, h, r) {
-            if (typeof r === 'undefined') r = 5;
-            this.moveTo(x + r, y);
-            this.arcTo(x + w, y, x + w, y + h, r);
-            this.arcTo(x + w, y + h, x, y + h, r);
-            this.arcTo(x, y + h, x, y, r);
-            this.arcTo(x, y, x + w, y, r);
-            this.closePath();
-            return this;
-        };
-    }
-
-    // Ambil pesan error yang aman — biar ga pernah nongol "undefined"
-    // walaupun errornya dilempar sebagai string biasa atau objek aneh
-    function pesanError(e) {
-        if (!e) return 'Error tidak diketahui';
-        if (e.message) return e.message;
-        if (typeof e === 'string') return e;
-        try { return JSON.stringify(e); } catch(_) { return String(e); }
-    }
-
     function jenjangDariKelas(k) {
         const s = String(k||'').toUpperCase();
         if (s.startsWith('XII')) return 'XII';
@@ -1326,7 +1300,8 @@
         return new Promise((resolve,reject)=>{
             const img = new Image();
             img.onload = ()=>resolve(img);
-            img.onerror = reject;
+            img.onerror = ()=>reject(new Error('Gagal load gambar QR/aset: ' + src.slice(0,60)));
+            img.crossOrigin = 'anonymous';
             img.src = src;
         });
     }
@@ -1345,10 +1320,27 @@
         div.style.cssText = 'position:absolute;left:-9999px;top:-9999px;';
         document.body.appendChild(div);
         new QRCode(div, { text, width:size, height:size, correctLevel: QRCode.CorrectLevel.M });
-        await new Promise(r=>setTimeout(r,150));
-        const el = div.querySelector('img') || div.querySelector('canvas');
-        const url = el.tagName==='CANVAS' ? el.toDataURL('image/png') : el.src;
+        // Tunggu sampai elemen QR benar-benar ada, bukan cuma delay tetap.
+        // Di HP (terutama Android low-end) render QRCode.js bisa lebih lambat dari 150ms.
+        let el = null;
+        for (let i = 0; i < 40; i++) {
+            el = div.querySelector('img') || div.querySelector('canvas');
+            if (el && (el.tagName === 'CANVAS' || el.complete !== false)) break;
+            await new Promise(r=>setTimeout(r,50));
+        }
+        if (!el) {
+            document.body.removeChild(div);
+            throw new Error('QR code gagal dirender (elemen tidak ditemukan)');
+        }
+        let url;
+        try {
+            url = el.tagName==='CANVAS' ? el.toDataURL('image/png') : el.src;
+        } catch (err) {
+            document.body.removeChild(div);
+            throw new Error('Gagal ambil data QR: ' + (err && err.message ? err.message : err));
+        }
         document.body.removeChild(div);
+        if (!url) throw new Error('QR code kosong/undefined');
         return url;
     }
 
@@ -1374,7 +1366,6 @@
         const data = snap.val() || {};
         for (let k in data) {
             for (let a in data[k]) {
-                if (!data[k][a]) continue; // skip slot kosong/rusak (celah absen)
                 if (k === kecualiKelas && String(a) === String(kecualiAbsen)) continue;
                 if ((data[k][a].nama || '').toUpperCase().trim() === namaUpper) {
                     return { kelas: k, absen: a };
@@ -1396,14 +1387,31 @@
         ctx.fill();
     }
 
+    // Polyfill ctx.roundRect - beberapa browser mobile (Android WebView / Samsung Internet lama)
+    // belum support CanvasRenderingContext2D.roundRect(), jadi bikin manual biar aman di HP juga.
+    function drawRoundRectPath(ctx,x,y,w,h,r) {
+        if (typeof ctx.roundRect === 'function') {
+            ctx.beginPath();
+            ctx.roundRect(x,y,w,h,r);
+            return;
+        }
+        ctx.beginPath();
+        ctx.moveTo(x+r,y);
+        ctx.arcTo(x+w,y,x+w,y+h,r);
+        ctx.arcTo(x+w,y+h,x,y+h,r);
+        ctx.arcTo(x,y+h,x,y,r);
+        ctx.arcTo(x,y,x+w,y,r);
+        ctx.closePath();
+    }
+
    // ===== FUNGSI LOAD GAMBAR DARI FILE (PAKAI PATH RELATIVE) =====
 function loadImageFromFile(src) {
     return new Promise((resolve, reject) => {
         const img = new Image();
         img.onload = () => resolve(img);
         img.onerror = () => {
-            console.error('Gagal load gambar template. Path:', src, '| Full URL:', new URL(src, window.location.href).href);
-            reject(new Error('Template kartu tidak ditemukan: ' + src));
+            console.error('Gagal load:', src);
+            reject(new Error('Gagal load: ' + src));
         };
         // PASTIKAN PATHNYA RELATIVE DARI INDEX.HTML
         img.src = src;
@@ -1440,8 +1448,7 @@ async function generateKartuCanvas({ nama, agama, kode, colorKey }) {
     ctx.fillStyle = '#ffffff';
     ctx.shadowColor = 'rgba(0,0,0,0.15)';
     ctx.shadowBlur = 12;
-    ctx.beginPath();
-    ctx.roundRect(qrX - 10, qrY - 10, qrSize + 20, qrSize + 20, 10);
+    drawRoundRectPath(ctx, qrX - 10, qrY - 10, qrSize + 20, qrSize + 20, 10);
     ctx.fill();
     ctx.shadowBlur = 0;
     
@@ -1449,51 +1456,48 @@ async function generateKartuCanvas({ nama, agama, kode, colorKey }) {
     const qrImg = await loadImage(qrUrl);
     ctx.drawImage(qrImg, qrX, qrY, qrSize, qrSize);
     
-    // ===== NAMA SISWA (DIPERBAIKI + FIX BUG CONST YANG CRASH DI HP) =====
-    let displayName = (nama || '').toUpperCase();
+    // ===== NAMA SISWA (DIPERBAIKI) =====
+let displayName = (nama || '').toUpperCase();
+if (!displayName) displayName = 'TANPA NAMA';
 
-    // BATAS LEBAR NAMA (66% dari kartu, biar ga kepanjangan)
-    const maxW = CARD_W * 0.66;
+// BATAS LEBAR NAMA (70% dari kartu, biar ga kepanjangan)
+const maxW = CARD_W * 0.66;  // ← DIPERKECIL DARI 0.85 JADI 0.70
 
-    // FONT STACK: pakai font sistem yang PASTI ada baik di Windows/Mac (laptop)
-    // maupun Android/iOS (HP). "Arial" murni sering di-substitusi beda lebar
-    // di Android, makanya perhitungan lebar teks bisa beda antara laptop & HP.
-    const FONT_STACK = "'Helvetica Neue', Arial, 'Segoe UI', Roboto, sans-serif";
+// MULAI DARI FONT 36, TURUNIN SAMPE MASUK
+let fontSize = 36;
+ctx.font = `900 ${fontSize}px Arial, sans-serif`;
+let textW = ctx.measureText(displayName).width;
 
-    // MULAI DARI FONT 36, TURUNIN SAMPE MASUK
-    let fontSize = 36;
-    ctx.font = `900 ${fontSize}px ${FONT_STACK}`;
-    let textW = ctx.measureText(displayName).width;
+// LOOP SAMPE NAMA MASUK DALAM BATAS
+while (textW > maxW && fontSize > 8) {  // ← MINIMAL 8px (BISA LEBIH KECIL)
+    fontSize -= 2;
+    ctx.font = `900 ${fontSize}px Arial, sans-serif`;
+    textW = ctx.measureText(displayName).width;
+}
 
-    // LOOP SAMPE NAMA MASUK DALAM BATAS
-    while (textW > maxW && fontSize > 8) {
-        fontSize -= 2;
-        ctx.font = `900 ${fontSize}px ${FONT_STACK}`;
-        textW = ctx.measureText(displayName).width;
+// KALO MASIH KEPANJANGAN, POTONG NAMA
+if (textW > maxW) {
+    // POTONG JADI 15 KARAKTER + "..."
+    let truncated = displayName;
+    while (truncated.length > 15 && ctx.measureText(truncated + '...').width > maxW) {
+        truncated = truncated.slice(0, -1);
     }
+    displayName = truncated + '...';
+    textW = ctx.measureText(displayName).width;
+}
 
-    // KALO MASIH KEPANJANGAN, POTONG NAMA (pakai let, bukan const, biar bisa direassign)
-    if (textW > maxW) {
-        let truncated = displayName;
-        while (truncated.length > 15 && ctx.measureText(truncated + '...').width > maxW) {
-            truncated = truncated.slice(0, -1);
-        }
-        displayName = truncated + '...';
-        textW = ctx.measureText(displayName).width;
-    }
+// POSISI NAMA
+const namaY = qrY + qrSize +72;
 
-    // POSISI NAMA
-    const namaY = qrY + qrSize + 72;
-
-    // TULIS NAMA
-    ctx.textAlign = 'center';
-    ctx.textBaseline = 'middle';
-    ctx.font = `900 ${fontSize}px ${FONT_STACK}`;
-    ctx.fillStyle = '#ffffff';
-    ctx.shadowColor = 'rgba(0,0,0,0.6)';
-    ctx.shadowBlur = 8;
-    ctx.fillText(displayName, CARD_W / 2, namaY);
-    ctx.shadowBlur = 0;
+// TULIS NAMA
+ctx.textAlign = 'center';
+ctx.textBaseline = 'middle';
+ctx.font = `900 ${fontSize}px Arial, sans-serif`;
+ctx.fillStyle = '#ffffff';
+ctx.shadowColor = 'rgba(0,0,0,0.6)';
+ctx.shadowBlur = 8;
+ctx.fillText(displayName, CARD_W/2, namaY);
+ctx.shadowBlur = 0;
     
     return canvas;
 }
@@ -1700,7 +1704,7 @@ async function generateKartuCanvas({ nama, agama, kode, colorKey }) {
             const ex=new Set(Array.from(fk.options).map(o=>o.value).filter(v=>v));
             for(let k in d){
                 if(!ex.has(k)) fk.innerHTML+=`<option value="${k}">${k}</option>`;
-                for(let a in d[k]){if(!d[k][a])continue;t++;allSiswaData.push({...d[k][a],kelas:k,absen:a});}
+                for(let a in d[k]){t++;allSiswaData.push({...d[k][a],kelas:k,absen:a});}
             }
         }
         document.getElementById('dashTotalSiswa').innerText=t;
@@ -1789,7 +1793,7 @@ async function generateKartuCanvas({ nama, agama, kode, colorKey }) {
             </div>`;
             showToast('Kartu berhasil dibuat!','success');playBeep('success');
             updateDashboard();loadManualAbsenOptions();
-        }catch(e){console.error(e);showToast('Gagal: '+pesanError(e),'error');playBeep('error');}
+        }catch(e){showToast('Gagal: '+(e && e.message ? e.message : String(e)),'error');playBeep('error');}
         document.getElementById('loadingOverlay').classList.remove('show');
     };
 
@@ -1956,7 +1960,6 @@ async function generateKartuCanvas({ nama, agama, kode, colorKey }) {
             const ps=await db.ref('presensi/'+tt).once('value'),p=ps.val()||{};
             const up={};let t=0;
             for(let k in s)for(let a in s[k]){
-                if(!s[k][a])continue;
                 if(p[`${k}_${a}`])continue;
                 const d=s[k][a]||{};
                 up[`presensi/${tt}/${k}_${a}`]={nama:d.nama||'-',kelas:k,absen:a,jk:d.jk||'',agama:d.agama||'',jam:'TIDAK HADIR',status:'TIDAK HADIR',totalHadir:d.totalHadir||0,timestamp:Date.now(),manual:true,autoAlpa:true};
@@ -2099,9 +2102,16 @@ async function generateKartuCanvas({ nama, agama, kode, colorKey }) {
                 const iAgama=hdr.findIndex(h=>h.includes('agama'));
                 if(iNama===-1)return;
                 const sw=[];
+                const FOOTER_KEYWORDS=['perempuan','laki laki','laki-laki','jumlah','islam','kristen','katolik','katholik','hindu','budha','buddha','konghucu','total'];
                 for(let i=hi+1;i<rows.length;i++){
-                    const row=rows[i],nama=String(row[iNama]||'').trim();
+                    const row=rows[i];
+                    const firstCell=String(row[0]||'').trim().toLowerCase();
+                    // Stop begitu ketemu baris rekap di bawah tabel (PEREMPUAN/LAKI LAKI/JUMLAH/ISLAM/dst)
+                    if(FOOTER_KEYWORDS.includes(firstCell))break;
+                    const nama=String(row[iNama]||'').trim();
                     if(!nama||nama.toLowerCase().includes('jumlah'))continue;
+                    // Nama siswa gak mungkin cuma angka doang — kalau kejadian berarti ini baris rekap yang nyasar
+                    if(/^\d+$/.test(nama))continue;
                     sw.push({no:iNo!==-1?String(row[iNo]||'').trim():String(i-hi),nama:nama.toUpperCase(),jk:iJK!==-1?String(row[iJK]||'L').trim().toUpperCase():'L',agama:iAgama!==-1?String(row[iAgama]||'Islam').trim():'Islam'});
                 }
                 if(sw.length>0)semua[k]=sw;
@@ -2130,7 +2140,7 @@ async function generateKartuCanvas({ nama, agama, kode, colorKey }) {
             wj.style.display='';
             pg.style.display='none';
             showToast('File terbaca, pilih warna kartu','success');
-        }catch(e){console.error(e);showToast('Gagal: '+pesanError(e),'error');pg.innerText='❌ '+pesanError(e);}
+        }catch(e){showToast('Gagal: '+e.message,'error');pg.innerText='❌ '+e.message;}
         document.getElementById('loadingOverlay').classList.remove('show');
     };
 
@@ -2211,7 +2221,7 @@ async function generateKartuCanvas({ nama, agama, kode, colorKey }) {
             document.getElementById('warnaJenjangArea').style.display='none';
             importParsedData=null;
             updateDashboard();loadManualAbsenOptions();
-        }catch(e){console.error(e);showToast('Gagal: '+pesanError(e),'error');pg.innerText='❌ '+pesanError(e);}
+        }catch(e){showToast('Gagal: '+e.message,'error');pg.innerText='❌ '+e.message;}
         document.getElementById('loadingOverlay').classList.remove('show');
     };
 
