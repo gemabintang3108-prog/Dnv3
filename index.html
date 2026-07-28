@@ -1410,12 +1410,9 @@ async function generateKartuCanvas({ nama, agama, kode, colorKey }) {
     const qrX = (CARD_W - qrSize) / 2;
     const qrY = 380;
     
-    ctx.fillStyle = '#ffffff';
     ctx.shadowColor = 'rgba(0,0,0,0.15)';
     ctx.shadowBlur = 12;
-    ctx.beginPath();
-    ctx.roundRect(qrX - 10, qrY - 10, qrSize + 20, qrSize + 20, 10);
-    ctx.fill();
+    fillRound(ctx, qrX - 10, qrY - 10, qrSize + 20, qrSize + 20, 10, '#ffffff');
     ctx.shadowBlur = 0;
     
     const qrUrl = await qrDataUrl(kode, 350);
@@ -1516,6 +1513,13 @@ ctx.shadowBlur = 0;
             g.gain.exponentialRampToValueAtTime(0.00001,ctx.currentTime+0.2);
             o.stop(ctx.currentTime+0.2);
         }catch(e){}
+    }
+
+    function errMsg(e) {
+        if (!e) return 'Error tidak diketahui';
+        if (typeof e === 'string') return e;
+        if (e.message) return e.message;
+        try { return JSON.stringify(e); } catch(_) { return String(e); }
     }
 
     window.navigateTo = function(screen) {
@@ -1684,20 +1688,40 @@ ctx.shadowBlur = 0;
         const kf=document.getElementById('filterKelas')?.value||'';
         let f=allSiswaData.filter(x=>(x.nama||'').toLowerCase().includes(s)&&(!kf||x.kelas===kf));
         f.sort((a,b)=>a.kelas.localeCompare(b.kelas)||parseInt(a.absen)-parseInt(b.absen));
+        window.__filteredLaporan = f;
         const c=document.getElementById('listLaporan');
         if(!c)return;
         if(f.length===0){c.innerHTML='<div class="empty-placeholder"><i class="fas fa-search"></i><p>Tidak ada data</p></div>';return;}
-        c.innerHTML=f.map(x=>`
+        c.innerHTML=f.map((x,i)=>`
             <div style="background:var(--bg-elevated);border:1px solid var(--border-subtle);border-radius:var(--radius-md);padding:12px 14px;">
-                <div style="display:flex;justify-content:space-between;align-items:flex-start;">
+                <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:8px;">
                     <div>
                         <div style="font-size:13px;font-weight:700;color:var(--text-primary);">${x.nama||'-'}</div>
                         <div style="font-size:10px;color:var(--text-tertiary);margin-top:2px;">${x.kelas} • Absen ${x.absen} • ${x.jk==='L'?'L':'P'} • ${x.agama||'-'}</div>
                     </div>
-                    <div style="background:rgba(61,214,200,0.08);color:var(--accent-teal);font-size:12px;font-weight:800;padding:3px 10px;border-radius:6px;">${x.totalHadir||0}x</div>
+                    <div style="display:flex;align-items:center;gap:6px;flex-shrink:0;">
+                        <div style="background:rgba(61,214,200,0.08);color:var(--accent-teal);font-size:12px;font-weight:800;padding:3px 10px;border-radius:6px;">${x.totalHadir||0}x</div>
+                        <button onclick="hapusSiswaLaporan(${i})" class="btn-nav danger" style="width:28px;height:28px;font-size:11px;" title="Hapus siswa"><i class="fas fa-trash"></i></button>
+                    </div>
                 </div>
             </div>
         `).join('');
+    };
+
+    window.hapusSiswaLaporan = async function(i) {
+        const x = window.__filteredLaporan?.[i];
+        if (!x) return;
+        if (!confirm(`Hapus ${x.nama} (${x.kelas} absen ${x.absen})?\n\nKartu lamanya jadi tidak berlaku lagi. Tidak bisa dibatalkan.`)) return;
+        document.getElementById('loadingOverlay').classList.add('show');
+        try {
+            await db.ref('siswa/'+x.kelas+'/'+x.absen).remove();
+            if (x.kodeUnik) await db.ref('kodeIndex/'+x.kodeUnik).remove();
+            showToast(`${x.nama} dihapus`,'success');
+            updateDashboard(); loadManualAbsenOptions();
+        } catch(e) {
+            showToast('Gagal hapus: '+errMsg(e),'error');
+        }
+        document.getElementById('loadingOverlay').classList.remove('show');
     };
 
     window.gantiTanggalUI = function() {
@@ -1781,7 +1805,7 @@ ctx.shadowBlur = 0;
             </div>`;
             showToast('Kartu berhasil dibuat!','success');playBeep('success');
             updateDashboard();loadManualAbsenOptions();
-        }catch(e){showToast('Gagal: '+e.message,'error');playBeep('error');}
+        }catch(e){showToast('Gagal: '+errMsg(e),'error');playBeep('error');}
         document.getElementById('loadingOverlay').classList.remove('show');
     };
 
@@ -1954,7 +1978,7 @@ ctx.shadowBlur = 0;
             if((await ref.once('value')).exists())throw new Error('Sudah ada presensi');
             await ref.set({nama:siswa.nama,kelas,absen,jk:siswa.jk||'',agama:siswa.agama||'',jam:'TIDAK HADIR',status:'TIDAK HADIR',totalHadir:siswa.totalHadir||0,timestamp:Date.now(),manual:true});
             showToast(`${siswa.nama} ditandai tidak hadir`,'success');updateDashboard();
-        }catch(e){showToast(e.message,'error');}
+        }catch(e){showToast(errMsg(e),'error');}
         document.getElementById('loadingOverlay').classList.remove('show');
     };
 
@@ -2143,7 +2167,7 @@ ctx.shadowBlur = 0;
             wj.style.display='';
             pg.style.display='none';
             showToast('File terbaca, pilih warna kartu','success');
-        }catch(e){showToast('Gagal: '+e.message,'error');pg.innerText='❌ '+e.message;}
+        }catch(e){showToast('Gagal: '+errMsg(e),'error');pg.innerText='❌ '+errMsg(e);}
         document.getElementById('loadingOverlay').classList.remove('show');
     };
 
@@ -2224,7 +2248,7 @@ ctx.shadowBlur = 0;
             document.getElementById('warnaJenjangArea').style.display='none';
             importParsedData=null;
             updateDashboard();loadManualAbsenOptions();
-        }catch(e){showToast('Gagal: '+e.message,'error');pg.innerText='❌ '+e.message;}
+        }catch(e){showToast('Gagal: '+errMsg(e),'error');pg.innerText='❌ '+errMsg(e);}
         document.getElementById('loadingOverlay').classList.remove('show');
     };
 
@@ -2326,7 +2350,7 @@ ctx.shadowBlur = 0;
             }
             showToast(`${sorted.length} siswa ke ${tujuan}!`,'success');
             listSiswaScanned=[];renderListNaik();updateDashboard();loadManualAbsenOptions();
-        }catch(e){showToast('Gagal: '+e.message,'error');}
+        }catch(e){showToast('Gagal: '+errMsg(e),'error');}
         document.getElementById('loadingOverlay').classList.remove('show');
     };
 
