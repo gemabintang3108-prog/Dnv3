@@ -1594,8 +1594,8 @@ ctx.shadowBlur = 0;
         document.getElementById('loginError').style.display='none';
         scannerLogin = new Html5Qrcode("readerLogin");
         scannerLogin.start(
-            { facingMode: "environment", width: { ideal: 640 }, height: { ideal: 480 } },
-            { fps: 15, qrbox: 160, disableFlip: true, experimentalFeatures: { useBarCodeDetectorIfSupported: true } },
+            { facingMode: "environment" },
+            { fps: 15, qrbox: 160, disableFlip: true, videoConstraints: { facingMode: "environment", width: { ideal: 640 }, height: { ideal: 480 } }, experimentalFeatures: { useBarCodeDetectorIfSupported: true } },
             text=>{
                 scannerLogin.stop();
                 document.getElementById('btnLoginStop').style.display='none';
@@ -1796,8 +1796,8 @@ ctx.shadowBlur = 0;
         scanner=new Html5Qrcode("reader");
         try{
             await scanner.start(
-                { facingMode: "environment", width: { ideal: 640 }, height: { ideal: 480 } },
-                { fps: 15, qrbox: { width: 240, height: 240 }, disableFlip: true, experimentalFeatures: { useBarCodeDetectorIfSupported: true } },
+                { facingMode: "environment" },
+                { fps: 15, qrbox: { width: 240, height: 240 }, disableFlip: true, videoConstraints: { facingMode: "environment", width: { ideal: 640 }, height: { ideal: 480 } }, experimentalFeatures: { useBarCodeDetectorIfSupported: true } },
                 text=>{scanner.pause();prosesQR(text);},
                 ()=>{}
             );
@@ -1815,8 +1815,8 @@ ctx.shadowBlur = 0;
         scanner=new Html5Qrcode("reader");
         try{
             await scanner.start(
-                { facingMode, width: { ideal: 640 }, height: { ideal: 480 } },
-                { fps: 15, qrbox: { width: 240, height: 240 }, disableFlip: true, experimentalFeatures: { useBarCodeDetectorIfSupported: true } },
+                { facingMode },
+                { fps: 15, qrbox: { width: 240, height: 240 }, disableFlip: true, videoConstraints: { facingMode, width: { ideal: 640 }, height: { ideal: 480 } }, experimentalFeatures: { useBarCodeDetectorIfSupported: true } },
                 text=>{scanner.pause();prosesQR(text);},
                 ()=>{}
             );
@@ -2225,8 +2225,8 @@ ctx.shadowBlur = 0;
         document.getElementById('btnStartNaik').style.display='none';document.getElementById('btnStopNaik').style.display='';
         scannerNaik=new Html5Qrcode("readerNaik");
         scannerNaik.start(
-            { facingMode: "environment", width: { ideal: 640 }, height: { ideal: 480 } },
-            { fps: 15, qrbox: 180, disableFlip: true, experimentalFeatures: { useBarCodeDetectorIfSupported: true } },
+            { facingMode: "environment" },
+            { fps: 15, qrbox: 180, disableFlip: true, videoConstraints: { facingMode: "environment", width: { ideal: 640 }, height: { ideal: 480 } }, experimentalFeatures: { useBarCodeDetectorIfSupported: true } },
             text=>{scannerNaik.pause();prosesQRNaik(text);},()=>{}
         ).catch(e=>{
             showToast('Gagal: '+e,'error');
