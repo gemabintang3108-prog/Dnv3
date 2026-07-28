@@ -1423,7 +1423,7 @@ async function generateKartuCanvas({ nama, agama, kode, colorKey }) {
     ctx.drawImage(qrImg, qrX, qrY, qrSize, qrSize);
     
     // ===== NAMA SISWA (DIPERBAIKI) =====
-const displayName = (nama || '').toUpperCase();
+let displayName = (nama || '').toUpperCase();
 
 // BATAS LEBAR NAMA (70% dari kartu, biar ga kepanjangan)
 const maxW = CARD_W * 0.66;  // ← DIPERKECIL DARI 0.85 JADI 0.70
@@ -1536,6 +1536,7 @@ ctx.shadowBlur = 0;
         if (screen === 'home') updateHomeStats();
         if (screen === 'laporan') updateDashboard();
         if (screen === 'scan' && isLogin) listenPresensi();
+        else if (currentPresensiRef) { currentPresensiRef.off(); currentPresensiRef = null; }
     };
 
     function initDropdownBulan() {
@@ -1582,7 +1583,7 @@ ctx.shadowBlur = 0;
             isLogin = true;
             document.getElementById('loginOverlay').style.display = 'none';
             document.getElementById('btnLogoutNav').style.display = '';
-            listenPresensi(); updateHomeStats(); updateDashboard();
+            updateHomeStats(); updateDashboard();
         }
     };
 
@@ -1592,7 +1593,9 @@ ctx.shadowBlur = 0;
         document.getElementById('loginPlaceholder').style.display='none';
         document.getElementById('loginError').style.display='none';
         scannerLogin = new Html5Qrcode("readerLogin");
-        scannerLogin.start({facingMode:"environment"},{fps:10,qrbox:160},
+        scannerLogin.start(
+            { facingMode: "environment", width: { ideal: 640 }, height: { ideal: 480 } },
+            { fps: 15, qrbox: 160, disableFlip: true, experimentalFeatures: { useBarCodeDetectorIfSupported: true } },
             text=>{
                 scannerLogin.stop();
                 document.getElementById('btnLoginStop').style.display='none';
@@ -1624,7 +1627,7 @@ ctx.shadowBlur = 0;
         document.getElementById('loginOverlay').style.display='none';
         document.getElementById('btnLogoutNav').style.display='';
         navigateTo('home');
-        listenPresensi(); updateHomeStats(); updateDashboard();
+        updateHomeStats(); updateDashboard();
         showToast('Login berhasil!','success');
         playBeep('success');
     }
@@ -1702,27 +1705,47 @@ ctx.shadowBlur = 0;
         if(v&&v!=='__ALL__') listenPresensi(v);
     };
 
+    let logRenderScheduled = false, logRenderSnapshotVal = null;
+    const LOG_LIST_MAX_RENDER = 40;
+
+    function scheduleLogRender(dataVal) {
+        logRenderSnapshotVal = dataVal;
+        if (logRenderScheduled) return;
+        logRenderScheduled = true;
+        requestAnimationFrame(() => {
+            logRenderScheduled = false;
+            renderLogPresensi(logRenderSnapshotVal);
+        });
+    }
+
+    function renderLogPresensi(d) {
+        const entries = Object.values(d || {});
+        const th = entries.filter(e => e.status !== 'TIDAK HADIR').length;
+        const totalHadirEl = document.getElementById('totalHadir');
+        if (totalHadirEl) totalHadirEl.innerText = th;
+        const homeHadirEl = document.getElementById('homeHadir');
+        if (homeHadirEl) homeHadirEl.innerText = th;
+        const lc = document.getElementById('logPresensi');
+        if (!lc) return;
+        if (entries.length === 0) { lc.innerHTML = '<div class="empty-placeholder"><i class="fas fa-inbox"></i><p>Belum ada presensi</p></div>'; return; }
+        entries.sort((a, b) => (b.timestamp || 0) - (a.timestamp || 0));
+        const shown = entries.slice(0, LOG_LIST_MAX_RENDER);
+        lc.innerHTML = shown.map(e => {
+            let cls = '', bc = 'chip-hadir', bt = `#${e.totalHadir}`;
+            if (e.status === 'TIDAK HADIR') { cls = 'entry-alpa'; bc = 'chip-alpa'; bt = 'ALPA'; }
+            else if (e.jam === 'HAID') { cls = 'entry-haid'; bc = 'chip-haid'; bt = 'HAID'; }
+            else if (e.jam === 'KEPUTRIAN') { cls = 'entry-keputrian'; bt = 'PUTRI'; }
+            else if (e.status === 'IBADAH') { cls = 'entry-nonislam'; bt = 'IBADAH'; }
+            return `<div class="log-entry ${cls}"><div><div class="log-entry-name">${e.nama}</div><div class="log-entry-detail">${e.kelas} • ${e.status}${e.status !== 'TIDAK HADIR' ? ' • ' + e.jam : ''}</div></div><div class="chip ${bc}">${bt}</div></div>`;
+        }).join('') + (entries.length > LOG_LIST_MAX_RENDER ? `<div style="text-align:center;font-size:10px;color:var(--text-tertiary);padding:8px;">+${entries.length - LOG_LIST_MAX_RENDER} lainnya (lihat Download)</div>` : '');
+    }
+
     window.listenPresensi = function(tk) {
-        if(currentPresensiRef)currentPresensiRef.off();
-        const td=(tk&&tk!=='__ALL__')?tk:new Date().toLocaleDateString('id-ID').replace(/\//g,'-');
-        currentPresensiRef=db.ref('presensi/'+td);
-        currentPresensiRef.on('value',snap=>{
-            const d=snap.val()||{},entries=Object.values(d);
-            const th=entries.filter(e=>e.status!=='TIDAK HADIR').length;
-            document.getElementById('totalHadir')&&(document.getElementById('totalHadir').innerText=th);
-            document.getElementById('homeHadir')&&(document.getElementById('homeHadir').innerText=th);
-            const lc=document.getElementById('logPresensi');
-            if(!lc)return;
-            if(entries.length===0){lc.innerHTML='<div class="empty-placeholder"><i class="fas fa-inbox"></i><p>Belum ada presensi</p></div>';return;}
-            entries.sort((a,b)=>(b.timestamp||0)-(a.timestamp||0));
-            lc.innerHTML=entries.map(e=>{
-                let cls='',bc='chip-hadir',bt=`#${e.totalHadir}`;
-                if(e.status==='TIDAK HADIR'){cls='entry-alpa';bc='chip-alpa';bt='ALPA';}
-                else if(e.jam==='HAID'){cls='entry-haid';bc='chip-haid';bt='HAID';}
-                else if(e.jam==='KEPUTRIAN'){cls='entry-keputrian';bt='PUTRI';}
-                else if(e.status==='IBADAH'){cls='entry-nonislam';bt='IBADAH';}
-                return `<div class="log-entry ${cls}"><div><div class="log-entry-name">${e.nama}</div><div class="log-entry-detail">${e.kelas} • ${e.status}${e.status!=='TIDAK HADIR'?' • '+e.jam:''}</div></div><div class="chip ${bc}">${bt}</div></div>`;
-            }).join('');
+        if (currentPresensiRef) currentPresensiRef.off();
+        const td = (tk && tk !== '__ALL__') ? tk : new Date().toLocaleDateString('id-ID').replace(/\//g, '-');
+        currentPresensiRef = db.ref('presensi/' + td);
+        currentPresensiRef.on('value', snap => {
+            scheduleLogRender(snap.val() || {});
         });
     };
 
@@ -1772,7 +1795,12 @@ ctx.shadowBlur = 0;
         document.getElementById('cameraPlaceholder').style.display='none';
         scanner=new Html5Qrcode("reader");
         try{
-            await scanner.start({facingMode:"environment"},{fps:5,qrbox:{width:240,height:240},aspectRatio:1.333},text=>{scanner.pause();prosesQR(text);},()=>{});
+            await scanner.start(
+                { facingMode: "environment", width: { ideal: 640 }, height: { ideal: 480 } },
+                { fps: 15, qrbox: { width: 240, height: 240 }, disableFlip: true, experimentalFeatures: { useBarCodeDetectorIfSupported: true } },
+                text=>{scanner.pause();prosesQR(text);},
+                ()=>{}
+            );
             showToast('Kamera aktif','success');
         }catch(e){
             showToast('Gagal: '+e,'error');
@@ -1785,7 +1813,14 @@ ctx.shadowBlur = 0;
         try{if(scanner?.isScanning)await scanner.stop();}catch(e){}
         facingMode=facingMode==='environment'?'user':'environment';
         scanner=new Html5Qrcode("reader");
-        try{await scanner.start({facingMode},{fps:5,qrbox:{width:240,height:240},aspectRatio:1.333},text=>{scanner.pause();prosesQR(text);},()=>{});}catch(e){}
+        try{
+            await scanner.start(
+                { facingMode, width: { ideal: 640 }, height: { ideal: 480 } },
+                { fps: 15, qrbox: { width: 240, height: 240 }, disableFlip: true, experimentalFeatures: { useBarCodeDetectorIfSupported: true } },
+                text=>{scanner.pause();prosesQR(text);},
+                ()=>{}
+            );
+        }catch(e){}
     };
 
     window.stopCam = function() {
@@ -1860,13 +1895,13 @@ ctx.shadowBlur = 0;
             await pr.set({nama,kelas,absen,jk,agama,jam,status,totalHadir:th,timestamp:Date.now()});
             const msg=mode==='Haid'?'Tercatat Haid':mode==='Keputrian'?'Hadir Keputrian':`Hadir ke-${th}`;
             feedback('✅',nama,msg,'var(--accent-green)');
-            showToast(`${nama} — ${msg}`,'success');playBeep('success');updateDashboard();
+            showToast(`${nama} — ${msg}`,'success');playBeep('success');
         }catch(e){
             feedback('❌','GAGAL',e.toString(),'var(--accent-red)');
             showToast(e.toString(),'error');playBeep('error');
         }
         document.getElementById('loadingOverlay').classList.remove('show');
-        setTimeout(()=>{try{scanner?.resume();}catch(e){}},2000);
+        setTimeout(()=>{try{scanner?.resume();}catch(e){}},800);
     }
 
     function feedback(icon,name,msg,bg) {
@@ -1876,7 +1911,7 @@ ctx.shadowBlur = 0;
         document.getElementById('fbMsg').innerText=msg;
         document.getElementById('fbBox').style=`text-align:center;padding:24px 32px;border-radius:16px;background:${bg};`;
         fb.classList.add('show');
-        setTimeout(()=>fb.classList.remove('show'),2000);
+        setTimeout(()=>fb.classList.remove('show'),1200);
     }
 
     async function loadManualAbsenOptions() {
@@ -2189,7 +2224,11 @@ ctx.shadowBlur = 0;
     window.startScanNaikKelas = function() {
         document.getElementById('btnStartNaik').style.display='none';document.getElementById('btnStopNaik').style.display='';
         scannerNaik=new Html5Qrcode("readerNaik");
-        scannerNaik.start({facingMode:"environment"},{fps:10,qrbox:180},text=>{scannerNaik.pause();prosesQRNaik(text);},()=>{}).catch(e=>{
+        scannerNaik.start(
+            { facingMode: "environment", width: { ideal: 640 }, height: { ideal: 480 } },
+            { fps: 15, qrbox: 180, disableFlip: true, experimentalFeatures: { useBarCodeDetectorIfSupported: true } },
+            text=>{scannerNaik.pause();prosesQRNaik(text);},()=>{}
+        ).catch(e=>{
             showToast('Gagal: '+e,'error');
             document.getElementById('btnStartNaik').style.display='';document.getElementById('btnStopNaik').style.display='none';
         });
