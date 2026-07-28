@@ -1810,7 +1810,11 @@ ctx.shadowBlur = 0;
     };
 
     window.flipCam = async function() {
-        try{if(scanner?.isScanning)await scanner.stop();}catch(e){}
+        try{
+            if(scanner?.isScanning) await scanner.stop();
+            scanner?.clear();
+        }catch(e){}
+        await new Promise(r=>setTimeout(r,350));
         facingMode=facingMode==='environment'?'user':'environment';
         scanner=new Html5Qrcode("reader");
         try{
@@ -1820,7 +1824,10 @@ ctx.shadowBlur = 0;
                 text=>{scanner.pause();prosesQR(text);},
                 ()=>{}
             );
-        }catch(e){}
+        }catch(e){
+            showToast('Gagal ganti kamera: '+e,'error');
+            facingMode=facingMode==='environment'?'user':'environment';
+        }
     };
 
     window.stopCam = function() {
