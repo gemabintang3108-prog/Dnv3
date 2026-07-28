@@ -1298,9 +1298,10 @@
 
     function loadImage(src) {
         return new Promise((resolve,reject)=>{
+            if (!src) { reject(new Error('Sumber gambar kosong')); return; }
             const img = new Image();
             img.onload = ()=>resolve(img);
-            img.onerror = reject;
+            img.onerror = ()=>reject(new Error('Gagal memuat gambar (src tidak valid/kosong)'));
             img.src = src;
         });
     }
@@ -1319,10 +1320,19 @@
         div.style.cssText = 'position:absolute;left:-9999px;top:-9999px;';
         document.body.appendChild(div);
         new QRCode(div, { text, width:size, height:size, correctLevel: QRCode.CorrectLevel.M });
-        await new Promise(r=>setTimeout(r,150));
-        const el = div.querySelector('img') || div.querySelector('canvas');
+        // Canvas biasanya sudah tergambar sinkron saat konstruksi; kalau belum, tunggu render dulu.
+        let el = div.querySelector('canvas');
+        if (!el || el.width === 0) {
+            await new Promise(r=>setTimeout(r,350));
+            el = div.querySelector('canvas') || div.querySelector('img');
+        }
+        if (!el) {
+            document.body.removeChild(div);
+            throw new Error('Gagal membuat QR code (elemen tidak ditemukan)');
+        }
         const url = el.tagName==='CANVAS' ? el.toDataURL('image/png') : el.src;
         document.body.removeChild(div);
+        if (!url || url === 'data:,') throw new Error('QR code gagal dirender (kosong)');
         return url;
     }
 
