@@ -57,7 +57,7 @@ button{width:100%;margin-top:8px;padding:11px;border-radius:10px;border:1px soli
     <h2 id="mNama"></h2>
     <p id="mInfo"></p>
     <div class="row">
-      <input type="time" id="mJam" title="Jam sholat sebenarnya">
+      <input type="time" id="mJam" step="1" title="Jam sholat sebenarnya (jam:menit:detik)">
       <select id="mAlasan">
         <option>Tidak bawa QR</option>
         <option>Scan gagal</option>
@@ -167,7 +167,7 @@ function renderModal(){
     const h=P[fk(d)][id];
     let c='e',t='Kosong';
     if(h&&h.status==='TIDAK HADIR'){c='a';t='Alpa'}
-    else if(h&&h.koreksi){c='m';t='Koreksi '+(h.jam||'').slice(0,5)}
+    else if(h&&h.koreksi){c='m';t='Koreksi '+(h.jam||'')}
     else if(h){c='h';t='Hadir (scan)'}
     return `<div class="day ${c}" onclick="toggle(${i})"><span>${HARI[d.getDay()]}, ${fk(d)}</span><span class="tag">${t}</span></div>`;
   }).join('');
@@ -175,6 +175,10 @@ function renderModal(){
 
 async function ubahTotal(n){
   await db.ref(`siswa/${cur.kelas}/${cur.absen}/totalHadir`).transaction(v=>Math.max(0,(v||0)+n));
+}
+function tsJam(d,jam){
+  const [hh,mm,ss]=jam.split(':').map(Number);
+  return new Date(d.getFullYear(),d.getMonth(),d.getDate(),hh,mm,ss||0).getTime();
 }
 function catat(aksi,key,extra){
   db.ref('logPriv').push({ts:Date.now(),aksi,kelas:cur.kelas,absen:cur.absen,nama:cur.nama,tanggal:key,...(extra||{})});
@@ -185,7 +189,8 @@ async function toggle(i){
   const d=days[i],key=fk(d),id=cur.kelas+'_'+cur.absen,h=P[key][id];
   if(h&&h.status!=='TIDAK HADIR'&&!h.koreksi){toast('Ini hasil scan asli, tidak bisa diubah');return}
   const hapus=h&&h.koreksi&&h.status!=='TIDAK HADIR';
-  const jam=document.getElementById('mJam').value;
+  const jamRaw=document.getElementById('mJam').value;
+  const jam=jamRaw.length===5?jamRaw+':00':jamRaw;
   const alasan=document.getElementById('mAlasan').value;
   if(!hapus&&!jam){toast('Isi jam sholat sebenarnya dulu');return}
   busy=true;
@@ -196,7 +201,7 @@ async function toggle(i){
       delete P[key][id];
     }else{
       const isl=String(cur.agama||'').trim().toLowerCase()==='islam';
-      const o={nama:cur.nama,kelas:cur.kelas,absen:cur.absen,jk:cur.jk||'',agama:cur.agama||'',jam:jam+':00',status:isl?'DZUHUR':'IBADAH',totalHadir:(cur.totalHadir||0)+1,timestamp:Date.now(),koreksi:true,alasan};
+      const o={nama:cur.nama,kelas:cur.kelas,absen:cur.absen,jk:cur.jk||'',agama:cur.agama||'',jam:jam,status:isl?'DZUHUR':'IBADAH',totalHadir:(cur.totalHadir||0)+1,timestamp:tsJam(d,jam),koreksi:true,alasan};
       await ref.set(o);await ubahTotal(1);catat('tambah_manual',key,{jam,alasan});
       P[key][id]=o;
     }
